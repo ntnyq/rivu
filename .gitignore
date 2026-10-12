@@ -1,0 +1,13 @@
+.DS_Store
+node_modules
+*.log*
+*.local
+
+dist/
+/build/
+/snapshots/
+/.mygo/
+/starter-mygo
+*.test
+*.prof
+coverage.out

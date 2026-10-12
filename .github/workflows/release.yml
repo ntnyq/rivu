@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version without v (for example, 0.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Prepare version and changelog
+        run: |
+          python3 <<'PY'
+          import datetime
+          import json
+          import os
+          import pathlib
+          import re
+          import subprocess
+
+          def git(*args):
+              return subprocess.check_output(["git", *args], text=True).strip()
+
+          version = os.environ["RELEASE_VERSION"]
+          if not re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", version):
+              raise SystemExit("Use a stable version such as 0.1.0, without v.")
+          tag = "v" + version
+          if git("tag", "--list", tag):
+              raise SystemExit(f"Tag {tag} already exists; refusing to overwrite it.")
+          branch = os.environ["RELEASE_BRANCH"]
+          remote_head = git("ls-remote", "origin", f"refs/heads/{branch}").split()[0]
+          if remote_head != git("rev-parse", "HEAD"):
+              raise SystemExit("The default branch has changed; start a new workflow run.")
+
+          config_path = pathlib.Path("mygo.json")
+          config = json.loads(config_path.read_text())
+          if tuple(map(int, version.split("."))) < tuple(map(int, config["version"].split("."))):
+              raise SystemExit("The release version cannot be lower than mygo.json.")
+          source_path = pathlib.Path("main.go")
+          source, count = re.subn(r'^const version = "[^"\n]+"$', f'const version = "{version}"', source_path.read_text(), flags=re.MULTILINE)
+          if count != 1:
+              raise SystemExit("Expected exactly one version constant in main.go.")
+
+          tags = git("tag", "--merged", "HEAD", "--sort=-version:refname").splitlines()
+          previous = next((value for value in tags if re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", value)), None)
+          if previous and tuple(map(int, version.split("."))) <= tuple(map(int, previous[1:].split("."))):
+              raise SystemExit("The release version must be newer than the previous tag.")
+          commits = git("log", "--reverse", "--format=- %s (%h)", f"{previous}..HEAD" if previous else "HEAD")
+          if not commits:
+              raise SystemExit("There are no commits to release.")
+          date = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+          notes = f"## {version} ({date})\n\n{commits}\n"
+          if previous:
+              url = f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}'
+              notes += f"\n[Full Changelog]({url}/compare/{previous}...{tag})\n"
+          changelog_path = pathlib.Path("CHANGELOG.md")
+          changelog = changelog_path.read_text() if changelog_path.exists() else "# Changelog\n"
+          if not changelog.startswith("# Changelog\n"):
+              raise SystemExit("CHANGELOG.md must start with '# Changelog'.")
+
+          config["version"] = version
+          config_path.write_text(json.dumps(config, ensure_ascii=False, indent=2) + "\n")
+          source_path.write_text(source)
+          history = changelog.removeprefix("# Changelog\n").lstrip()
+          changelog_path.write_text("# Changelog\n\n" + notes + ("\n" + history if history else ""))
+          pathlib.Path(os.environ["RUNNER_TEMP"], "release-notes.md").write_text(notes)
+          PY
+      - name: Verify formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Test with race detector
+        run: go test -race ./...
+      - name: Vet Go and native UI
+        run: |
+          go vet ./...
+          go tool mygo vet
+      - name: Build release packages
+        run: go tool mygo build -platform darwin/universal
+      - name: Collect release assets
+        run: |
+          mkdir -p build/release
+          cp build/darwin-universal/*.dmg build/release/
+          cp "$RUNNER_TEMP/release-notes.md" build/release/RELEASE_NOTES.md
+          cd build/release
+          shasum -a 256 ./*.dmg ./RELEASE_NOTES.md > SHA256SUMS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-v${{ inputs.version }}
+          path: build/release/
+          if-no-files-found: error
+      - name: Commit version and create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.go mygo.json CHANGELOG.md
+          git commit -m "chore: release v${RELEASE_VERSION}"
+          git tag -a "v${RELEASE_VERSION}" -m "Release v${RELEASE_VERSION}"
+          git push --atomic origin "HEAD:refs/heads/${RELEASE_BRANCH}" "refs/tags/v${RELEASE_VERSION}"
+      - name: Create GitHub Release and upload assets
+        run: |
+          gh release create "v${RELEASE_VERSION}" build/release/* \
+            --verify-tag --draft \
+            --title "v${RELEASE_VERSION}" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"

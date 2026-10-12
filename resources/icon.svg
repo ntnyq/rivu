@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <title>Rivu — streams converge</title>
+  <defs>
+    <linearGradient id="water" x1="180" y1="100" x2="844" y2="924" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#28BBAE"/><stop offset=".5" stop-color="#087F95"/><stop offset="1" stop-color="#195BB7"/>
+    </linearGradient>
+    <linearGradient id="light" x1="512" y1="90" x2="512" y2="920" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white" stop-opacity=".25"/><stop offset="1" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="80" y="88" width="864" height="864" rx="194" fill="#08375C" fill-opacity=".16"/>
+  <rect x="80" y="72" width="864" height="864" rx="194" fill="url(#water)"/>
+  <rect x="88" y="80" width="848" height="848" rx="186" stroke="url(#light)" stroke-width="4"/>
+  <path d="M320 279v142c0 89 54 145 145 145h119" stroke="#FFF" stroke-width="78" stroke-linecap="round"/>
+  <path d="M583 268v358" stroke="#FFF" stroke-width="78" stroke-linecap="round"/>
+  <path d="m460 535 123 124 123-124" stroke="#FFF" stroke-width="78" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M302 754h404" stroke="#A7EFE4" stroke-width="47" stroke-linecap="round"/>
+</svg>

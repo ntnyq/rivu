@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Verify formatting
+        run: test -z "$(gofmt -l .)"
+      - name: Test with race detector
+        run: go test -race ./...
+      - name: Local swarm integration
+        run: make integration
+      - name: Vet Go and native UI
+        run: |
+          go vet ./...
+          go tool mygo vet
+      - name: Compile Windows and Linux
+        run: |
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o build/rivu.exe .
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o build/rivu-linux .
+      - name: Build macOS app
+        run: go tool mygo build -skip-dmg
+      - uses: actions/upload-artifact@v7
+        with:
+          name: desktop-builds
+          path: build/
