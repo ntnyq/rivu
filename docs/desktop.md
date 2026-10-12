@@ -32,3 +32,31 @@ On the development macOS arm64 host, the app bundle builds with ad-hoc signing, 
 MyGo v0.4.3 exposes boolean login observation and notification support, not every OS authorization state. Rivu reports observed values and original errors without inferring richer permission states. The detailed native status adapters proposed in the plan remain a release gap.
 
 Windows and Linux compilation do not establish desktop support. Safe file ownership currently has a macOS/Linux adapter; unsupported platforms refuse payload writes. Do not publish Windows packages as functional download clients until that adapter and native testing exist.
+
+## Visual parity checks
+
+The menu bar content uses the design palette even when AppKit reports vibrancy.
+Its height follows up to four preview rows (including paused tasks), with a compact
+304 pt empty state. Pause and speed-limit actions sit above the footer; Add Download
+and Settings sit beside Open Main Window. Main task rows use 102 pt spacing and
+23 pt top-aligned controls, with the drop hint below the list.
+
+`make snapshots` includes the 1280 × 818 design comparison size, empty/populated
+menu bar panels, and a native-material rendering path in both appearances.
+`TestTrayLayoutAndMaterial` checks material opacity and footer bounds.
+
+To capture the actual AppKit popover with an isolated session, quit other Rivu
+instances, then run (the capture process quits after writing the PNG):
+
+```sh
+rtk proxy env RIVU_CAPTURE="$PWD/snapshots/native-tray.png" RIVU_CAPTURE_SURFACE=tray \
+  build/darwin-arm64/Rivu.app/Contents/MacOS/Rivu --data-dir /tmp/rivu-tray-review
+```
+
+This captures native content; the OS-owned arrow, outer corner shape, shadow and
+multi-monitor positioning still require interactive inspection.
+
+On October 12, 2026, the macOS arm64 build was rechecked with native main-window
+inspection and a successful AppKit popover content capture. Unit tests, race tests,
+the isolated swarm integration suite, Go vet and MyGo vet passed. The installed
+`/Applications/Rivu.app` is separate from the rebuilt app under `build/darwin-arm64/`.

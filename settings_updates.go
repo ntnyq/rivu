@@ -40,12 +40,12 @@ func (w *window) updateSettingsView(c *ui.Context, p palette) {
 			if s.State == "installing" && s.Total > 0 {
 				progressTrack(c, float64(s.Downloaded)/float64(s.Total), p.blue, p.track, 3)
 			}
-			if (s.State == "available" || s.State == "installFailed") && ui.PrimaryButton(c, "下载并安装更新…").FontSize(11).Disabled(w.task.Running()).Clicked() {
+			if (s.State == "available" || s.State == "installFailed") && actionButton(c, "download", "下载并安装更新…", true).FontSize(11).Disabled(w.task.Running()).Clicked() {
 				w.run("安装更新", func(ctx context.Context) (string, error) {
 					return "安装完成，请重启", w.app.updater.Install(ctx, false)
 				}, nil)
 			}
-			if s.State == "restartRequired" && ui.PrimaryButton(c, "保存并重启").FontSize(11).Clicked() {
+			if s.State == "restartRequired" && actionButton(c, "refresh", "保存并重启", true).FontSize(11).Clicked() {
 				w.app.relaunch = true
 				mygo.App.Quit()
 			}
@@ -59,14 +59,14 @@ func (w *window) updateSettingsView(c *ui.Context, p palette) {
 		w.settings.AutoInstall = false
 	}
 	ui.Row(c).Gap(8).Children(func() {
-		if ui.Button(c, "检查更新").FontSize(11).Disabled(!available || w.task.Running()).Clicked() {
+		if actionButton(c, "refresh", "检查更新", false).FontSize(11).Disabled(!available || w.task.Running()).Clicked() {
 			w.run("检查更新", func(ctx context.Context) (string, error) { return "检查完成", w.app.updater.Check(ctx) }, nil)
 		}
 		ui.Spacer(c)
-		if ui.Button(c, "产品网站").FontSize(11).Clicked() {
+		if actionButton(c, "globe", "产品网站", false).FontSize(11).Clicked() {
 			w.openURL(website)
 		}
-		if ui.Button(c, "GitHub").FontSize(11).Clicked() {
+		if actionButton(c, "github", "GitHub", false).FontSize(11).Clicked() {
 			w.openURL(repository)
 		}
 	})

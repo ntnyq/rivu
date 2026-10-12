@@ -194,14 +194,14 @@ func (d *addWindow) view(c *ui.Context) {
 				ui.TextArea(c, &d.input).Label("下载来源，每行一个").Placeholder("magnet:?xt=urn:btih:… 每行一个来源").Height(62).FontSize(12).Disabled(d.task.Running())
 				ui.Text(c, "也可以选择本地 .torrent 文件。").FontSize(10).TextColor(p.muted)
 				ui.Row(c).Gap(8).Children(func() {
-					if ui.Button(c, "选择种子文件…").FontSize(11).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "folder", "选择种子文件…", false).FontSize(11).Disabled(d.task.Running()).Clicked() {
 						d.pickTorrents()
 					}
-					if ui.Button(c, "粘贴链接").FontSize(11).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "clipboard", "粘贴链接", false).FontSize(11).Disabled(d.task.Running()).Clicked() {
 						d.paste()
 					}
 					ui.Spacer(c)
-					if ui.Button(c, "读取并审阅").FontSize(11).TextColor(p.blue).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "search", "读取并审阅", false).FontSize(11).TextColor(p.blue).Disabled(d.task.Running()).Clicked() {
 						d.prepare()
 					}
 				})
@@ -252,7 +252,7 @@ func (d *addWindow) view(c *ui.Context) {
 				ui.Text(c, "保存到").FontSize(12).Bold().Padding(11, 0, 0, 0)
 				ui.Row(c).Gap(10).Children(func() {
 					ui.TextInput(c, &d.destination).Label("保存位置").FontSize(12).Grow(1)
-					if ui.Button(c, "选择…").FontSize(11).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "folder", "选择…", false).FontSize(11).Disabled(d.task.Running()).Clicked() {
 						d.pickFolder()
 					}
 				})
@@ -280,10 +280,10 @@ func (d *addWindow) view(c *ui.Context) {
 		}
 		ui.Row(c).Padding(15, 25).Gap(9).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Children(func() {
 			ui.Spacer(c)
-			if ui.Button(c, "取消").FontSize(12).Clicked() {
+			if actionButton(c, "x", "取消", false).FontSize(12).Clicked() {
 				d.win.Close()
 			}
-			if ui.PrimaryButton(c, "添加下载").FontSize(12).Disabled(!valid || d.task.Running() || d.input != d.preparedInput).Clicked() {
+			if actionButton(c, "plus", "添加下载", true).FontSize(12).Disabled(!valid || d.task.Running() || d.input != d.preparedInput).Clicked() {
 				d.submit()
 			}
 		})

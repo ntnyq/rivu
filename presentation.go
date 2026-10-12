@@ -98,3 +98,13 @@ func magnet(t session.Task) string {
 	}
 	return "magnet:?" + v.Encode()
 }
+
+func taskPercent(t session.Task) string {
+	if t.Metadata == "" {
+		return "—"
+	}
+	if progress(t) >= 1 {
+		return "100%"
+	}
+	return fmt.Sprintf("%.1f%%", progress(t)*100)
+}

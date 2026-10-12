@@ -12,7 +12,7 @@ func (w *window) inspectorView(c *ui.Context) {
 	ui.Column(c).Width(271).Shrink(0).FillHeight().Padding(22, 18).Gap(0).Background(p.alt).BorderWidth(0, 0, 0, 1).BorderColor(p.line).Children(func() {
 		t := w.chosen()
 		if t == nil {
-			ui.Text(c, "任务详情").FontSize(14).Bold()
+			ui.Text(c, "任务详情").FontSize(14).FontWeight(600)
 			ui.Text(c, "选择一个任务以查看详细信息。").FontSize(11).TextColor(p.muted).Padding(20, 0)
 			return
 		}
@@ -21,7 +21,7 @@ func (w *window) inspectorView(c *ui.Context) {
 			ui.Spacer(c)
 			ui.Text(c, phases[t.Phase]).FontSize(10).TextColor(taskColor(c, t.Phase)).Padding(4, 7).Radius(5).Background(p.soft)
 		})
-		ui.Text(c, t.Source.Name).FontSize(14).Bold().MaxLines(3).Padding(17, 0, 6, 0)
+		ui.Text(c, t.Source.Name).FontSize(14).FontWeight(600).MaxLines(3).Padding(17, 0, 6, 0)
 		subtitle := "文件 · " + bytes(t.TotalSize)
 		if t.Metadata == "" {
 			subtitle = "等待元数据"
@@ -45,7 +45,7 @@ func (w *window) inspectorView(c *ui.Context) {
 				case 0:
 					ui.Text(c, "下载进度").FontSize(10).TextColor(p.muted)
 					ui.Row(c).Gap(2).AlignItems(ui.End).Padding(8, 0, 9, 0).Children(func() {
-						ui.Text(c, fmt.Sprintf("%.1f", progress(*t)*100)).FontSize(26).Bold()
+						ui.Text(c, fmt.Sprintf("%.1f", progress(*t)*100)).FontSize(26).FontWeight(600)
 						ui.Text(c, "%").FontSize(13).TextColor(p.muted)
 					})
 					progressTrack(c, progress(*t), taskColor(c, t.Phase), p.track, 4)
@@ -98,7 +98,7 @@ func (w *window) inspectorView(c *ui.Context) {
 						note = fmt.Sprintf("分享率达到 %.1f 时自动停止", t.SeedRatio)
 					}
 					ui.Text(c, seed+"\n"+note).FontSize(10).TextColor(p.muted).Padding(18, 0, 0, 0)
-					change := ui.Button(c, "调整做种策略").FontSize(10).TextColor(p.blue).Margin(10, 0).Disabled(w.app == nil)
+					change := actionButton(c, "settings", "调整做种策略", false).FontSize(10).TextColor(p.blue).Margin(10, 0).Disabled(w.app == nil)
 					change.Menu(func(m *ui.Menu) {
 						for _, v := range []struct {
 							label string

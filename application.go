@@ -62,11 +62,15 @@ func (a *application) observe() {
 				}
 				snap := a.session.Snapshot()
 				mygo.RunOnMain(func() {
+					previousPanelHeight := presentTray(a.snapshot).height()
 					a.snapshot = snap
 					if a.window != nil && !a.window.closed {
 						a.window.dispatch(func() { a.window.snapshot = snap })
 					}
 					if a.panel != nil {
+						if height := presentTray(snap).height(); height != previousPanelHeight {
+							a.panel.SetSize(trayWidth, height)
+						}
 						a.panel.Update(func() {})
 					}
 					if a.settingsWindow != nil && !a.settingsWindow.closed {

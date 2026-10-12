@@ -63,35 +63,45 @@ func TestFilterSelectionAndEmptyState(t *testing.T) {
 func TestViewSnapshots(t *testing.T) {
 	s, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	for _, dark := range []bool{false, true} {
-		for _, size := range [][2]int{{1180, 760}, {880, 560}} {
-			w := newWindow(s)
-			w.snapshot = fixtureSnapshot()
-			w.diskFree = 128000000000
-			w.diskTotal = 512000000000
-			w.selectOnly("1")
-			if size[0] < 1060 {
-				w.inspector = false
-			}
-			tt := ui.NewTester(w.view, size[0], size[1])
-			tt.SetDark(dark)
-			tt.Frame()
-			if !tt.HasText("全部任务") {
-				t.Fatal("missing task screen")
-			}
-			if dir := os.Getenv("RIVU_SNAPSHOTS"); dir != "" {
-				_ = os.MkdirAll(dir, 0o755)
-				theme := "light"
-				if dark {
-					theme = "dark"
+		for _, size := range [][2]int{{1280, 818}, {1180, 760}, {880, 560}} {
+			for _, state := range []string{"tasks", "empty", "collapsed"} {
+				w := newWindow(s)
+				w.snapshot = fixtureSnapshot()
+				w.diskFree = 128000000000
+				w.diskTotal = 512000000000
+				w.selectOnly("1")
+				if state != "tasks" {
+					w.snapshot = session.Snapshot{}
+					w.sidebarHidden = state == "collapsed"
 				}
-				f, err := os.Create(filepath.Join(dir, fmt.Sprintf("%s-%d.png", theme, size[0])))
-				if err != nil {
-					t.Fatal(err)
+				if size[0] < 1060 {
+					w.inspector = false
 				}
-				if err = png.Encode(f, tt.Image()); err != nil {
-					t.Fatal(err)
+				tt := ui.NewTester(w.view, size[0], size[1])
+				tt.SetDark(dark)
+				tt.Frame()
+				if !tt.HasText("全部任务") {
+					t.Fatal("missing task screen")
 				}
-				f.Close()
+				if dir := os.Getenv("RIVU_SNAPSHOTS"); dir != "" {
+					_ = os.MkdirAll(dir, 0o755)
+					theme := "light"
+					if dark {
+						theme = "dark"
+					}
+					prefix := ""
+					if state != "tasks" {
+						prefix = state + "-"
+					}
+					f, err := os.Create(filepath.Join(dir, fmt.Sprintf("%s%s-%d.png", prefix, theme, size[0])))
+					if err != nil {
+						t.Fatal(err)
+					}
+					if err = png.Encode(f, tt.Image()); err != nil {
+						t.Fatal(err)
+					}
+					f.Close()
+				}
 			}
 		}
 	}
@@ -110,6 +120,7 @@ func TestAuxiliaryViewSnapshots(t *testing.T) {
 	store, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	w := newWindow(store)
 	app := &application{store: store, snapshot: fixtureSnapshot()}
+	emptyApp := &application{store: store}
 	add := &addWindow{window: newWindow(store), start: true, input: "Ubuntu 24.04.1 Desktop.torrent", preparedInput: "Ubuntu 24.04.1 Desktop.torrent", free: 128000000000, items: []importItem{{source: session.Source{Name: "Ubuntu 24.04.1 Desktop", Files: []session.File{{Path: "ubuntu-24.04.1-desktop-arm64.iso", Size: 5900000000, Priority: 1}}}}}}
 	for _, dark := range []bool{false, true} {
 		for _, v := range []struct {
@@ -120,10 +131,15 @@ func TestAuxiliaryViewSnapshots(t *testing.T) {
 			{"settings-general", func(c *ui.Context) { w.settingsTab = 0; w.settingsView(c) }, 750, 630},
 			{"settings-updates", func(c *ui.Context) { w.settingsTab = 4; w.settingsView(c) }, 750, 630},
 			{"add-download", add.view, 550, 660},
-			{"menu-bar", app.trayView, 360, 490},
+			{"menu-bar", app.trayView, trayWidth, presentTray(app.snapshot).height()},
+			{"menu-bar-empty", emptyApp.trayView, trayWidth, presentTray(emptyApp.snapshot).height()},
+			{"menu-bar-material", func(c *ui.Context) { app.trayView(c) }, trayWidth, presentTray(app.snapshot).height()},
 		} {
 			tt := ui.NewTester(v.view, v.width, v.height)
 			tt.SetDark(dark)
+			if v.name == "menu-bar-material" {
+				tt.SetVibrancy(true)
+			}
 			tt.Frame()
 			if dir := os.Getenv("RIVU_SNAPSHOTS"); dir != "" {
 				theme := "light"
@@ -138,6 +154,39 @@ func TestAuxiliaryViewSnapshots(t *testing.T) {
 					t.Fatal(err)
 				}
 				f.Close()
+			}
+		}
+	}
+}
+
+// Cover the native-material path too: a software-only opaque snapshot previously
+// hid the fully transparent background that appeared in the macOS popover.
+func TestTrayLayoutAndMaterial(t *testing.T) {
+	store, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
+	app := &application{store: store, snapshot: fixtureSnapshot()}
+	for _, dark := range []bool{false, true} {
+		for _, snapshot := range []session.Snapshot{fixtureSnapshot(), {}, {Tasks: fixtureSnapshot().Tasks[5:]}} {
+			app.snapshot = snapshot
+			preview := presentTray(snapshot)
+			tt := ui.NewTester(app.trayView, trayWidth, preview.height())
+			tt.SetDark(dark)
+			tt.SetVibrancy(true)
+			if alpha := tt.Image().RGBAAt(4, 40).A; alpha < 240 {
+				t.Fatalf("popover material has insufficient tint: alpha=%d", alpha)
+			}
+			for _, label := range []string{"打开主窗口", "添加下载", "设置", "限速模式"} {
+				r, ok := tt.Find(label)
+				if !ok || r.X < 0 || r.Y < 0 || r.X+r.W > trayWidth || r.Y+r.H > float32(preview.height()) {
+					t.Fatalf("%s clipped or missing at height %d: %+v", label, preview.height(), r)
+				}
+			}
+			if len(snapshot.Tasks) == 6 {
+				if !tt.HasText("LibreOffice 24.8 Archive") || !tt.HasText("8.4 MB/s") || !tt.HasText("1 个任务需要处理") {
+					t.Fatal("missing paused preview, transfer rate, or attention link")
+				}
+				if tt.HasText("Sintel") || tt.HasText("Fedora") {
+					t.Fatal("completed or error task included in preview")
+				}
 			}
 		}
 	}

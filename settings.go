@@ -106,7 +106,7 @@ func (w *window) settingsView(c *ui.Context) {
 									ui.Text(c, "默认下载位置").FontSize(12)
 									ui.Row(c).Gap(8).Children(func() {
 										ui.TextInput(c, &w.destination).Label("默认下载目录").FontSize(11).Grow(1).MinWidth(0)
-										if ui.Button(c, "选择…").FontSize(11).Clicked() {
+										if actionButton(c, "folder", "选择…", false).FontSize(11).Clicked() {
 											w.pickFolder()
 										}
 									})
@@ -144,7 +144,7 @@ func (w *window) settingsView(c *ui.Context) {
 				})
 				ui.Row(c).Gap(12).Children(func() {
 					ui.Text(c, w.status).FontSize(10).TextColor(p.muted).Grow(1).MinWidth(0).MaxLines(2)
-					if ui.PrimaryButton(c, "保存设置").FontSize(12).Disabled(w.task.Running()).Clicked() {
+					if actionButton(c, "check", "保存设置", true).FontSize(12).Disabled(w.task.Running()).Clicked() {
 						w.saveSettings()
 					}
 				})

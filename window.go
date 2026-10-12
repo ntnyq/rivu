@@ -23,6 +23,7 @@ type window struct {
 	store                                                                                                   *config.Store
 	settings                                                                                                config.Settings
 	snapshot                                                                                                session.Snapshot
+	sidebarHidden                                                                                           bool
 	selected                                                                                                map[string]bool
 	anchor                                                                                                  string
 	filter, sort, tab, settingsTab                                                                          int

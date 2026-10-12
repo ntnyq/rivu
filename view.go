@@ -17,7 +17,9 @@ func (w *window) view(c *ui.Context) {
 	}
 	root.Children(func() {
 		ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
-			w.sidebar(c, p)
+			if !w.sidebarHidden {
+				w.sidebar(c, p)
+			}
 			ui.Column(c).Grow(1).MinWidth(0).Children(func() {
 				w.toolbar(c, p)
 				ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
@@ -35,37 +37,26 @@ func (w *window) view(c *ui.Context) {
 								w.sort = (w.sort + 1) % 4
 							}
 						})
-						list := ui.Scroll(c).Key("downloads").Grow(1).MinHeight(0)
-						list.Children(func() {
-							ui.Column(c).Children(func() {
-								tasks := w.visible()
-								if len(tasks) == 0 {
-									ui.Column(c).Padding(90, 24).Gap(14).AlignItems(ui.Center).Children(func() {
-										glyph(c, "download", 44, p.blue)
-										title, detail := "让下载安静地流动", "添加种子文件或磁力链接，Rivu 会在后台继续下载。"
-										if len(w.snapshot.Tasks) > 0 {
-											title = "没有匹配的任务"
-											detail = "试试其他分类，或清除搜索内容。"
-										}
-										ui.Text(c, title).FontSize(17).Bold()
-										ui.Text(c, detail).FontSize(12).TextColor(p.muted)
-										if ui.PrimaryButton(c, "添加下载").Clicked() && w.app != nil {
-											w.app.openAdd(nil)
-										}
-									})
-								}
-								for _, task := range tasks {
-									w.taskRow(c, task, tasks)
-								}
+						tasks := w.visible()
+						if len(tasks) == 0 {
+							w.emptyDownloads(c, p)
+						} else {
+							list := ui.Scroll(c).Key("downloads").Grow(1).MinHeight(0)
+							list.Children(func() {
+								ui.Column(c).Children(func() {
+									for _, task := range tasks {
+										w.taskRow(c, task, tasks)
+									}
+								})
 							})
-						})
-						if list.Shortcut(0, ui.KeySpace) {
-							w.toggleSelected()
+							if list.Shortcut(0, ui.KeySpace) {
+								w.toggleSelected()
+							}
+							ui.Row(c).Height(64).Shrink(0).Justify(ui.Center).Gap(4).Children(func() {
+								glyph(c, "plus", 13, p.muted)
+								ui.Text(c, "将种子文件拖到这里，或粘贴磁力链接").FontSize(10).TextColor(p.muted)
+							})
 						}
-						ui.Row(c).Height(42).Shrink(0).Justify(ui.Center).Gap(5).Children(func() {
-							glyph(c, "plus", 12, p.muted)
-							ui.Text(c, "将种子文件拖到这里，或粘贴磁力链接").FontSize(10).TextColor(p.muted)
-						})
 					})
 					width, _ := c.Size()
 					if w.inspector && width >= 1060 {
@@ -84,7 +75,7 @@ func (w *window) view(c *ui.Context) {
 		ui.DialogBase(c, &open, func(_, panel ui.Element) {
 			panel.Width(310).Height(550).Children(func() {
 				w.inspectorView(c)
-				if ui.Button(c, "关闭详情").Clicked() {
+				if actionButton(c, "x", "关闭详情", false).Clicked() {
 					w.inspector = false
 				}
 			})
@@ -94,12 +85,35 @@ func (w *window) view(c *ui.Context) {
 		}
 	}
 }
+func (w *window) emptyDownloads(c *ui.Context, p palette) {
+	ui.Column(c).Key("empty-downloads").Grow(1).MinHeight(0).FillWidth().Padding(24).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
+		ui.Column(c).FillWidth().Gap(14).AlignItems(ui.Center).Children(func() {
+			glyph(c, "download", 44, p.blue)
+			title, detail := "让下载安静地流动", "添加种子文件或磁力链接，Rivu 会在后台继续下载。"
+			if len(w.snapshot.Tasks) > 0 {
+				title, detail = "没有匹配的任务", "试试其他分类，或清除搜索内容。"
+			}
+			ui.Text(c, title).FontSize(17).Bold().TextAlign(ui.Center)
+			ui.Text(c, detail).FontSize(12).TextColor(p.muted).TextAlign(ui.Center)
+			if actionButton(c, "plus", "添加下载", true).Clicked() && w.app != nil {
+				w.app.openAdd(nil)
+			}
+			ui.Text(c, "将种子文件拖到这里，或粘贴磁力链接").FontSize(10).TextColor(p.muted).TextAlign(ui.Center)
+		})
+	})
+}
+
 func (w *window) sidebar(c *ui.Context, p palette) {
 	ui.Column(c).Width(191).Shrink(0).Background(p.sidebar).BorderWidth(0, 1, 0, 0).BorderColor(p.line).Children(func() {
-		ui.Row(c).Height(58).Shrink(0).Padding(0, 18).DragWindow().Children(func() { ui.Spacer(c); glyph(c, "sidebar", 17, p.muted.Alpha(.65)) })
-		ui.Row(c).Height(31).Shrink(0).Padding(0, 14).Gap(7).Children(func() { ui.Image(c, appMark).Size(38, 38); ui.Text(c, "Rivu").FontSize(20).Bold() })
-		ui.Column(c).Padding(27, 12, 0, 12).Gap(3).Children(func() {
-			ui.Text(c, "任务库").FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 5, 10)
+		ui.Row(c).Height(58).Shrink(0).Padding(0, 18).Children(func() {
+			ui.Spacer(c).DragWindow()
+			if iconButton(c, "sidebar", "收起侧栏", true) {
+				w.sidebarHidden = true
+			}
+		})
+		ui.Row(c).Height(41).Shrink(0).Padding(10, 14, 0, 14).Gap(7).Children(func() { ui.Image(c, appMark).Size(38, 38); ui.Text(c, "Rivu").FontSize(20).Bold() })
+		ui.Column(c).Padding(29, 12, 0, 12).Gap(3).Children(func() {
+			ui.Text(c, "任务库").FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 8, 10)
 			icons := []string{"grid", "arrow-down", "arrow-up", "check", "pause", "alert"}
 			for i, label := range filters {
 				count := 0
@@ -169,7 +183,16 @@ func (w *window) sidebar(c *ui.Context, p palette) {
 	})
 }
 func (w *window) toolbar(c *ui.Context, p palette) {
-	ui.Row(c).Height(69).Shrink(0).Padding(0, 20).Gap(10).Background(p.alt).BorderWidth(0, 0, 1, 0).BorderColor(p.line).DragWindow().Children(func() {
+	left := float32(20)
+	if w.sidebarHidden {
+		left += c.TitleBar().Left
+	}
+	ui.Row(c).Height(69).Shrink(0).Padding(0, 20, 0, left).Gap(10).Background(p.alt).BorderWidth(0, 0, 1, 0).BorderColor(p.line).DragWindow().Children(func() {
+		if w.sidebarHidden {
+			if iconButton(c, "sidebar", "展开侧栏", true) {
+				w.sidebarHidden = false
+			}
+		}
 		ui.Column(c).Gap(4).Children(func() {
 			ui.Text(c, filters[w.filter]).FontSize(15).Bold()
 			ui.Text(c, fmt.Sprintf("%d 个任务", len(w.visible()))).FontSize(10).TextColor(p.muted)
@@ -266,25 +289,18 @@ func fileSymbol(c *ui.Context, t session.Task, large bool) {
 }
 func (w *window) taskRow(c *ui.Context, t session.Task, visible []session.Task) {
 	p := designTheme(c)
-	row := ui.Row(c).Key(t.ID).Padding(13, 17, 11, 17).Gap(12).Height(94).Shrink(0).BorderWidth(0, 0, 1, 0).BorderColor(p.line).Label(t.Source.Name).Focusable()
+	row := ui.Row(c).Key(t.ID).Padding(17, 17, 15, 17).Gap(12).AlignItems(ui.Start).Height(102).Shrink(0).BorderWidth(0, 0, 1, 0).BorderColor(p.line).Label(t.Source.Name).Focusable()
 	if w.selected[t.ID] {
 		row.Background(p.soft)
 	} else if row.Hovered() {
 		row.Background(p.alt)
 	}
 	row.Children(func() {
-		fileSymbol(c, t, false)
+		ui.Box(c).Margin(3, 0, 0, 0).Shrink(0).Children(func() { fileSymbol(c, t, false) })
 		ui.Column(c).Grow(1).MinWidth(0).Gap(6).Children(func() {
 			ui.Row(c).Gap(10).Children(func() {
-				ui.Text(c, t.Source.Name).FontSize(12).Bold().Grow(1).MinWidth(0).SingleLine()
-				percent := "—"
-				if t.Metadata != "" {
-					percent = fmt.Sprintf("%.1f%%", progress(t)*100)
-					if progress(t) >= 1 {
-						percent = "100%"
-					}
-				}
-				ui.Text(c, percent).FontSize(11).TextColor(p.muted)
+				ui.Text(c, t.Source.Name).FontSize(12).FontWeight(600).Grow(1).MinWidth(0).SingleLine()
+				ui.Text(c, taskPercent(t)).FontSize(11).TextColor(p.muted)
 			})
 			ui.Row(c).Gap(10).Children(func() {
 				text := bytes(t.Done) + " / " + bytes(t.Size)
@@ -299,7 +315,9 @@ func (w *window) taskRow(c *ui.Context, t session.Task, visible []session.Task) 
 				}
 				ui.Text(c, phases[t.Phase]).FontSize(10).TextColor(color)
 			})
-			progressTrack(c, progress(t), taskColor(c, t.Phase), p.track, 3)
+			ui.Box(c).Margin(4, 0, 1, 0).Children(func() {
+				progressTrack(c, progress(t), taskColor(c, t.Phase), p.track, 3)
+			})
 			ui.Row(c).Gap(10).Children(func() {
 				left, right := "↓ "+rate(t.DownRate)+"   ↑ "+rate(t.UpRate), eta(t)
 				color := p.blue
@@ -331,7 +349,7 @@ func (w *window) taskRow(c *ui.Context, t session.Task, visible []session.Task) 
 		if t.Error != "" {
 			icon = "alert"
 		}
-		if iconButton(c, icon, "操作 "+t.ID, true) && w.app != nil {
+		if compactIconButton(c, icon, "操作 "+t.ID, 23, 15, p.muted) && w.app != nil {
 			if t.Phase == "completed" {
 				w.reveal(t.Destination)
 			} else {
@@ -435,7 +453,7 @@ func (w *window) palette(c *ui.Context) {
 			if count == 0 {
 				ui.Text(c, "没有匹配的命令")
 			}
-			if ui.Button(c, "关闭命令面板").Clicked() {
+			if actionButton(c, "x", "关闭命令面板", false).Clicked() {
 				w.paletteOpen = false
 			}
 		})
@@ -449,10 +467,10 @@ func (w *window) confirmations(c *ui.Context) {
 				ui.Text(c, "默认保留已下载文件。移到废纸篓只处理这些任务拥有的文件。")
 				ui.Checkbox(c, &w.trashFiles, "同时将下载文件移到废纸篓")
 				ui.Row(c).Gap(10).Children(func() {
-					if ui.Button(c, "取消").Clicked() {
+					if actionButton(c, "x", "取消", false).Clicked() {
 						w.removeOpen = false
 					}
-					if ui.PrimaryButton(c, "确认移除").Clicked() {
+					if actionButton(c, "trash", "确认移除", true).Clicked() {
 						w.app.execute(session.Command{Kind: "remove", IDs: w.removeIDs, Trash: w.trashFiles})
 						w.removeOpen = false
 					}
@@ -467,10 +485,10 @@ func (w *window) confirmations(c *ui.Context) {
 				ui.Text(c, "下载和做种将中断。下次启动会按设置恢复。关闭主窗口可以继续在后台下载。")
 				ui.Checkbox(c, &w.rememberQuit, "以后退出时不再询问")
 				ui.Row(c).Gap(10).Children(func() {
-					if ui.Button(c, "继续下载").Clicked() {
+					if actionButton(c, "play", "继续下载", false).Clicked() {
 						w.quitConfirm = false
 					}
-					if ui.PrimaryButton(c, "保存并退出").Clicked() {
+					if actionButton(c, "check", "保存并退出", true).Clicked() {
 						w.quitConfirm = false
 						if w.rememberQuit {
 							w.saveQuitPreference()
