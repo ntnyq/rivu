@@ -90,3 +90,40 @@ func TestSavePreferencesPreservesConcurrentRuntimeChanges(t *testing.T) {
 		t.Fatal("saved settings disabled slow limits")
 	}
 }
+
+func TestLanguagePreferencePersistence(t *testing.T) {
+	for _, code := range []string{"system", "zh-Hans", "zh-Hant", "en", "ja", "ko"} {
+		t.Run(code, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "settings.json")
+			// Existing v2 files without a language remain valid and follow the system.
+			if err := os.WriteFile(path, []byte(`{"version":2,"theme":"dark"}`), 0600); err != nil {
+				t.Fatal(err)
+			}
+			store, err := Open(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if store.Snapshot().Language != "system" {
+				t.Fatal("old preferences did not follow system")
+			}
+			draft := store.Snapshot()
+			draft.Language = code
+			if err := store.SavePreferences(draft); err != nil {
+				t.Fatal(err)
+			}
+			reloaded, err := Open(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if reloaded.Snapshot().Language != code {
+				t.Fatal("language not persisted")
+			}
+			if err := store.Update(func(s *Settings) { s.Language = "unknown" }); err == nil {
+				t.Fatal("accepted invalid language")
+			}
+			if store.Snapshot().Language != code {
+				t.Fatal("failed write changed language")
+			}
+		})
+	}
+}

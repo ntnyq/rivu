@@ -24,7 +24,7 @@ fmt:
 check: test vet
 
 snapshots:
-	RIVU_SNAPSHOTS="$(CURDIR)/snapshots" go test . -run 'Test(View|AuxiliaryView)Snapshots' -count=1
+	RIVU_SNAPSHOTS="$(CURDIR)/snapshots" go test . -run 'Test(View|AuxiliaryView)Snapshots|TestLocalizedSurfaces' -count=1
 
 icon:
 	go run ./tools/genicon

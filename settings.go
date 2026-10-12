@@ -45,18 +45,17 @@ func switchRow(c *ui.Context, title, caption string, value *bool, line bool, ena
 func (w *window) settingsView(c *ui.Context) {
 	p := designTheme(c)
 	c.Root().Background(p.alt)
-	labels := []string{"通用", "下载与做种", "连接", "通知", "更新与关于"}
+	labels := []string{tr("通用"), tr("下载与做种"), tr("连接"), tr("通知"), tr("更新与关于")}
 	icons := []string{"settings", "download", "globe", "bell", "refresh"}
 	ui.Column(c).Fill().Children(func() {
-		ui.Row(c).Height(50).Shrink(0).Justify(ui.Center).Background(p.sidebar).BorderWidth(0, 0, 1, 0).BorderColor(p.line).DragWindow().Children(func() { ui.Text(c, "设置").FontSize(13).Bold() })
+		ui.Row(c).Height(50).Shrink(0).Justify(ui.Center).Background(p.sidebar).BorderWidth(0, 0, 1, 0).BorderColor(p.line).DragWindow().Children(func() { ui.Text(c, tr("设置")).FontSize(13).Bold() })
 		ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
 			ui.Column(c).Width(168).Shrink(0).Padding(18, 10).Gap(3).Background(p.sidebar).BorderWidth(0, 1, 0, 0).BorderColor(p.line).Children(func() {
 				for i, label := range labels {
 					selected := i == w.settingsTab
 					ink, ic := p.text, p.blue
-					row := ui.Row(c).Key(label).Height(37).Padding(0, 10).Gap(9).Radius(6).Focusable().Label(label)
+					row := navigationButton(c, label, selected, p).Height(37)
 					if selected {
-						row.Background(p.blue)
 						ink = ui.Hex("#ffffff")
 						ic = ink
 					}
@@ -74,28 +73,40 @@ func (w *window) settingsView(c *ui.Context) {
 						case 0:
 							settingGroup(c, func() {
 								ui.Row(c).Padding(15, 0).Children(func() {
-									ui.Text(c, "外观").FontSize(12)
+									ui.Text(c, tr("外观")).FontSize(12)
 									ui.Spacer(c)
-									labels := map[string]string{"system": "跟随系统", "light": "浅色", "dark": "深色"}
-									ui.Button(c, labels[w.settings.Theme]+"  ⌄").FontSize(11).Menu(func(m *ui.Menu) {
+									labels := map[string]string{"system": tr("跟随系统"), "light": tr("浅色"), "dark": tr("深色")}
+									menuControl(c, tr("外观"), labels[w.settings.Theme]).Width(145).Menu(func(m *ui.Menu) {
 										for _, v := range []string{"system", "light", "dark"} {
-											if m.Item(labels[v]).Chosen() {
+											if m.Item(labels[v]).Checked(w.settings.Theme == v).Chosen() {
 												w.settings.Theme = v
 											}
 										}
 									})
 								})
-								switchRow(c, "在菜单栏显示 Rivu", "随时查看下载进度", &w.settings.Tray, true, true)
+								ui.Row(c).Padding(15, 0).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Children(func() {
+									ui.Text(c, tr("语言")).FontSize(12)
+									ui.Spacer(c)
+									menuControl(c, tr("界面语言"), languageName(w.settings.Language)).Width(145).Menu(func(m *ui.Menu) {
+										for _, code := range []string{"system", "zh-Hans", "zh-Hant", "en", "ja", "ko"} {
+											if m.Item(languageName(code)).Checked(w.settings.Language == code).Chosen() {
+												w.settings.Language = code
+											}
+										}
+									})
+								})
+								switchRow(c, tr("在菜单栏显示 Rivu"), tr("随时查看下载进度"), &w.settings.Tray, true, true)
 							})
 							settingGroup(c, func() {
-								switchRow(c, "登录时启动 Rivu", "", &w.settings.Login, false, true)
-								switchRow(c, "仅在后台启动", "登录后继续下载，不打开主窗口", &w.settings.BackgroundLogin, true, w.settings.Login)
-								switchRow(c, "恢复上次运行的任务", "手动暂停的任务保持暂停", &w.settings.Restore, true, true)
+								switchRow(c, tr("登录时启动 Rivu"), "", &w.settings.Login, false, true)
+								switchRow(c, tr("仅在后台启动"), tr("登录后继续下载，不打开主窗口"), &w.settings.BackgroundLogin, true, w.settings.Login)
+								switchRow(c, tr("恢复上次运行的任务"), tr("手动暂停的任务保持暂停"), &w.settings.Restore, true, true)
 							})
 							settingGroup(c, func() {
-								switchRow(c, "退出时确认", "避免意外中断下载和做种", &w.settings.ConfirmQuit, false, true)
+								switchRow(c, tr("退出时确认"), tr("避免意外中断下载和做种"), &w.settings.ConfirmQuit, false, true)
 							})
-							ui.Text(c, "关闭主窗口后，下载会继续。\n从 Rivu 菜单选择“退出 Rivu”可结束应用。").FontSize(11).TextColor(p.muted)
+							ui.Text(c, tr("语言在保存设置后生效。")).FontSize(11).TextColor(p.muted)
+							ui.Text(c, tr("关闭主窗口后，下载会继续。\n从 Rivu 菜单选择“退出 Rivu”可结束应用。")).FontSize(11).TextColor(p.muted)
 							if w.loginStatus != "" {
 								ui.Text(c, w.loginStatus).FontSize(10).TextColor(p.muted)
 							}
@@ -103,38 +114,38 @@ func (w *window) settingsView(c *ui.Context) {
 						case 1:
 							settingGroup(c, func() {
 								ui.Column(c).Padding(15, 0).Gap(10).Children(func() {
-									ui.Text(c, "默认下载位置").FontSize(12)
+									ui.Text(c, tr("默认下载位置")).FontSize(12)
 									ui.Row(c).Gap(8).Children(func() {
-										ui.TextInput(c, &w.destination).Label("默认下载目录").FontSize(11).Grow(1).MinWidth(0)
-										if actionButton(c, "folder", "选择…", false).FontSize(11).Clicked() {
+										ui.TextInput(c, &w.destination).Label(tr("默认下载目录")).FontSize(11).Grow(1).MinWidth(0)
+										if actionButton(c, "folder", tr("选择…"), false).FontSize(11).Clicked() {
 											w.pickFolder()
 										}
 									})
 								})
-								settingField(c, "并行下载数", &w.concurrent, true)
-								settingField(c, "默认分享率", &w.seedRatio, true)
+								settingField(c, tr("并行下载数"), &w.concurrent, true)
+								settingField(c, tr("默认分享率"), &w.seedRatio, true)
 							})
 							settingGroup(c, func() {
-								settingField(c, "普通下载上限", &w.downloadLimit, false)
-								settingField(c, "普通上传上限", &w.uploadLimit, true)
-								settingField(c, "临时下载上限", &w.slowDownload, true)
-								settingField(c, "临时上传上限", &w.slowUpload, true)
+								settingField(c, tr("普通下载上限"), &w.downloadLimit, false)
+								settingField(c, tr("普通上传上限"), &w.uploadLimit, true)
+								settingField(c, tr("临时下载上限"), &w.slowDownload, true)
+								settingField(c, tr("临时上传上限"), &w.slowUpload, true)
 							})
-							ui.Text(c, "限速单位为字节/秒，0 表示不限速。\n分享率 -1 表示无限做种，0 表示完成后停止。").FontSize(10).TextColor(p.muted)
+							ui.Text(c, tr("限速单位为字节/秒，0 表示不限速。\n分享率 -1 表示无限做种，0 表示完成后停止。")).FontSize(10).TextColor(p.muted)
 
 						case 2:
 							settingGroup(c, func() {
-								ui.Column(c).Padding(15, 0).Gap(10).Children(func() { field(c, "监听端口（0 自动分配）", &w.listenPort) })
-								switchRow(c, "启用 DHT", "仅用于公开种子", &w.settings.DHT, true, true)
-								switchRow(c, "启用节点交换 PEX", "仅用于公开种子", &w.settings.PEX, true, true)
+								ui.Column(c).Padding(15, 0).Gap(10).Children(func() { field(c, tr("监听端口（0 自动分配）"), &w.listenPort) })
+								switchRow(c, tr("启用 DHT"), tr("仅用于公开种子"), &w.settings.DHT, true, true)
+								switchRow(c, tr("启用节点交换 PEX"), tr("仅用于公开种子"), &w.settings.PEX, true, true)
 							})
-							ui.Text(c, "连接设置在下次启动生效。未知磁力链接仅使用指定 Tracker 或节点获取元数据。").FontSize(11).TextColor(p.muted)
+							ui.Text(c, tr("连接设置在下次启动生效。未知磁力链接仅使用指定 Tracker 或节点获取元数据。")).FontSize(11).TextColor(p.muted)
 						case 3:
 							settingGroup(c, func() {
-								switchRow(c, "下载完成时通知", "完成后，轻轻提醒你", &w.settings.NotifyComplete, false, true)
-								switchRow(c, "任务异常时通知", "需要处理时及时提醒", &w.settings.NotifyError, true, true)
+								switchRow(c, tr("下载完成时通知"), tr("完成后，轻轻提醒你"), &w.settings.NotifyComplete, false, true)
+								switchRow(c, tr("任务异常时通知"), tr("需要处理时及时提醒"), &w.settings.NotifyError, true, true)
 							})
-							ui.Text(c, "可在系统设置 → 通知中管理 Rivu。通知是否送达取决于系统授权和专注模式。").FontSize(11).TextColor(p.muted)
+							ui.Text(c, tr("可在系统设置 → 通知中管理 Rivu。通知是否送达取决于系统授权和专注模式。")).FontSize(11).TextColor(p.muted)
 
 						case 4:
 							w.updateSettingsView(c, p)
@@ -144,7 +155,7 @@ func (w *window) settingsView(c *ui.Context) {
 				})
 				ui.Row(c).Gap(12).Children(func() {
 					ui.Text(c, w.status).FontSize(10).TextColor(p.muted).Grow(1).MinWidth(0).MaxLines(2)
-					if actionButton(c, "check", "保存设置", true).FontSize(12).Disabled(w.task.Running()).Clicked() {
+					if actionButton(c, "check", tr("保存设置"), true).FontSize(12).Disabled(w.task.Running()).Clicked() {
 						w.saveSettings()
 					}
 				})
@@ -158,17 +169,17 @@ func (w *window) saveSettings() {
 	var err error
 	s.Concurrent, err = strconv.Atoi(w.concurrent)
 	if err != nil {
-		w.report("并行数量无效", err)
+		w.report(tr("并行数量无效"), err)
 		return
 	}
 	s.SeedRatio, err = strconv.ParseFloat(w.seedRatio, 64)
 	if err != nil {
-		w.report("分享率无效", err)
+		w.report(tr("分享率无效"), err)
 		return
 	}
 	s.ListenPort, err = strconv.Atoi(w.listenPort)
 	if err != nil {
-		w.report("端口无效", err)
+		w.report(tr("端口无效"), err)
 		return
 	}
 	for _, v := range []struct {
@@ -177,15 +188,15 @@ func (w *window) saveSettings() {
 	}{{w.downloadLimit, &s.DownloadLimit}, {w.uploadLimit, &s.UploadLimit}, {w.slowDownload, &s.SlowDownload}, {w.slowUpload, &s.SlowUpload}} {
 		*v.value, err = strconv.ParseInt(v.text, 10, 64)
 		if err != nil {
-			w.report("限速数值无效", err)
+			w.report(tr("限速数值无效"), err)
 			return
 		}
 	}
 	if err = s.Validate(); err != nil {
-		w.report("设置无效", err)
+		w.report(tr("设置无效"), err)
 		return
 	}
-	w.run("保存设置", func(context.Context) (string, error) {
+	w.run(tr("保存设置"), func(context.Context) (string, error) {
 		if w.app != nil {
 			w.app.settingsMu.Lock()
 			defer w.app.settingsMu.Unlock()
@@ -193,7 +204,7 @@ func (w *window) saveSettings() {
 		old := w.store.Snapshot()
 		if old.Login != s.Login {
 			if err := mygo.App.SetOpenAtLogin(s.Login); err != nil {
-				return "", fmt.Errorf("登录项注册失败: %w", err)
+				return "", fmt.Errorf(tr("登录项注册失败: %w"), err)
 			}
 		}
 		if err := w.store.SavePreferences(s); err != nil {
@@ -212,17 +223,19 @@ func (w *window) saveSettings() {
 		w.settings = w.store.Snapshot()
 		applyTheme(w.settings.Theme)
 		if w.app != nil {
-			w.app.configureTray()
+			w.app.applyLanguage()
+		}
+		if w.app != nil {
 			if main := w.app.window; main != nil && !main.closed {
 				main.dispatch(func() { main.settings = w.settings; main.refreshDisk() })
 			}
 		}
-		w.loginStatus = fmt.Sprintf("系统当前启用：%t", mygo.App.OpenAtLogin())
+		w.loginStatus = fmt.Sprintf(tr("系统当前启用：%t"), mygo.App.OpenAtLogin())
 	})
 }
 func (w *window) saveQuitPreference() {
-	w.run("保存退出偏好", func(context.Context) (string, error) {
-		return "已保存", w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
+	w.run(tr("保存退出偏好"), func(context.Context) (string, error) {
+		return tr("已保存"), w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
 	}, w.app.shutdown)
 }
 

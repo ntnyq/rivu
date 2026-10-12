@@ -13,6 +13,8 @@ import (
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/session"
 	"golang.org/x/time/rate"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 type handle struct {
@@ -86,7 +88,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return er
 		}
 		if !parsed.Identity.Matches(r.Source.Identity) {
-			return fmt.Errorf("元数据标识不匹配")
+			return fmt.Errorf("%s", i18n.T("元数据标识不匹配"))
 		}
 		mi, er := metainfo.Load(bytes.NewReader(data))
 		if er != nil {
@@ -118,7 +120,7 @@ func (e *Engine) Attach(r session.Record) error {
 	}
 	if !fresh {
 		root.Close()
-		return fmt.Errorf("此下载已在引擎中运行")
+		return fmt.Errorf("%s", i18n.T("此下载已在引擎中运行"))
 	}
 	e.handles[r.ID] = &handle{torrent: t, storage: st, raw: r.Source.Raw, metadata: metadata}
 	return nil
@@ -126,7 +128,7 @@ func (e *Engine) Attach(r session.Record) error {
 func (e *Engine) Start(id string, policy []session.File) error {
 	h := e.handles[id]
 	if h == nil {
-		return fmt.Errorf("下载尚未接入引擎")
+		return fmt.Errorf("%s", i18n.T("下载尚未接入引擎"))
 	}
 	if h.started {
 		return nil
@@ -136,7 +138,7 @@ func (e *Engine) Start(id string, policy []session.File) error {
 	}
 	fs := h.torrent.Files()
 	if len(fs) != len(policy) {
-		return fmt.Errorf("文件选择与元数据不一致")
+		return fmt.Errorf("%s", i18n.T("文件选择与元数据不一致"))
 	}
 	h.storage.setAllowed(true)
 	for i, f := range fs {
@@ -174,7 +176,7 @@ func (e *Engine) Observe(id string) session.Observation {
 	t := h.torrent
 	o := session.Observation{Phase: "metadata"}
 	if err := h.storage.failure(); err != nil {
-		o.Error = "文件写入失败: " + err.Error()
+		o.Error = i18n.T("文件写入失败: ") + err.Error()
 		return o
 	}
 	stats := t.Stats()
@@ -269,7 +271,7 @@ func addSpec(c *bt.Client, spec *bt.TorrentSpec) (*bt.Torrent, bool, error) {
 		copy.InfoHashV2.SetNone()
 	}
 	if copy.InfoHash == (metainfo.Hash{}) {
-		return nil, false, fmt.Errorf("无效的下载标识")
+		return nil, false, fmt.Errorf("%s", i18n.T("无效的下载标识"))
 	}
 	return c.AddTorrentSpec(&copy)
 }

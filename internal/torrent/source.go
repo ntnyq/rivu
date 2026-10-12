@@ -13,6 +13,8 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/session"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 const maxMetadata = 16 << 20
@@ -22,25 +24,25 @@ type Parser struct{}
 func (Parser) Parse(raw string) (session.Source, error) {
 	raw = strings.TrimSpace(raw)
 	if len(raw) > 65536 {
-		return session.Source{}, fmt.Errorf("下载来源过长")
+		return session.Source{}, fmt.Errorf("%s", i18n.T("下载来源过长"))
 	}
 	if strings.HasPrefix(strings.ToLower(raw), "magnet:") {
 		spec, err := bt.TorrentSpecFromMagnetUri(raw)
 		if err != nil {
-			return session.Source{}, fmt.Errorf("无效的磁力链接")
+			return session.Source{}, fmt.Errorf("%s", i18n.T("无效的磁力链接"))
 		}
 		s := session.Source{Raw: raw, Name: spec.DisplayName, Identity: identity(spec)}
 		if s.Identity.V1 == "" && s.Identity.V2 == "" {
-			return s, fmt.Errorf("磁力链接缺少有效 infohash")
+			return s, fmt.Errorf("%s", i18n.T("磁力链接缺少有效 infohash"))
 		}
 		if s.Name == "" {
-			s.Name = "等待获取元数据"
+			s.Name = i18n.T("等待获取元数据")
 		}
 		for _, tier := range spec.Trackers {
 			s.Trackers = append(s.Trackers, tier...)
 		}
 		if len(s.Trackers) == 0 && len(spec.PeerAddrs) == 0 {
-			return s, fmt.Errorf("未解析的磁力链接需要 Tracker 或明确的节点地址；获取元数据前禁用 DHT/PEX")
+			return s, fmt.Errorf("%s", i18n.T("未解析的磁力链接需要 Tracker 或明确的节点地址；获取元数据前禁用 DHT/PEX"))
 		}
 		return s, nil
 	}
@@ -54,7 +56,7 @@ func (Parser) Parse(raw string) (session.Source, error) {
 		return session.Source{}, err
 	}
 	if len(data) > maxMetadata {
-		return session.Source{}, fmt.Errorf("种子元数据超过 16 MB")
+		return session.Source{}, fmt.Errorf("%s", i18n.T("种子元数据超过 16 MB"))
 	}
 	s, err := parseMeta(data)
 	s.Raw = raw
@@ -73,7 +75,7 @@ func identity(spec *bt.TorrentSpec) session.Identity {
 func parseMeta(data []byte) (session.Source, error) {
 	mi, err := metainfo.Load(bytes.NewReader(data))
 	if err != nil {
-		return session.Source{}, fmt.Errorf("无法读取种子元数据: %w", err)
+		return session.Source{}, fmt.Errorf(i18n.T("无法读取种子元数据: %w"), err)
 	}
 	info, err := mi.UnmarshalInfo()
 	if err != nil {
@@ -94,12 +96,12 @@ func parseMeta(data []byte) (session.Source, error) {
 		parts := append([]string{info.BestName()}, f.BestPath()...)
 		for _, part := range parts {
 			if strings.ContainsAny(part, "/\\") || part == "" || part == "." || part == ".." {
-				return s, fmt.Errorf("不安全的种子文件名")
+				return s, fmt.Errorf("%s", i18n.T("不安全的种子文件名"))
 			}
 		}
 		name := strings.Join(parts, "/")
 		if f.Length < 0 || f.Length > (1<<50)-total {
-			return s, fmt.Errorf("无效的文件大小")
+			return s, fmt.Errorf("%s", i18n.T("无效的文件大小"))
 		}
 		total += f.Length
 		names = append(names, name)
@@ -116,14 +118,14 @@ func parseMeta(data []byte) (session.Source, error) {
 func RedactTracker(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil {
-		return "无效 Tracker"
+		return i18n.T("无效 Tracker")
 	}
 	return u.Scheme + "://" + u.Hostname()
 }
 
 func validateInfo(info *metainfo.Info) error {
 	if info.PieceLength <= 0 || info.PieceLength > 64<<20 || len(info.Pieces)%20 != 0 {
-		return fmt.Errorf("不支持的种子结构")
+		return fmt.Errorf("%s", i18n.T("不支持的种子结构"))
 	}
 	if info.MetaVersion == 2 {
 		valid := info.PieceLength >= 16384 && info.PieceLength&(info.PieceLength-1) == 0
@@ -133,12 +135,12 @@ func validateInfo(info *metainfo.Info) error {
 			}
 		})
 		if !valid {
-			return fmt.Errorf("无效的 v2 文件树")
+			return fmt.Errorf("%s", i18n.T("无效的 v2 文件树"))
 		}
 	}
 	members := info.UpvertedFiles()
 	if len(members) == 0 || len(members) > 100000 {
-		return fmt.Errorf("不支持的文件数量")
+		return fmt.Errorf("%s", i18n.T("不支持的文件数量"))
 	}
 
 	return nil

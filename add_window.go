@@ -44,7 +44,7 @@ func (a *application) openAdd(sources []string) {
 	parent := a.openWindow()
 	d := &addWindow{window: newWindow(a.store), start: true}
 	d.app = a
-	d.win = mygo.NewWindow(mygo.WindowOptions{Title: "添加下载", Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
+	d.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("添加下载"), Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
 	d.desktop.Parent = d.win
 	d.win.OnClosed(d.close)
 	a.add = d
@@ -64,7 +64,7 @@ func (d *addWindow) prepare() {
 	var items []importItem
 	var free int64
 	var spaceError string
-	d.run("读取下载来源", func(ctx context.Context) (string, error) {
+	d.run(tr("读取下载来源"), func(ctx context.Context) (string, error) {
 		home, _ := os.UserHomeDir()
 		if destination == filepath.Join(home, "Downloads", "Rivu") {
 			if err := os.MkdirAll(destination, 0o755); err != nil {
@@ -91,16 +91,16 @@ func (d *addWindow) prepare() {
 			if err != nil {
 				item.source.Name = filepath.Base(line)
 				if strings.HasPrefix(line, "magnet:") {
-					item.source.Name = "磁力链接"
+					item.source.Name = tr("磁力链接")
 				}
 				item.error = err.Error()
 			}
 			items = append(items, item)
 		}
 		if len(items) == 0 {
-			return "", fmt.Errorf("请添加种子文件或磁力链接")
+			return "", fmt.Errorf("%s", tr("请添加种子文件或磁力链接"))
 		}
-		return "请确认保存位置和文件选择", nil
+		return tr("请确认保存位置和文件选择"), nil
 	}, func() {
 		if gen == d.generation {
 			d.items = items
@@ -112,29 +112,29 @@ func (d *addWindow) prepare() {
 }
 func (d *addWindow) pickTorrents() {
 	var paths []string
-	d.run("选择种子文件", func(context.Context) (string, error) {
+	d.run(tr("选择种子文件"), func(context.Context) (string, error) {
 		var err error
-		paths, err = mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: d.win, Title: "选择种子文件", Multiple: true})
+		paths, err = mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: d.win, Title: tr("选择种子文件"), Multiple: true})
 		if err != nil {
 			return "", err
 		}
 		if len(paths) == 0 {
 			return "", desktop.ErrCanceled
 		}
-		return "已选择种子文件，请读取并审阅", nil
+		return tr("已选择种子文件，请读取并审阅"), nil
 	}, func() { d.input = strings.Join(paths, "\n"); d.items = nil })
 }
 func (d *addWindow) paste() {
 	var value string
-	d.run("粘贴磁力链接", func(context.Context) (string, error) {
+	d.run(tr("粘贴磁力链接"), func(context.Context) (string, error) {
 		var err error
 		value, err = d.desktop.Paste()
-		return "已粘贴，请读取并审阅", err
+		return tr("已粘贴，请读取并审阅"), err
 	}, func() { d.input = value; d.items = nil })
 }
 func (d *addWindow) submit() {
 	if d.input != d.preparedInput {
-		d.report("请重新读取已修改的下载来源", fmt.Errorf("来源已更改"))
+		d.report(tr("请重新读取已修改的下载来源"), fmt.Errorf("%s", tr("来源已更改")))
 		return
 	}
 	items := make([]importItem, len(d.items))
@@ -145,7 +145,7 @@ func (d *addWindow) submit() {
 	destination, start, ratio := d.destination, d.start, d.settings.SeedRatio
 	var selected string
 	var failed bool
-	d.run("添加下载", func(context.Context) (string, error) {
+	d.run(tr("添加下载"), func(context.Context) (string, error) {
 		for i := range items {
 			item := &items[i]
 			if item.error != "" || item.submitted {
@@ -161,7 +161,7 @@ func (d *addWindow) submit() {
 				selected = id
 			}
 		}
-		return "导入已处理；错误项目可修改后重新读取", nil
+		return tr("导入已处理；错误项目可修改后重新读取"), nil
 	}, func() {
 		d.items = items
 		if selected != "" {
@@ -180,28 +180,28 @@ func (d *addWindow) view(c *ui.Context) {
 		ui.Row(c).Padding(25, 26, 20, 26).Gap(13).BorderWidth(0, 0, 1, 0).BorderColor(p.line).Children(func() {
 			ui.Row(c).Size(43, 43).Radius(11).Background(p.soft).Justify(ui.Center).Children(func() { glyph(c, "download", 24, p.blue) })
 			ui.Column(c).Gap(5).Children(func() {
-				ui.Text(c, "添加下载").FontSize(17).Bold()
-				ui.Text(c, "将新的内容，带到你的 Mac。").FontSize(11).TextColor(p.muted)
+				ui.Text(c, tr("添加下载")).FontSize(17).Bold()
+				ui.Text(c, tr("将新的内容，带到你的 Mac。")).FontSize(11).TextColor(p.muted)
 			})
 			ui.Spacer(c)
-			if iconButton(c, "x", "关闭添加下载", true) {
+			if iconButton(c, "x", tr("关闭添加下载"), true) {
 				d.win.Close()
 			}
 		})
 		ui.Scroll(c).Grow(1).MinHeight(0).Children(func() {
 			ui.Column(c).Padding(23, 26).Gap(12).Children(func() {
-				ui.Text(c, "磁力链接或种子路径").FontSize(12).Bold()
-				ui.TextArea(c, &d.input).Label("下载来源，每行一个").Placeholder("magnet:?xt=urn:btih:… 每行一个来源").Height(62).FontSize(12).Disabled(d.task.Running())
-				ui.Text(c, "也可以选择本地 .torrent 文件。").FontSize(10).TextColor(p.muted)
+				ui.Text(c, tr("磁力链接或种子路径")).FontSize(12).Bold()
+				ui.TextArea(c, &d.input).Label(tr("下载来源，每行一个")).Placeholder(tr("magnet:?xt=urn:btih:… 每行一个来源")).Height(62).FontSize(12).Disabled(d.task.Running())
+				ui.Text(c, tr("也可以选择本地 .torrent 文件。")).FontSize(10).TextColor(p.muted)
 				ui.Row(c).Gap(8).Children(func() {
-					if actionButton(c, "folder", "选择种子文件…", false).FontSize(11).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "folder", tr("选择种子文件…"), false).FontSize(11).Disabled(d.task.Running()).Clicked() {
 						d.pickTorrents()
 					}
-					if actionButton(c, "clipboard", "粘贴链接", false).FontSize(11).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "clipboard", tr("粘贴链接"), false).FontSize(11).Disabled(d.task.Running()).Clicked() {
 						d.paste()
 					}
 					ui.Spacer(c)
-					if actionButton(c, "search", "读取并审阅", false).FontSize(11).TextColor(p.blue).Disabled(d.task.Running()).Clicked() {
+					if actionButton(c, "search", tr("读取并审阅"), false).FontSize(11).TextColor(p.blue).Disabled(d.task.Running()).Clicked() {
 						d.prepare()
 					}
 				})
@@ -212,7 +212,7 @@ func (d *addWindow) view(c *ui.Context) {
 							fileSymbol(c, session.Task{Record: session.Record{Source: item.source}}, false)
 							ui.Column(c).Gap(6).Grow(1).MinWidth(0).Children(func() {
 								ui.Text(c, item.source.Name).FontSize(12).Bold().MaxLines(2)
-								ui.Text(c, fmt.Sprintf("%d 个文件", len(item.source.Files))).FontSize(10).TextColor(p.muted)
+								ui.Text(c, fmt.Sprintf(tr("%d 个文件"), len(item.source.Files))).FontSize(10).TextColor(p.muted)
 							})
 						})
 						if item.error != "" {
@@ -220,11 +220,11 @@ func (d *addWindow) view(c *ui.Context) {
 							return
 						}
 						if item.submitted {
-							ui.Text(c, "已添加").FontSize(11).TextColor(p.green)
+							ui.Text(c, tr("已添加")).FontSize(11).TextColor(p.green)
 							return
 						}
 						if len(item.source.Files) == 0 {
-							ui.Text(c, "元数据待获取。开始后将下载全部文件；取消立即开始可先保存为暂停任务。").FontSize(11).TextColor(p.muted)
+							ui.Text(c, tr("元数据待获取。开始后将下载全部文件；取消立即开始可先保存为暂停任务。")).FontSize(11).TextColor(p.muted)
 						} else {
 							ui.Column(c).Padding(4, 11).Background(p.surface).Border(1, p.line).Radius(7).Children(func() {
 								for j := range item.source.Files {
@@ -249,21 +249,21 @@ func (d *addWindow) view(c *ui.Context) {
 						}
 					})
 				}
-				ui.Text(c, "保存到").FontSize(12).Bold().Padding(11, 0, 0, 0)
+				ui.Text(c, tr("保存到")).FontSize(12).Bold().Padding(11, 0, 0, 0)
 				ui.Row(c).Gap(10).Children(func() {
-					ui.TextInput(c, &d.destination).Label("保存位置").FontSize(12).Grow(1)
-					if actionButton(c, "folder", "选择…", false).FontSize(11).Disabled(d.task.Running()).Clicked() {
+					ui.TextInput(c, &d.destination).Label(tr("保存位置")).FontSize(12).Grow(1)
+					if actionButton(c, "folder", tr("选择…"), false).FontSize(11).Disabled(d.task.Running()).Clicked() {
 						d.pickFolder()
 					}
 				})
 				if d.spaceError != "" {
 					ui.Text(c, d.spaceError).FontSize(10).TextColor(c.Theme().Danger)
 				} else if d.free > 0 {
-					ui.Text(c, "可用空间 "+bytes(d.free)+" · 提交时重新检查").FontSize(10).TextColor(p.muted)
+					ui.Text(c, fmt.Sprintf(tr("可用空间 %s · 提交时重新检查"), bytes(d.free))).FontSize(10).TextColor(p.muted)
 				}
-				ui.Checkbox(c, &d.start, "添加后立即开始下载").FontSize(12).Disabled(d.task.Running())
-				ui.Text(c, fmt.Sprintf("下载完成后继续做种，分享率达到 %.1f 时停止。", d.settings.SeedRatio)).FontSize(10).TextColor(p.muted)
-				if d.status != "准备就绪" {
+				ui.Checkbox(c, &d.start, tr("添加后立即开始下载")).FontSize(12).Disabled(d.task.Running())
+				ui.Text(c, fmt.Sprintf(tr("下载完成后继续做种，分享率达到 %.1f 时停止。"), d.settings.SeedRatio)).FontSize(10).TextColor(p.muted)
+				if d.status != "" {
 					color := p.muted
 					if d.failed {
 						color = c.Theme().Danger
@@ -280,10 +280,10 @@ func (d *addWindow) view(c *ui.Context) {
 		}
 		ui.Row(c).Padding(15, 25).Gap(9).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Children(func() {
 			ui.Spacer(c)
-			if actionButton(c, "x", "取消", false).FontSize(12).Clicked() {
+			if actionButton(c, "x", tr("取消"), false).FontSize(12).Clicked() {
 				d.win.Close()
 			}
-			if actionButton(c, "plus", "添加下载", true).FontSize(12).Disabled(!valid || d.task.Running() || d.input != d.preparedInput).Clicked() {
+			if actionButton(c, "plus", tr("添加下载"), true).FontSize(12).Disabled(!valid || d.task.Running() || d.input != d.preparedInput).Clicked() {
 				d.submit()
 			}
 		})

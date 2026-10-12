@@ -45,6 +45,21 @@ and Settings sit beside Open Main Window. Main task rows use 102 pt spacing and
 menu bar panels, and a native-material rendering path in both appearances.
 `TestTrayLayoutAndMaterial` checks material opacity and footer bounds.
 
+Language preferences default to the native system locale. General settings offers
+Simplified Chinese, Traditional Chinese, English, Japanese and Korean, with
+changes applied after saving. `TestLocalizedSurfaces` covers every language at
+normal and minimum window sizes and includes tray action bounds; `make snapshots`
+writes `i18n-<language>-<surface>.png` captures. Catalog tests validate translation
+coverage and formatting placeholders, while configuration tests cover migration
+and persistence of language preferences.
+
+The October 12, 2026 macOS arm64 i18n build passed native startup/capture/exit checks
+for all five explicit languages and the system default. These checks used an
+isolated data directory and `XDG_RUNTIME_DIR` for the MyGo instance socket, leaving
+the installed app running. Interactive save-and-switch verification remains a
+native acceptance check; the local UI automation service timed out during that
+check. Existing-view language changes are covered by the headless UI tests.
+
 To capture the actual AppKit popover with an isolated session, quit other Rivu
 instances, then run (the capture process quits after writing the PNG):
 
@@ -60,3 +75,12 @@ On October 12, 2026, the macOS arm64 build was rechecked with native main-window
 inspection and a successful AppKit popover content capture. Unit tests, race tests,
 the isolated swarm integration suite, Go vet and MyGo vet passed. The installed
 `/Applications/Rivu.app` is separate from the rebuilt app under `build/darwin-arm64/`.
+
+The subsequent control alignment pass replaced text disclosure characters with
+centered SVG icons, gave settings selectors a shared width, and added hover/press
+feedback to settings navigation. Sorting now opens a checked native menu instead
+of cycling on click. Native macOS arm64 interaction verified selecting English,
+saving, and immediately refreshing the settings window, main window, and menus;
+selecting Progress from the sort menu also updated the visible control. These
+checks used an isolated session without transfers. `TestSortMenuSelection` and
+`TestSettingsLanguageMenu` cover menu selection and keyboard opening.

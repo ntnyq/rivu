@@ -9,7 +9,10 @@ import (
 	"github.com/ntnyq/rivu/internal/session"
 )
 
-var filters = []string{"全部任务", "下载中", "做种中", "已完成", "已暂停", "需要处理"}
+func filterLabels() []string {
+	return []string{tr("全部任务"), tr("下载中"), tr("做种中"), tr("已完成"), tr("已暂停"), tr("需要处理")}
+}
+
 var phases = map[string]string{"queued": "等待队列", "metadata": "获取元数据", "verifying": "校验中", "waiting": "等待节点", "downloading": "下载中", "seeding": "做种中", "completed": "已完成", "paused": "已暂停", "error": "需要处理", "removing": "正在移除"}
 
 func matches(t session.Task, filter int) bool {
@@ -77,12 +80,12 @@ func eta(t session.Task) string {
 	}
 	seconds := max(1, int(float64(t.Size-t.Done)/t.DownRate))
 	if seconds < 60 {
-		return fmt.Sprintf("约 %d 秒", seconds)
+		return fmt.Sprintf(tr("约 %d 秒"), seconds)
 	}
 	if seconds < 3600 {
-		return fmt.Sprintf("约 %d 分钟", (seconds+30)/60)
+		return fmt.Sprintf(tr("约 %d 分钟"), (seconds+30)/60)
 	}
-	return fmt.Sprintf("约 %d 小时 %d 分钟", seconds/3600, seconds%3600/60)
+	return fmt.Sprintf(tr("约 %d 小时 %d 分钟"), seconds/3600, seconds%3600/60)
 }
 func magnet(t session.Task) string {
 	v := url.Values{}

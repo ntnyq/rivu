@@ -35,6 +35,7 @@ func fixtureSnapshot() session.Snapshot {
 	return session.Snapshot{DownRate: 12600000, UpRate: 1200000, Tasks: tasks}
 }
 func TestFilterSelectionAndEmptyState(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
 	s, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	w := newWindow(s)
 	w.snapshot = fixtureSnapshot()
@@ -61,6 +62,7 @@ func TestFilterSelectionAndEmptyState(t *testing.T) {
 	}
 }
 func TestViewSnapshots(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
 	s, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	for _, dark := range []bool{false, true} {
 		for _, size := range [][2]int{{1280, 818}, {1180, 760}, {880, 560}} {
@@ -107,6 +109,7 @@ func TestViewSnapshots(t *testing.T) {
 	}
 }
 func TestPresentation(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
 	s := fixtureSnapshot()
 	if !matches(s.Tasks[2], 3) || matches(s.Tasks[4], 1) {
 		t.Fatal("incorrect overlapping counts")
@@ -117,6 +120,7 @@ func TestPresentation(t *testing.T) {
 }
 
 func TestAuxiliaryViewSnapshots(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
 	store, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	w := newWindow(store)
 	app := &application{store: store, snapshot: fixtureSnapshot()}
@@ -162,6 +166,7 @@ func TestAuxiliaryViewSnapshots(t *testing.T) {
 // Cover the native-material path too: a software-only opaque snapshot previously
 // hid the fully transparent background that appeared in the macOS popover.
 func TestTrayLayoutAndMaterial(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
 	store, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	app := &application{store: store, snapshot: fixtureSnapshot()}
 	for _, dark := range []bool{false, true} {

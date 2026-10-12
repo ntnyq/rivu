@@ -9,6 +9,8 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 type Session interface {
@@ -59,7 +61,7 @@ func (s *Service) Check(ctx context.Context) error {
 	if !mygo.Updater.Enabled() {
 		s.mu.Lock()
 		s.snapshot.State = "unavailable"
-		s.snapshot.Error = "此安装未配置签名更新源，或安装位置不可写。可前往 GitHub 查看发行版。"
+		s.snapshot.Error = i18n.T("此安装未配置签名更新源，或安装位置不可写。可前往 GitHub 查看发行版。")
 		s.mu.Unlock()
 		return nil
 	}
@@ -100,7 +102,7 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 	s.mu.Lock()
 	if s.busy || s.update == nil {
 		s.mu.Unlock()
-		return fmt.Errorf("没有可安装的更新")
+		return fmt.Errorf("%s", i18n.T("没有可安装的更新"))
 	}
 	s.busy = true
 	up := s.update

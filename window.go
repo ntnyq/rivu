@@ -37,7 +37,7 @@ type window struct {
 }
 
 func newWindow(store *config.Store) *window {
-	w := &window{store: store, settings: store.Snapshot(), selected: map[string]bool{}, inspector: true, status: "准备就绪"}
+	w := &window{store: store, settings: store.Snapshot(), selected: map[string]bool{}, inspector: true, status: ""}
 	w.resetSettings()
 	return w
 }
@@ -66,8 +66,8 @@ func (a *application) openSettings() {
 	w := newWindow(a.store)
 	w.app = a
 	w.settingsOnly = true
-	w.loginStatus = fmt.Sprintf("系统当前启用：%t（详细授权状态由系统设置显示）", mygo.App.OpenAtLogin())
-	w.win = mygo.NewWindow(mygo.WindowOptions{Title: "Rivu 设置", TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
+	w.loginStatus = fmt.Sprintf(tr("系统当前启用：%t（详细授权状态由系统设置显示）"), mygo.App.OpenAtLogin())
+	w.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("Rivu 设置"), TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
 	w.desktop.Parent = w.win
 	w.win.OnClosed(w.close)
 	a.settingsWindow = w
@@ -108,7 +108,7 @@ func (w *window) run(label string, work func(context.Context) (string, error), a
 	w.task.Start(w.dispatch, func(ctx context.Context, _ func(float64)) (string, error) { return work(ctx) }, func(float64) {}, func(message string, err error) {
 		w.job = ""
 		if errors.Is(err, desktop.ErrCanceled) || errors.Is(err, context.Canceled) {
-			w.report("已取消", nil)
+			w.report(tr("已取消"), nil)
 			return
 		}
 		if err != nil {
@@ -118,7 +118,7 @@ func (w *window) run(label string, work func(context.Context) (string, error), a
 		if apply != nil {
 			apply()
 		}
-		w.report(message, nil)
+		w.report(tr(message), nil)
 	})
 }
 func (w *window) selectOnly(id string) { w.selected = map[string]bool{id: true}; w.anchor = id }
@@ -158,21 +158,21 @@ func (w *window) remove() {
 	w.removeOpen = len(w.removeIDs) > 0
 }
 func (w *window) reveal(path string) {
-	w.run("在文件管理器中显示", func(context.Context) (string, error) { return "已显示文件", w.desktop.Reveal(path) }, nil)
+	w.run(tr("在文件管理器中显示"), func(context.Context) (string, error) { return tr("已显示文件"), w.desktop.Reveal(path) }, nil)
 }
 func (w *window) copy(text string) {
-	w.run("复制", func(context.Context) (string, error) { return "已复制", w.desktop.Copy(text) }, nil)
+	w.run(tr("复制"), func(context.Context) (string, error) { return tr("已复制"), w.desktop.Copy(text) }, nil)
 }
 func (w *window) openURL(raw string) {
-	w.run("打开网页", func(context.Context) (string, error) { return "已打开浏览器", w.desktop.OpenURL(raw) }, nil)
+	w.run(tr("打开网页"), func(context.Context) (string, error) { return tr("已打开浏览器"), w.desktop.OpenURL(raw) }, nil)
 }
 func applyTheme(theme string) { mygo.Theme.SetSource(mygo.ThemeSource(theme)) }
 func (w *window) pickFolder() {
 	var folder string
-	w.run("选择下载目录", func(context.Context) (string, error) {
+	w.run(tr("选择下载目录"), func(context.Context) (string, error) {
 		var err error
 		folder, err = w.desktop.PickFolder()
-		return "已选择目录", err
+		return tr("已选择目录"), err
 	}, func() { w.destination = filepath.Clean(folder) })
 }
 

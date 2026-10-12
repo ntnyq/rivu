@@ -52,6 +52,27 @@ func actionButton(c *ui.Context, name, label string, primary bool) ui.Element {
 	})
 }
 
+// menuControl centers the disclosure icon independently of the text baseline.
+func menuControl(c *ui.Context, label, value string) ui.Element {
+	return ui.Button(c, "").Key(label).Label(label).Height(28).MinWidth(112).Padding(0, 10).Gap(10).Children(func() {
+		ui.Text(c, value).FontSize(11).SingleLine().Grow(1)
+		ui.Icon(c, symbol("chevron-down")).Size(12, 12).Shrink(0)
+	})
+}
+
+func navigationButton(c *ui.Context, label string, selected bool, p palette) ui.Element {
+	button := ui.ButtonBase(c).Key(label).Label(label).Height(36).FillWidth().Padding(0, 10).Gap(9).Radius(6).Justify(ui.Start)
+	switch {
+	case selected:
+		button.Background(p.blue).TextColor(ui.Hex("#ffffff"))
+	case button.Pressed():
+		button.Background(p.soft)
+	case button.Hovered():
+		button.Background(p.track)
+	}
+	return button
+}
+
 // Compact controls use the prototype's row and footer sizes, without inheriting
 // the larger toolbar hit box that shifts task text and progress tracks.
 func compactIconButton(c *ui.Context, name, label string, size, iconSize float32, color ui.Color) bool {

@@ -11,16 +11,16 @@ type command struct {
 
 func (a *application) commands() []command {
 	return []command{
-		{"add", "添加下载…", "CmdOrCtrl+N", func() { a.openAdd(nil) }},
-		{"open", "打开种子文件…", "CmdOrCtrl+O", func() { a.openAdd(nil); a.add.pickTorrents() }},
-		{"pauseAll", "暂停全部", "", func() { a.execute(session.Command{Kind: "pauseAll"}) }},
-		{"resumeBatch", "恢复本次暂停", "", func() { a.execute(session.Command{Kind: "resumeBatch"}) }},
-		{"slow", "切换限速模式", "", a.slowMode},
-		{"main", "打开 Rivu", "CmdOrCtrl+1", func() { a.openWindow() }},
-		{"settings", "设置…", "CmdOrCtrl+,", a.openSettings},
-		{"reload", "修复后重新读取会话与设置", "", func() {
+		{"add", tr("添加下载…"), "CmdOrCtrl+N", func() { a.openAdd(nil) }},
+		{"open", tr("打开种子文件…"), "CmdOrCtrl+O", func() { a.openAdd(nil); a.add.pickTorrents() }},
+		{"pauseAll", tr("暂停全部"), "", func() { a.execute(session.Command{Kind: "pauseAll"}) }},
+		{"resumeBatch", tr("恢复本次暂停"), "", func() { a.execute(session.Command{Kind: "resumeBatch"}) }},
+		{"slow", tr("切换限速模式"), "", a.slowMode},
+		{"main", tr("打开 Rivu"), "CmdOrCtrl+1", func() { a.openWindow() }},
+		{"settings", tr("设置…"), "CmdOrCtrl+,", a.openSettings},
+		{"reload", tr("修复后重新读取会话与设置"), "", func() {
 			w := a.openWindow()
-			w.run("重新读取", func(context.Context) (string, error) {
+			w.run(tr("重新读取"), func(context.Context) (string, error) {
 				a.settingsMu.Lock()
 				defer a.settingsMu.Unlock()
 				if err := a.store.Reload(); err != nil {
@@ -29,10 +29,15 @@ func (a *application) commands() []command {
 				if err := a.session.Reload(); err != nil {
 					return "", err
 				}
-				return "已重新读取", a.session.Configure(a.store.Snapshot())
-			}, func() { w.settings = a.store.Snapshot(); w.resetSettings(); applyTheme(w.settings.Theme) })
+				return tr("已重新读取"), a.session.Configure(a.store.Snapshot())
+			}, func() {
+				w.settings = a.store.Snapshot()
+				w.resetSettings()
+				applyTheme(w.settings.Theme)
+				a.applyLanguage()
+			})
 		}},
-		{"quit", "退出 Rivu", "CmdOrCtrl+Q", mygo.App.Quit},
+		{"quit", tr("退出 Rivu"), "CmdOrCtrl+Q", mygo.App.Quit},
 	}
 }
 func (a *application) command(id string) {
@@ -53,11 +58,11 @@ func (a *application) menuItem(id string) *mygo.MenuItem {
 }
 func (a *application) menu() *mygo.Menu {
 	return mygo.NewMenu([]*mygo.MenuItem{
-		{Role: mygo.RoleAppMenu, Submenu: []*mygo.MenuItem{{Role: mygo.RoleAbout}, a.menuItem("settings"), mygo.Separator(), {Role: mygo.RoleServices}, mygo.Separator(), {Role: mygo.RoleHide}, {Role: mygo.RoleHideOthers}, {Role: mygo.RoleUnhide}, mygo.Separator(), a.menuItem("quit")}},
-		{Label: "文件", Submenu: []*mygo.MenuItem{a.menuItem("add"), a.menuItem("open"), a.menuItem("reload"), mygo.Separator(), {Role: mygo.RoleClose}}},
-		{Label: "编辑", Submenu: []*mygo.MenuItem{{Role: mygo.RoleUndo}, {Role: mygo.RoleRedo}, mygo.Separator(), {Role: mygo.RoleCut}, {Role: mygo.RoleCopy}, {Role: mygo.RolePaste}, {Role: mygo.RoleSelectAll}}},
-		{Label: "传输", Submenu: []*mygo.MenuItem{a.menuItem("pauseAll"), a.menuItem("resumeBatch"), a.menuItem("slow")}},
-		{Label: "显示", Submenu: []*mygo.MenuItem{a.menuItem("main"), {Label: "命令面板…", Accelerator: "CmdOrCtrl+K", Click: func(*mygo.MenuItem, *mygo.Window) { w := a.openWindow(); w.dispatch(func() { w.paletteOpen = true }) }}, {Role: mygo.RoleToggleFullScreen}}},
-		{Role: mygo.RoleWindowMenu},
+		{Role: mygo.RoleAppMenu, Submenu: []*mygo.MenuItem{{Role: mygo.RoleAbout, Label: tr("关于 Rivu")}, a.menuItem("settings"), mygo.Separator(), {Role: mygo.RoleServices, Label: tr("服务")}, mygo.Separator(), {Role: mygo.RoleHide, Label: tr("隐藏 Rivu")}, {Role: mygo.RoleHideOthers, Label: tr("隐藏其他应用")}, {Role: mygo.RoleUnhide, Label: tr("全部显示")}, mygo.Separator(), a.menuItem("quit")}},
+		{Label: tr("文件菜单"), Submenu: []*mygo.MenuItem{a.menuItem("add"), a.menuItem("open"), a.menuItem("reload"), mygo.Separator(), {Role: mygo.RoleClose, Label: tr("关闭窗口")}}},
+		{Label: tr("编辑"), Submenu: []*mygo.MenuItem{{Role: mygo.RoleUndo, Label: tr("撤销")}, {Role: mygo.RoleRedo, Label: tr("重做")}, mygo.Separator(), {Role: mygo.RoleCut, Label: tr("剪切")}, {Role: mygo.RoleCopy, Label: tr("复制")}, {Role: mygo.RolePaste, Label: tr("粘贴")}, {Role: mygo.RoleSelectAll, Label: tr("全选")}}},
+		{Label: tr("传输"), Submenu: []*mygo.MenuItem{a.menuItem("pauseAll"), a.menuItem("resumeBatch"), a.menuItem("slow")}},
+		{Label: tr("显示"), Submenu: []*mygo.MenuItem{a.menuItem("main"), {Label: tr("命令面板…"), Accelerator: "CmdOrCtrl+K", Click: func(*mygo.MenuItem, *mygo.Window) { w := a.openWindow(); w.dispatch(func() { w.paletteOpen = true }) }}, {Role: mygo.RoleToggleFullScreen, Label: tr("切换全屏")}}},
+		{Role: mygo.RoleWindowMenu, Label: tr("窗口"), Submenu: []*mygo.MenuItem{{Role: mygo.RoleMinimize, Label: tr("最小化")}, {Role: mygo.RoleZoom, Label: tr("缩放")}, {Role: mygo.RoleFront, Label: tr("全部置于前面")}}},
 	})
 }

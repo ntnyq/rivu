@@ -17,6 +17,8 @@ import (
 	btstorage "github.com/anacrolix/torrent/storage"
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/storage"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 // Rooted storage resolves every payload open relative to an OS directory
@@ -190,7 +192,7 @@ func (s *rootedStorage) openWrite(name string) (*os.File, error) {
 	}
 	if !stat.Mode().IsRegular() || s.owners[name] != id {
 		f.Close()
-		return nil, fmt.Errorf("文件已被替换或不属于该任务: %s", name)
+		return nil, fmt.Errorf(i18n.T("文件已被替换或不属于该任务: %s"), name)
 	}
 	return f, nil
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
+	"github.com/ntnyq/rivu/internal/i18n"
 	"github.com/ntnyq/rivu/internal/session"
 	torrentengine "github.com/ntnyq/rivu/internal/torrent"
 	"github.com/ntnyq/rivu/internal/updater"
@@ -92,6 +93,7 @@ func main() {
 		}
 	})
 	mygo.App.WhenReady(func() {
+		i18n.SetLanguage(store.Snapshot().Language, mygo.App.Locale())
 		applyTheme(store.Snapshot().Theme)
 		go func() {
 			engine := torrentengine.New(store.Snapshot())
@@ -107,7 +109,7 @@ func main() {
 					a.openWindow()
 				}
 				if loadErr != nil {
-					a.report(fmt.Errorf("设置读取失败，原文件已保留: %w", loadErr))
+					a.report(fmt.Errorf(tr("设置读取失败，原文件已保留: %w"), loadErr))
 				}
 				if sessionErr != nil {
 					a.report(sessionErr)

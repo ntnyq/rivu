@@ -35,6 +35,9 @@ go run . --version
 - Atomic session/preferences persistence, corrupt-file preservation, immutable metadata, rooted payload I/O and file ownership journals.
 - Removal retains files by default. Optional Trash only acts on recorded owned files, records partial progress and never falls back to permanent deletion.
 - General, download, connection, notification and update settings. Signed MyGo update coordination includes a session maintenance barrier and explicit restart.
+- Simplified Chinese, Traditional Chinese, English, Japanese and Korean. The default follows the system's preferred language; unsupported languages fall back to English. Choose **Settings → General → Language** and save to switch the interface and native menus immediately.
+
+The `language` preference accepts `system` (default), `zh-Hans`, `zh-Hant`, `en`, `ja`, or `ko`. Existing settings files without this field keep following the system. Translations are embedded from `internal/i18n/locales`; catalog tests check message coverage and format placeholders. Operating-system dialogs and third-party diagnostic details may use their own language.
 
 Unresolved magnets use only explicit trackers or peers until metadata establishes the privacy flag. A magnet without either is rejected with an explanation. Existing destination files are not adopted automatically; choose an empty destination. Restored task data is rehashed. Skipped files can contain bytes from shared pieces.
 

@@ -7,6 +7,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 func ValidateMembers(names []string) error {
@@ -40,21 +42,21 @@ func ValidateMembers(names []string) error {
 // explicitly create a default directory or pick an existing one before import.
 func ValidateDestination(dir string) error {
 	if !filepath.IsAbs(dir) {
-		return fmt.Errorf("请选择绝对路径的下载目录")
+		return fmt.Errorf("%s", i18n.T("请选择绝对路径的下载目录"))
 	}
 	stat, err := os.Stat(dir)
 	if err != nil {
-		return fmt.Errorf("下载目录不可用: %w", err)
+		return fmt.Errorf(i18n.T("下载目录不可用: %w"), err)
 	}
 	if !stat.IsDir() {
-		return fmt.Errorf("下载路径不是目录")
+		return fmt.Errorf("%s", i18n.T("下载路径不是目录"))
 	}
 	entry, err := os.Lstat(dir)
 	if err != nil {
 		return err
 	}
 	if entry.Mode()&os.ModeSymlink != 0 {
-		return fmt.Errorf("请选择真实目录，不能使用符号链接")
+		return fmt.Errorf("%s", i18n.T("请选择真实目录，不能使用符号链接"))
 	}
 	return nil
 }
@@ -84,7 +86,7 @@ func CheckConflicts(dir string, names []string) error {
 				return e
 			}
 			if st.Mode()&os.ModeSymlink != 0 || i == len(parts)-1 || !st.IsDir() {
-				return fmt.Errorf("目标已存在或不安全，请选择另一个目录: %s", rel)
+				return fmt.Errorf(i18n.T("目标已存在或不安全，请选择另一个目录: %s"), rel)
 			}
 		}
 	}

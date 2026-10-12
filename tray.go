@@ -117,13 +117,13 @@ func (a *application) trayView(c *ui.Context) {
 		ui.Row(c).Height(17).Shrink(0).Children(func() {
 			ui.Text(c, "Rivu").FontSize(14).FontWeight(600)
 			ui.Spacer(c)
-			ui.Text(c, fmt.Sprintf("%d 个任务进行中", preview.active)).FontSize(10).TextColor(p.muted)
+			ui.Text(c, fmt.Sprintf(tr("%d 个任务进行中"), preview.active)).FontSize(10).TextColor(p.muted)
 		})
 		ui.Row(c).Height(94).Shrink(0).Padding(22, 0, 19, 0).Gap(20).Children(func() {
 			for i, v := range []struct {
 				label, icon string
 				value       float64
-			}{{"下载", "arrow-down", a.snapshot.DownRate}, {"上传", "arrow-up", a.snapshot.UpRate}} {
+			}{{tr("下载"), "arrow-down", a.snapshot.DownRate}, {tr("上传"), "arrow-up", a.snapshot.UpRate}} {
 				col := ui.Column(c).Width(154).Shrink(0).Gap(7)
 				if i == 1 {
 					col.Padding(0, 0, 0, 19).BorderWidth(0, 0, 0, 1).BorderColor(p.line)
@@ -147,7 +147,7 @@ func (a *application) trayView(c *ui.Context) {
 							ui.Text(c, t.Source.Name).FontSize(11).FontWeight(550).SingleLine()
 							progressTrack(c, progress(t), p.blue, p.track, 3)
 							ui.Row(c).Children(func() {
-								ui.Text(c, fmt.Sprintf("%s · %s", taskPercent(t), phases[t.Phase])).FontSize(10).TextColor(p.muted)
+								ui.Text(c, fmt.Sprintf("%s · %s", taskPercent(t), tr(phases[t.Phase]))).FontSize(10).TextColor(p.muted)
 								ui.Spacer(c)
 								speed := "—"
 								if t.Run {
@@ -168,25 +168,25 @@ func (a *application) trayView(c *ui.Context) {
 						if t.Run {
 							kind, icon = "pause", "pause"
 						}
-						if compactIconButton(c, icon, "控制 "+t.ID, 23, 15, p.muted) {
+						if compactIconButton(c, icon, fmt.Sprintf(tr("控制 %s"), t.ID), 23, 15, p.muted) {
 							a.execute(session.Command{Kind: kind, IDs: []string{t.ID}})
 						}
 					})
 				}
 				if len(preview.tasks) == 0 {
-					message := "暂无下载，添加一个种子开始吧。"
+					message := tr("暂无下载，添加一个种子开始吧。")
 					if len(a.snapshot.Tasks) > 0 {
-						message = "暂无进行中的下载。"
+						message = tr("暂无进行中的下载。")
 					}
 					ui.Row(c).Height(trayEmptyHeight).Shrink(0).Justify(ui.Center).Children(func() {
 						ui.Text(c, message).FontSize(12).TextColor(p.muted).TextAlign(ui.Center)
 					})
 				}
 				if preview.attention > 0 {
-					row := ui.Row(c).Height(trayAttentionHeight).Shrink(0).Padding(12, 0, 5, 0).Gap(5).Focusable().Label("查看需要处理的任务")
+					row := ui.Row(c).Height(trayAttentionHeight).Shrink(0).Padding(12, 0, 5, 0).Gap(5).Focusable().Label(tr("查看需要处理的任务"))
 					row.Children(func() {
 						glyph(c, "alert", 13, p.orange)
-						ui.Text(c, fmt.Sprintf("%d 个任务需要处理", preview.attention)).FontSize(10).TextColor(p.orange)
+						ui.Text(c, fmt.Sprintf(tr("%d 个任务需要处理"), preview.attention)).FontSize(10).TextColor(p.orange)
 					})
 					if row.Clicked() {
 						a.closePanel()
@@ -197,14 +197,14 @@ func (a *application) trayView(c *ui.Context) {
 			})
 		})
 		ui.Row(c).Height(58).Shrink(0).Gap(8).Padding(15, 0, 13, 0).Children(func() {
-			label, kind, icon := "全部暂停", "pauseAll", "pause"
+			label, kind, icon := tr("全部暂停"), "pauseAll", "pause"
 			if preview.hasBatch {
-				label, kind, icon = "恢复本次暂停", "resumeBatch", "play"
+				label, kind, icon = tr("恢复本次暂停"), "resumeBatch", "play"
 			}
 			if actionButton(c, icon, label, false).FontSize(10).Height(30).Grow(1).Disabled(preview.active == 0 && !preview.hasBatch).Clicked() {
 				a.execute(session.Command{Kind: kind})
 			}
-			limit := actionButton(c, "gauge", "限速模式", false).FontSize(10).Height(30).Grow(1)
+			limit := actionButton(c, "gauge", tr("限速模式"), false).FontSize(10).Height(30).Grow(1)
 			if a.snapshot.SlowMode {
 				limit.TextColor(p.blue).Background(p.soft)
 			}
@@ -213,20 +213,20 @@ func (a *application) trayView(c *ui.Context) {
 			}
 		})
 		ui.Row(c).Height(34).Shrink(0).Gap(7).Padding(10, 0, 0, 0).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Children(func() {
-			open := ui.Row(c).Grow(1).Gap(4).Focusable().Label("打开主窗口")
+			open := ui.Row(c).Grow(1).Gap(4).Focusable().Label(tr("打开主窗口"))
 			open.Children(func() {
-				ui.Text(c, "打开主窗口").FontSize(11).TextColor(p.blue)
+				ui.Text(c, tr("打开主窗口")).FontSize(11).TextColor(p.blue)
 				ui.Text(c, "⌘ 1").FontSize(10).TextColor(p.muted)
 			})
 			if open.Clicked() {
 				a.closePanel()
 				a.openWindow()
 			}
-			if compactIconButton(c, "plus", "添加下载", 25, 15, p.muted) {
+			if compactIconButton(c, "plus", tr("添加下载"), 25, 15, p.muted) {
 				a.closePanel()
 				a.openAdd(nil)
 			}
-			if compactIconButton(c, "settings", "设置", 25, 15, p.muted) {
+			if compactIconButton(c, "settings", tr("设置"), 25, 15, p.muted) {
 				a.closePanel()
 				a.openSettings()
 			}

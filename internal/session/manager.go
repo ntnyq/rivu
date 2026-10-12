@@ -20,6 +20,8 @@ import (
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/storage"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 type diskState struct {
@@ -70,11 +72,11 @@ func Open(dir string, e Engine, s config.Settings, trash func(string) error) (*M
 	if err != nil {
 		m.state = diskState{Version: 1}
 		m.loadErr = err
-		m.errorState = fmt.Errorf("会话无法读取，原文件已保留: %w", err)
+		m.errorState = fmt.Errorf(i18n.T("会话无法读取，原文件已保留: %w"), err)
 	}
 	for _, r := range m.state.Tasks {
 		if !s.Restore && r.Run {
-			m.holds[r.ID] = "恢复已关闭，请手动继续"
+			m.holds[r.ID] = i18n.T("恢复已关闭，请手动继续")
 		}
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -191,7 +193,7 @@ func validateSelection(fs []File) error {
 		selected = selected || f.Priority > 0
 	}
 	if !selected {
-		return fmt.Errorf("至少选择一个文件")
+		return fmt.Errorf("%s", i18n.T("至少选择一个文件"))
 	}
 	return nil
 }
@@ -208,7 +210,7 @@ func (m *Manager) checkDestination(s Source, dir string, except string) error {
 				left := strings.ToLower(filepath.Join(r.Destination, filepath.FromSlash(a.Path)))
 				right := strings.ToLower(filepath.Join(dir, filepath.FromSlash(b.Path)))
 				if left == right || strings.HasPrefix(left, right+string(filepath.Separator)) || strings.HasPrefix(right, left+string(filepath.Separator)) {
-					return fmt.Errorf("目标路径已由另一个任务使用")
+					return fmt.Errorf("%s", i18n.T("目标路径已由另一个任务使用"))
 				}
 			}
 		}
@@ -219,7 +221,7 @@ func (m *Manager) checkDestination(s Source, dir string, except string) error {
 	}
 	size := s.requiredSpace()
 	if size > free {
-		return fmt.Errorf("可用空间不足（需要 %d 字节）", size)
+		return fmt.Errorf(i18n.T("可用空间不足（需要 %d 字节）"), size)
 	}
 	return nil
 }
@@ -244,7 +246,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 		return "", err
 	}
 	if m.closed || m.barrier {
-		return "", fmt.Errorf("正在保存会话，请稍后重试")
+		return "", fmt.Errorf("%s", i18n.T("正在保存会话，请稍后重试"))
 	}
 	if m.loadErr != nil {
 		return "", m.loadErr
@@ -255,7 +257,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 		}
 	}
 	if in.Source.Identity == (Identity{}) {
-		return "", fmt.Errorf("无效的下载来源")
+		return "", fmt.Errorf("%s", i18n.T("无效的下载来源"))
 	}
 	if len(in.Source.Files) > 0 {
 		if err := validateSelection(in.Source.Files); err != nil {
@@ -303,7 +305,7 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 		return err
 	}
 	if m.closed || m.barrier {
-		return fmt.Errorf("会话正在保存")
+		return fmt.Errorf("%s", i18n.T("会话正在保存"))
 	}
 	if m.loadErr != nil {
 		return m.loadErr
@@ -384,9 +386,9 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 		}
 	}
 	if err := m.save(next); err != nil {
-		m.errorState = fmt.Errorf("会话保存失败，请重试: %w", err)
+		m.errorState = fmt.Errorf(i18n.T("会话保存失败，请重试: %w"), err)
 		for _, id := range stopIDs {
-			m.holds[id] = "暂停尚未保存，请重试"
+			m.holds[id] = i18n.T("暂停尚未保存，请重试")
 		}
 		return err
 	}
@@ -432,13 +434,13 @@ func (m *Manager) tick() {
 		if o.Metadata != nil {
 			s := *o.Metadata
 			if !s.Identity.Matches(r.Source.Identity) {
-				m.holds[r.ID] = "元数据标识不匹配"
+				m.holds[r.ID] = i18n.T("元数据标识不匹配")
 				_ = m.stop(r.ID)
 				continue
 			}
 			for _, other := range m.state.Tasks {
 				if other.ID != r.ID && s.Identity.Matches(other.Source.Identity) {
-					m.holds[r.ID] = "元数据与现有任务重复，请移除此任务"
+					m.holds[r.ID] = i18n.T("元数据与现有任务重复，请移除此任务")
 				}
 			}
 			if m.holds[r.ID] == "" {
@@ -543,7 +545,7 @@ func (m *Manager) finishRemoval(i int) error {
 	}
 	if r.Trash {
 		if m.trash == nil {
-			return fmt.Errorf("系统废纸篓不可用")
+			return fmt.Errorf("%s", i18n.T("系统废纸篓不可用"))
 		}
 		if err := files.ValidateDestination(r.Destination); err != nil {
 			return err
@@ -565,19 +567,19 @@ func (m *Manager) finishRemoval(i int) error {
 				}
 			}
 			if shared {
-				return fmt.Errorf("文件由其他任务共享，无法移到废纸篓")
+				return fmt.Errorf("%s", i18n.T("文件由其他任务共享，无法移到废纸篓"))
 			}
 			real, err := filepath.EvalSymlinks(full)
 			if err == nil {
 				if real != full {
-					return fmt.Errorf("文件已被符号链接替换")
+					return fmt.Errorf("%s", i18n.T("文件已被符号链接替换"))
 				}
 				st, er := os.Lstat(full)
 				if er != nil {
 					return er
 				}
 				if !st.Mode().IsRegular() {
-					return fmt.Errorf("只允许移除任务的普通文件")
+					return fmt.Errorf("%s", i18n.T("只允许移除任务的普通文件"))
 				}
 				owners, er := files.ReadOwnership(r.Metadata + ".files.json")
 				if er != nil {
@@ -588,7 +590,7 @@ func (m *Manager) finishRemoval(i int) error {
 					return er
 				}
 				if owners[f.Path] != identity {
-					return fmt.Errorf("文件归属已改变，已保留: %s", f.Path)
+					return fmt.Errorf(i18n.T("文件归属已改变，已保留: %s"), f.Path)
 				}
 				if err = m.trash(full); err != nil {
 					return err
@@ -807,7 +809,7 @@ func (m *Manager) Reload() error {
 	if !m.settings.Restore {
 		for _, r := range m.state.Tasks {
 			if r.Run {
-				m.holds[r.ID] = "恢复已关闭，请手动继续"
+				m.holds[r.ID] = i18n.T("恢复已关闭，请手动继续")
 			}
 		}
 	}
