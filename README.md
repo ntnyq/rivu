@@ -1,78 +1,72 @@
-# Rivu
+<p align="center">
+  <img src="resources/icons/rivu-128.png" alt="Rivu icon" width="80" height="80">
+</p>
 
-A quiet, native BitTorrent downloader for macOS, built with Go and MyGo. No WebView or JavaScript runtime is used in the application.
+<h1 align="center">Rivu</h1>
 
-[Website](https://rivu.ntnyq.dev) · [Repository](https://github.com/ntnyq/rivu) · [Design reference](docs/design/README.md)
+<p align="center"><strong>Let your downloads flow quietly.</strong></p>
 
-Rivu imports `.torrent` files and magnet links, manages a download queue, continues transfers after its windows close, and exposes the same session through the main window and menu bar. The interface follows the approved three-column design with light and dark appearances.
+<p align="center">
+  A native BitTorrent downloader for macOS.<br>
+  Choose your files, keep your queue in order, and let Rivu take care of the transfers.
+</p>
 
-## Development
+<p align="center">
+  <a href="#get-started">Get started</a> ·
+  <a href="docs/usage.md">User guide</a> ·
+  <a href="https://github.com/ntnyq/rivu/issues">Feedback</a>
+</p>
 
-Requires Go 1.27.2+; MyGo v0.4.8 and anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e are pinned in `go.mod`. macOS is the first supported runtime target.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/main-dark.png">
+  <img src="docs/images/main-light.png" alt="Rivu showing a download queue with progress, speeds, and details for the selected transfer">
+</picture>
 
-Torrent and dht/v2 use fixed development commits (`d913b30f520e` and `a9c967f9d68b`), recorded as Go pseudo-versions rather than release tags. Together they support `missinggo/v2` v2.11.0's roaring/v2 bitmap and remove the old DHT dependency on `stm`'s iterator API.
+## Your downloads, at a glance
 
-```sh
-go mod download
-make run
-make dev
-make build
-```
+See what's downloading, seeding, finished, or waiting for attention. Search and sort your transfers, then open the details panel for progress, files, and connection information.
 
-```sh
-go run . /path/to/file.torrent 'magnet:?xt=urn:btih:…&tr=…'
-go run . --data-dir /tmp/rivu-session
-go run . --config /tmp/rivu-settings.json
-go run . --version
-```
+- **Add it your way.** Open a `.torrent` file, paste a magnet link, or drag a torrent into the window. Supports v1, v2, and hybrid torrents.
+- **Download what you need.** Choose files, set their priorities, and pick a destination before starting a torrent with known metadata.
+- **Set the pace.** Limit bandwidth and concurrent downloads, pause individual transfers, or pause the whole queue. Resuming a paused batch respects tasks you had already paused yourself.
+- **Pick up where you left off.** Tasks and pause choices survive restarts. Rivu checks downloaded data when restoring a transfer.
+- **Seed on your terms.** Set a share-ratio target and let completed downloads stop seeding when they reach it.
+- **Keep your files.** Removing a task keeps its files by default. Moving downloaded files to Trash is a separate choice.
 
-`--data-dir` changes session and default preference storage; `--config` changes preferences only. Neither changes the single-instance application identity or MyGo window-state location. Close an existing Rivu instance before using an isolated test session.
+## Close the window. Keep downloading.
 
-## Implemented behavior
+Transfers continue while Rivu stays open in the background. The menu bar panel gives you a quick look at speeds and active tasks, with pause, speed-limit, and add-download controls close at hand.
 
-- Import review with per-item errors, destination validation, file selection, free-space checks and an immediate-start option.
-- Real transfers, selected-file progress, high/normal/skipped file priorities, queue limits, pause/resume, recheck and ratio-based seeding.
-- Durable intent separate from measurements; manual pauses and the latest Pause All batch survive restart. Resume Batch leaves manually paused tasks alone.
-- App-owned transfers, native menus, command palette, drag-and-drop, `.torrent`/`magnet` associations, Dock reopening and a menu bar panel.
-- Atomic session/preferences persistence, corrupt-file preservation, immutable metadata, rooted payload I/O and file ownership journals.
-- Removal retains files by default. Optional Trash only acts on recorded owned files, records partial progress and never falls back to permanent deletion.
-- General, download, connection, notification and update settings. Signed MyGo update coordination includes a session maintenance barrier and explicit restart.
-- Simplified Chinese, Traditional Chinese, English, Japanese and Korean. The default follows the system's preferred language; unsupported languages fall back to English. Choose **Settings → General → Language** and save to switch the interface and native menus immediately.
+<p align="center">
+  <img src="docs/images/menu-bar.png" alt="Rivu menu bar panel with transfer progress, pause controls, and a speed-limit toggle" width="360">
+</p>
 
-The `language` preference accepts `system` (default), `zh-Hans`, `zh-Hant`, `en`, `ja`, or `ko`. Existing settings files without this field keep following the system. Translations are embedded from `internal/i18n/locales`; catalog tests check message coverage and format placeholders. Operating-system dialogs and third-party diagnostic details may use their own language.
+## At home on your Mac
 
-Unresolved magnets use only explicit trackers or peers until metadata establishes the privacy flag. A magnet without either is rejected with an explanation. Existing destination files are not adopted automatically; choose an empty destination. Restored task data is rehashed. Skipped files can contain bytes from shared pieces.
+Rivu uses a native interface with light and dark appearances, familiar menus, keyboard shortcuts, and a command palette. Built with Go and MyGo, it runs without a WebView or JavaScript runtime.
 
-## Validation
+Available in **English, 简体中文, 繁體中文, 日本語, and 한국어**. Rivu follows your system language by default; you can change it in **Settings → General → Language**.
 
-```sh
-make check
-make race
-make integration             # Local swarm; no public torrent dependency
-go tool mygo vet
-make snapshots               # Native UI renderer; synthetic tasks only in tests
-make icon                    # Regenerate PNG, ICNS, ICO and iconset from SVG
-```
+<details>
+  <summary>View the dark appearance</summary>
 
-Capture a packaged native empty window and exit:
+  <img src="docs/images/main-dark.png" alt="Rivu download queue and transfer details in dark appearance">
+</details>
 
-```sh
-RIVU_CAPTURE="$PWD/snapshots/native-empty.png" \
-  build/darwin-arm64/Rivu.app/Contents/MacOS/Rivu --data-dir /tmp/rivu-smoke
-```
+<sub>Screenshots show the application's UI rendered with demo transfers in Simplified Chinese.</sub>
 
-The SVG source is [resources/icon.svg](resources/icon.svg). Generated assets include `resources/rivu.icns`, `resources/rivu.ico`, the macOS iconset, PNG sizes 16–1024 and template menu bar images.
+## Get started
 
-## Storage and recovery
+Rivu is in active development for **macOS 12 or later**. To try the current app, follow the [build and run guide](docs/development.md). Signed distribution and automatic updates are still being prepared; Windows and Linux are not supported releases.
 
-Default data is under `os.UserConfigDir()/Rivu`, normally `~/Library/Application Support/Rivu` on macOS. It contains `settings.json`, `session.json`, immutable torrent metadata and ownership journals. Upload totals are checkpointed every 15 seconds; a forced termination can lose the latest statistics interval. Transfer completion is verified from data instead of trusting saved percentages.
+Once Rivu is running:
 
-Corrupt or future-schema files block mutation and remain untouched. Repair a backed-up copy, then use **File → 修复后重新读取会话与设置**. Settings version 1 can be migrated when explicitly loaded; the application does not alter another product's configuration directory.
+1. Select **Add Download**, open a `.torrent` file, or paste a magnet link.
+2. Review the download, choose a destination, and select files when metadata is available.
+3. Start the transfer and follow its progress in the main window or menu bar.
 
-## Release status
+See the [user guide](docs/usage.md) for magnet-link requirements, destination handling, and recovery. Report problems or share ideas in [GitHub Issues](https://github.com/ntnyq/rivu/issues).
 
-This repository contains a development implementation and local app packaging. The configured domain is product identity; it does not imply that hosting or DNS has been deployed. No release signing identity, notarization credentials, update feed or verification key is included. Update checks report unavailable until a trusted release configuration is supplied.
+## Explore the project
 
-Windows/Linux builds are compilation checks, not supported downloadable releases. macOS native permission flows, multi-monitor tray behavior, forced-termination recovery, accessibility and signed-update replacement still require the acceptance matrix in [docs/desktop.md](docs/desktop.md). Do not equate successful snapshots with these platform checks.
-
-Read [Architecture](docs/architecture.md), [Implementation status](docs/implementation-status.md), and [Release guidance](docs/releasing.md).
+[Development](docs/development.md) · [Architecture](docs/architecture.md) · [Release status](docs/implementation-status.md) · [Building releases](docs/releasing.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
