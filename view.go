@@ -51,7 +51,7 @@ func (w *mainWindow) view(c *ui.Context) {
 						}
 					})
 					width, _ := c.Size()
-					if w.inspector && width >= 1060 {
+					if w.inspector && width >= 1060 && w.chosen() != nil {
 						w.inspectorView(c)
 					}
 				})
@@ -82,16 +82,15 @@ func (w *mainWindow) emptyDownloads(c *ui.Context, p palette) {
 	ui.Column(c).Key("empty-downloads").Grow(1).MinHeight(0).FillWidth().Padding(24).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
 		ui.Column(c).FillWidth().Gap(14).AlignItems(ui.Center).Children(func() {
 			glyph(c, "download", 44, p.blue)
-			title, detail := tr("transfer.emptyTitle"), tr("transfer.emptyHint")
+			detail := tr("transfer.emptyHint")
 			if len(w.snapshot.Tasks) > 0 {
-				title, detail = tr("transfer.noMatches"), tr("transfer.noMatchesHint")
+				ui.Text(c, tr("transfer.noMatches")).FontSize(17).Bold().TextAlign(ui.Center)
+				detail = tr("transfer.noMatchesHint")
 			}
-			ui.Text(c, title).FontSize(17).Bold().TextAlign(ui.Center)
 			ui.Text(c, detail).FontSize(12).TextColor(p.muted).TextAlign(ui.Center)
 			if actionButton(c, "plus", tr("transfer.add"), true).Clicked() && w.app != nil {
 				w.app.openAdd(nil)
 			}
-			ui.Text(c, tr("transfer.dropHint")).FontSize(10).TextColor(p.muted).TextAlign(ui.Center)
 		})
 	})
 }

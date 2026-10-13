@@ -59,7 +59,7 @@ func (w *mainWindow) toolbar(c *ui.Context, p palette) {
 			glyph(c, "search", 14, p.muted)
 			ui.TextInput(c, &w.search).Label(tr("transfer.search")).Placeholder(tr("transfer.search")).Grow(1).MinWidth(0).FontSize(11).Background(ui.Transparent).Border(0, ui.Transparent).Padding(0)
 		})
-		if iconButton(c, "panel", tr("transfer.toggleDetails"), true) {
+		if iconButton(c, "panel", tr("transfer.toggleDetails"), w.chosen() != nil) {
 			w.inspector = !w.inspector
 		}
 	})

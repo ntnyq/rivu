@@ -31,7 +31,7 @@ type mainWindow struct {
 }
 
 func newWindow(store *config.Store) *mainWindow {
-	return &mainWindow{windowBase: &windowBase{}, store: store, settings: store.Snapshot(), selected: map[string]bool{}, inspector: true}
+	return &mainWindow{windowBase: &windowBase{}, store: store, settings: store.Snapshot(), selected: map[string]bool{}}
 }
 func (a *application) openWindow() *mainWindow {
 	if a.window != nil && !a.window.closed {
@@ -42,7 +42,12 @@ func (a *application) openWindow() *mainWindow {
 	w := newWindow(a.store)
 	w.app = a
 	w.snapshot = a.snapshot
-	w.win = mygo.NewWindow(mygo.WindowOptions{Title: appName, Width: 1180, Height: 760, MinWidth: 880, MinHeight: 560, StateKey: "main", TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 58, Content: ui.View(w.view)})
+	w.win = mygo.NewWindow(mygo.WindowOptions{
+		Title: appName, Width: 1180, Height: 760, MinWidth: 880, MinHeight: 560, StateKey: "main",
+		TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 38,
+		TrafficLightPosition: &mygo.Point{X: 18, Y: 12},
+		Content:              ui.View(w.view),
+	})
 	w.desktop.Parent = w.win
 	w.win.OnClosed(w.close)
 	a.window = w

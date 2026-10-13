@@ -107,3 +107,13 @@ settings, and Simplified Chinese automation settings, using isolated data and
 instance sockets. All seven processes exited cleanly without missing-key logs.
 Captures are `snapshots/native-semantic-<language>-<surface>.png`; these smoke
 checks do not replace the interactive and hardware release checks above.
+
+The October 13 sidebar and empty-state adjustment passed unit tests, Go vet,
+race tests, isolated swarm integration tests, MyGo vet, and localized snapshots.
+The macOS arm64 app and DMG built successfully. An isolated native session
+verified entering and leaving full screen: the brand moves into the top row
+when window controls hide, and the compact Settings footer stays at the bottom.
+The empty library shows one instruction and no details panel; the details toggle
+is disabled without a selection. `TestDetailsRequireSelection` covers opening
+details on request and removing the selected task at regular and narrow widths.
+The native Chinese window capture is `snapshots/native-layout-main.png`.

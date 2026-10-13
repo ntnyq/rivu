@@ -6,15 +6,29 @@ import (
 )
 
 func (w *mainWindow) sidebar(c *ui.Context, p palette) {
+	bar := c.TitleBar()
 	ui.Column(c).Width(191).Shrink(0).Background(p.sidebar).BorderWidth(0, 1, 0, 0).BorderColor(p.line).Children(func() {
-		ui.Row(c).Height(58).Shrink(0).Padding(0, 18).Children(func() {
+		if bar.Height > 0 {
+			ui.Row(c).Height(bar.Height).Shrink(0).Padding(0, 12, 0, bar.Left).DragWindow().Children(func() {
+				ui.Spacer(c)
+				if iconButton(c, "sidebar", tr("sidebar.collapse"), true) {
+					w.sidebarHidden = true
+				}
+			})
+		}
+		height := float32(56)
+		if bar.Height == 0 {
+			height = 69
+		}
+		ui.Row(c).Height(height).Shrink(0).Padding(0, 12, 0, 18).Gap(8).DragWindow().Children(func() {
+			ui.Image(c, appMark).Size(32, 32)
+			ui.Text(c, "Rivu").FontSize(18).Bold()
 			ui.Spacer(c).DragWindow()
-			if iconButton(c, "sidebar", tr("sidebar.collapse"), true) {
+			if bar.Height == 0 && iconButton(c, "sidebar", tr("sidebar.collapse"), true) {
 				w.sidebarHidden = true
 			}
 		})
-		ui.Row(c).Height(41).Shrink(0).Padding(10, 14, 0, 14).Gap(7).Children(func() { ui.Image(c, appMark).Size(38, 38); ui.Text(c, "Rivu").FontSize(20).Bold() })
-		ui.Column(c).Padding(29, 12, 0, 12).Gap(3).Children(func() {
+		ui.Column(c).Padding(16, 12, 0, 12).Gap(3).Children(func() {
 			ui.Text(c, tr("sidebar.library")).FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 8, 10)
 			icons := []string{"grid", "arrow-down", "arrow-up", "check", "pause", "alert"}
 			for i, label := range filterLabels() {
@@ -57,7 +71,7 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 			}
 		})
 		ui.Spacer(c)
-		ui.Column(c).Padding(20, 18, 18, 18).Gap(12).Children(func() {
+		ui.Column(c).Padding(20, 18, 6, 18).Gap(12).Children(func() {
 			ui.Row(c).Gap(8).Children(func() {
 				glyph(c, "drive", 17, p.muted)
 				ui.Column(c).Gap(5).MinWidth(0).Children(func() {

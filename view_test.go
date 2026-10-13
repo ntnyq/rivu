@@ -61,17 +61,60 @@ func TestFilterSelectionAndEmptyState(t *testing.T) {
 		t.Fatal("selection failed")
 	}
 }
+
+func TestDetailsRequireSelection(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
+	store, err := config.Open(filepath.Join(t.TempDir(), "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, width := range []int{880, 1180} {
+		w := newWindow(store)
+		tt := ui.NewTester(w.view, width, 760)
+		tt.Frame()
+		if w.inspector || tt.HasText(tr("transfer.selectHint")) {
+			t.Fatal("details opened without a selection")
+		}
+		if err := tt.Click(tr("transfer.toggleDetails")); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+		if w.inspector {
+			t.Fatal("empty library allowed details to open")
+		}
+		w.snapshot = fixtureSnapshot()
+		w.selectOnly("1")
+		tt.Frame()
+		if tt.HasText(tr("transfer.overview")) {
+			t.Fatal("selection opened details before they were requested")
+		}
+		if err := tt.Click(tr("transfer.toggleDetails")); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+		if !tt.HasText(tr("transfer.overview")) {
+			t.Fatal("selected task details did not open")
+		}
+		w.snapshot = session.Snapshot{}
+		tt.Frame()
+		if tt.HasText(tr("transfer.overview")) || tt.HasText(tr("transfer.selectHint")) {
+			t.Fatal("details remained visible after the selected task was removed")
+		}
+	}
+}
+
 func TestViewSnapshots(t *testing.T) {
 	useTestLanguage(t, "zh-Hans")
 	s, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	for _, dark := range []bool{false, true} {
 		for _, size := range [][2]int{{1280, 818}, {1180, 760}, {880, 560}} {
-			for _, state := range []string{"tasks", "empty", "collapsed"} {
+			for _, state := range []string{"tasks", "empty", "collapsed", "fullscreen"} {
 				w := newWindow(s)
 				w.snapshot = fixtureSnapshot()
 				w.diskFree = 128000000000
 				w.diskTotal = 512000000000
 				w.selectOnly("1")
+				w.inspector = state == "tasks"
 				if state != "tasks" {
 					w.snapshot = session.Snapshot{}
 					w.sidebarHidden = state == "collapsed"
@@ -80,6 +123,9 @@ func TestViewSnapshots(t *testing.T) {
 					w.inspector = false
 				}
 				tt := ui.NewTester(w.view, size[0], size[1])
+				if state != "fullscreen" {
+					tt.SetTitleBar(ui.TitleBar{Height: 38, Left: 104})
+				}
 				tt.SetDark(dark)
 				tt.Frame()
 				if !tt.HasText("全部任务") {
