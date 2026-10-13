@@ -4,8 +4,8 @@ Primary pinned components:
 
 | Component | Version | License |
 | --- | --- | --- |
-| [MyGo](https://github.com/egoist/mygo) | v0.4.3 | MIT |
-| [anacrolix/torrent](https://github.com/anacrolix/torrent) | v1.61.0 | MPL-2.0 |
+| [MyGo](https://github.com/egoist/mygo) | v0.4.8 | MIT |
+| [anacrolix/torrent](https://github.com/anacrolix/torrent) | v1.61.1-0.20260927071845-d913b30f520e | MPL-2.0 |
 
 The complete resolved Go dependency graph is recorded in `go.mod` and `go.sum`. This document is a primary-component inventory, not a complete distribution notice bundle. Preserve upstream notices and prepare the transitive license inventory before binary distribution.
 

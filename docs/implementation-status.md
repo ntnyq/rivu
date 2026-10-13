@@ -8,7 +8,7 @@ The application now has a real application-owned torrent session, native main/se
 
 The visual implementation follows `docs/design/styles.css` and the approved prototype rather than the old starter screens: 191 pt sidebar, solid blue navigation, 69 pt toolbar, 102 pt task rows, 271 pt inspector, segmented tabs, file symbols and small secondary labels. Settings use a 168 pt category sidebar and grouped rows/switches. Both appearances and the 880 × 560 minimum window are rendered in tests.
 
-The engine is pinned to anacrolix/torrent v1.61.0. Controlled local swarm tests verify v1, v2-only and hybrid byte integrity, magnet metadata without payload writes, pause detachment, resume rehash and selected-file transfers across shared piece boundaries. The adapter handles a pinned upstream v2-only admission issue by entering through its documented short-hash path and retaining/comparing full identity in Rivu before payload admission. No dependency cache source was modified.
+The engine is pinned to anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e. Controlled local swarm tests verify v1, v2-only and hybrid byte integrity, magnet metadata without payload writes, pause detachment, resume rehash and selected-file transfers across shared piece boundaries. The adapter retains the short-hash admission path introduced for v1.61.0, retaining/comparing full identity in Rivu before payload admission. No dependency cache source was modified.
 
 ## Verification performed
 

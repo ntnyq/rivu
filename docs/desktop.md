@@ -29,7 +29,7 @@ On the development macOS arm64 host, the app bundle builds with ad-hoc signing, 
 | Updates | Signed feed, wrong architecture/signature, interrupted replacement, restart after save failure |
 | Storage | External volume replacement, full disk, controlled forced termination during checkpoint/Trash |
 
-MyGo v0.4.3 exposes boolean login observation and notification support, not every OS authorization state. Rivu reports observed values and original errors without inferring richer permission states. The detailed native status adapters proposed in the plan remain a release gap.
+MyGo v0.4.8 exposes boolean login observation and notification support, not every OS authorization state. Rivu reports observed values and original errors without inferring richer permission states. The detailed native status adapters proposed in the plan remain a release gap.
 
 Windows and Linux compilation do not establish desktop support. Safe file ownership currently has a macOS/Linux adapter; unsupported platforms refuse payload writes. Do not publish Windows packages as functional download clients until that adapter and native testing exist.
 
@@ -84,3 +84,11 @@ saving, and immediately refreshing the settings window, main window, and menus;
 selecting Progress from the sort menu also updated the visible control. These
 checks used an isolated session without transfers. `TestSortMenuSelection` and
 `TestSettingsLanguageMenu` cover menu selection and keyboard opening.
+
+On October 13, 2026, the dependency upgrade to MyGo v0.4.8, Torrent commit
+`d913b30f520e`, and DHT commit `a9c967f9d68b` passed unit tests, race tests, the
+isolated swarm integration suite, Go vet, MyGo vet, and UI snapshot tests.
+Windows and Linux cross-compilation and the ad-hoc signed macOS arm64 app
+build also passed. Native main-window and AppKit popover content captures used
+temporary data directories and isolated instance sockets; both processes exited
+cleanly. These smoke checks do not replace the release acceptance checks above.

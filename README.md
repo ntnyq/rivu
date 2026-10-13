@@ -8,7 +8,9 @@ Rivu imports `.torrent` files and magnet links, manages a download queue, contin
 
 ## Development
 
-Requires Go 1.27.2+; MyGo v0.4.3 and anacrolix/torrent v1.61.0 are pinned in `go.mod`. macOS is the first supported runtime target.
+Requires Go 1.27.2+; MyGo v0.4.8 and anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e are pinned in `go.mod`. macOS is the first supported runtime target.
+
+Torrent and dht/v2 use fixed development commits (`d913b30f520e` and `a9c967f9d68b`), recorded as Go pseudo-versions rather than release tags. Together they support `missinggo/v2` v2.11.0's roaring/v2 bitmap and remove the old DHT dependency on `stm`'s iterator API.
 
 ```sh
 go mod download

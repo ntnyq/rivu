@@ -43,4 +43,4 @@ Before enabling this for users, test a controlled signed update, bad signature, 
 
 ## Licenses
 
-A license for Rivu's own code has not yet been selected in this repository. The engine is pinned to anacrolix/torrent v1.61.0 (MPL-2.0); MyGo and transitive dependencies have their own licenses. `THIRD_PARTY_NOTICES.md` records primary components. Prepare a complete dependency license inventory and fulfill corresponding source/notice obligations before distributing binaries.
+A license for Rivu's own code has not yet been selected in this repository. The engine is pinned to anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e (MPL-2.0); MyGo and transitive dependencies have their own licenses. `THIRD_PARTY_NOTICES.md` records primary components. Prepare a complete dependency license inventory and fulfill corresponding source/notice obligations before distributing binaries.
