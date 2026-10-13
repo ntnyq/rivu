@@ -96,3 +96,14 @@ cleanly. These smoke checks do not replace the release acceptance checks above.
 ## October 13 refactor verification
 
 The refactored build's main window, download settings, and automation settings were captured through actual AppKit windows using separate temporary data and instance-socket directories. Each process exited through the session save coordinator with exit code 0. Captures are `snapshots/native-refactor-main.png`, `native-refactor-settings-downloads.png`, and `native-refactor-settings-automation.png`. These isolated smoke checks do not claim the real-transfer/hardware acceptance rows above. Feature semantics, local-swarm checks and collection benchmarks are in [the refactor report](refactor-validation.md).
+
+The semantic i18n key migration on October 13, 2026 passed unit tests, Go vet,
+race tests, isolated swarm integration tests, MyGo vet, and localized UI snapshots.
+All five catalogs retain their translations under 359 semantic keys; 21 unused
+entries were removed. The macOS arm64 app and DMG built successfully on retry
+after the first packaging attempt lost its temporary staging directory.
+Native captures covered the main window in all five languages, English download
+settings, and Simplified Chinese automation settings, using isolated data and
+instance sockets. All seven processes exited cleanly without missing-key logs.
+Captures are `snapshots/native-semantic-<language>-<surface>.png`; these smoke
+checks do not replace the interactive and hardware release checks above.

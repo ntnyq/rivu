@@ -15,7 +15,7 @@ import (
 
 func TestStructuredErrorUsesCurrentLanguage(t *testing.T) {
 	useTestLanguage(t, "zh-Hans")
-	issue := problem.Message(problem.Conflict, "文件归属已改变，已保留: %s", "payload")
+	issue := problem.Message(problem.Conflict, "files.ownershipChanged", "payload")
 	before := problemText(issue, "")
 	i18n.SetLanguage("en", "")
 	after := problemText(issue, "")

@@ -52,7 +52,7 @@ func (a *application) openAdd(sources []string) {
 	parent := a.openWindow()
 	d := &addWindow{windowBase: &windowBase{}, settings: a.store.Snapshot(), destination: a.store.Snapshot().Destination, start: true}
 	d.app = a
-	d.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("添加下载"), Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
+	d.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("transfer.add"), Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
 	d.desktop.Parent = d.win
 	d.win.OnClosed(d.close)
 	a.add = d
@@ -73,7 +73,7 @@ func (d *addWindow) prepare() {
 	var items []importItem
 	var free int64
 	var spaceError string
-	d.run(tr("读取下载来源"), func(ctx context.Context) (string, error) {
+	d.run(tr("import.readSources"), func(ctx context.Context) (string, error) {
 		home, _ := os.UserHomeDir()
 		if destination == filepath.Join(home, "Downloads", "Rivu") {
 			if err := os.MkdirAll(destination, 0o755); err != nil {
@@ -100,7 +100,7 @@ func (d *addWindow) prepare() {
 			if err != nil {
 				item.source.Name = filepath.Base(line)
 				if strings.HasPrefix(line, "magnet:") {
-					item.source.Name = tr("磁力链接")
+					item.source.Name = tr("import.magnet")
 				}
 				item.error = err.Error()
 				item.issue = problem.From(err)
@@ -108,9 +108,9 @@ func (d *addWindow) prepare() {
 			items = append(items, item)
 		}
 		if len(items) == 0 {
-			return "", fmt.Errorf("%s", tr("请添加种子文件或磁力链接"))
+			return "", fmt.Errorf("%s", tr("import.sourceRequired"))
 		}
-		return tr("请确认保存位置和文件选择"), nil
+		return tr("import.reviewHint"), nil
 	}, func() {
 		if gen == d.generation {
 			d.items = items
@@ -122,29 +122,29 @@ func (d *addWindow) prepare() {
 }
 func (d *addWindow) pickTorrents() {
 	var paths []string
-	d.run(tr("选择种子文件"), func(context.Context) (string, error) {
+	d.run(tr("import.chooseFiles"), func(context.Context) (string, error) {
 		var err error
-		paths, err = mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: d.win, Title: tr("选择种子文件"), Multiple: true})
+		paths, err = mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: d.win, Title: tr("import.chooseFiles"), Multiple: true})
 		if err != nil {
 			return "", err
 		}
 		if len(paths) == 0 {
 			return "", desktop.ErrCanceled
 		}
-		return tr("已选择种子文件，请读取并审阅"), nil
+		return tr("import.filesSelected"), nil
 	}, func() { d.input = strings.Join(paths, "\n"); d.items = nil })
 }
 func (d *addWindow) paste() {
 	var value string
-	d.run(tr("粘贴磁力链接"), func(context.Context) (string, error) {
+	d.run(tr("import.pasteMagnet"), func(context.Context) (string, error) {
 		var err error
 		value, err = d.desktop.Paste()
-		return tr("已粘贴，请读取并审阅"), err
+		return tr("import.pasted"), err
 	}, func() { d.input = value; d.items = nil })
 }
 func (d *addWindow) submit() {
 	if d.input != d.preparedInput {
-		d.report(tr("请重新读取已修改的下载来源"), fmt.Errorf("%s", tr("来源已更改")))
+		d.report(tr("import.readAgain"), fmt.Errorf("%s", tr("import.sourcesChanged")))
 		return
 	}
 	items := make([]importItem, len(d.items))
@@ -156,7 +156,7 @@ func (d *addWindow) submit() {
 	adopt, tags, seedLimit := d.adoptExisting, parseTags(d.tags), d.settings.SeedLimitSeconds
 	var selected string
 	var failed bool
-	d.run(tr("添加下载"), func(ctx context.Context) (string, error) {
+	d.run(tr("transfer.add"), func(ctx context.Context) (string, error) {
 		for i := range items {
 			item := &items[i]
 			if item.error != "" || item.submitted {
@@ -173,7 +173,7 @@ func (d *addWindow) submit() {
 				selected = id
 			}
 		}
-		return tr("导入已处理；错误项目可修改后重新读取"), nil
+		return tr("import.processed"), nil
 	}, func() {
 		d.items = items
 		if selected != "" {
@@ -188,9 +188,9 @@ func (d *addWindow) submit() {
 
 func (d *addWindow) pickFolder() {
 	var folder string
-	d.run(tr("选择下载目录"), func(context.Context) (string, error) {
+	d.run(tr("files.chooseDownloadFolder"), func(context.Context) (string, error) {
 		var err error
 		folder, err = d.desktop.PickFolder()
-		return tr("已选择目录"), err
+		return tr("files.folderSelected"), err
 	}, func() { d.destination = filepath.Clean(folder) })
 }

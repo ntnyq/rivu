@@ -7,6 +7,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 func (w *settingsWindow) saveSettings() {
@@ -15,7 +16,7 @@ func (w *settingsWindow) saveSettings() {
 	var err error
 	s.Concurrent, err = strconv.Atoi(w.concurrent)
 	if err != nil {
-		w.report(tr("并行数量无效"), err)
+		w.report(tr("settings.invalidConcurrency"), err)
 		return
 	}
 	s.SeedRatio = 0
@@ -29,12 +30,12 @@ func (w *settingsWindow) saveSettings() {
 		}
 	}
 	if err != nil {
-		w.report(tr("分享率无效"), err)
+		w.report(tr("settings.invalidSeedRatio"), err)
 		return
 	}
 	s.ListenPort, err = strconv.Atoi(w.listenPort)
 	if err != nil {
-		w.report(tr("端口无效"), err)
+		w.report(tr("settings.invalidPort"), err)
 		return
 	}
 	for _, v := range []struct {
@@ -43,30 +44,31 @@ func (w *settingsWindow) saveSettings() {
 	}{{w.downloadLimit, &s.DownloadLimit}, {w.uploadLimit, &s.UploadLimit}, {w.slowDownload, &s.SlowDownload}, {w.slowUpload, &s.SlowUpload}} {
 		*v.value, err = v.input.bytes()
 		if err != nil {
-			w.report(tr("限速数值无效"), err)
+			w.report(tr("settings.invalidSpeedLimit"), err)
 			return
 		}
 	}
 	s.SeedLimitSeconds, err = parseScaled(w.seedHours, 3600)
 	if err != nil {
-		w.report(tr("设置无效"), err)
+		w.report(tr("settings.invalid"), err)
 		return
 	}
 	s.ScheduleStart, err = clockMinute(w.scheduleStart)
 	if err != nil {
-		w.report(tr("设置无效"), err)
+		w.report(tr("settings.invalid"), err)
 		return
 	}
 	s.ScheduleEnd, err = clockMinute(w.scheduleEnd)
 	if err != nil {
-		w.report(tr("设置无效"), err)
+		w.report(tr("settings.invalid"), err)
 		return
 	}
 	if err = s.Validate(); err != nil {
-		w.report(tr("设置无效"), err)
+		w.report(tr("settings.invalid"), err)
 		return
 	}
-	w.run(tr("保存设置"), func(context.Context) (string, error) {
+	language := i18n.Resolve(s.Language, mygo.App.Locale())
+	w.run(tr("settings.save"), func(context.Context) (string, error) {
 		if w.app != nil {
 			w.app.settingsMu.Lock()
 			defer w.app.settingsMu.Unlock()
@@ -74,7 +76,7 @@ func (w *settingsWindow) saveSettings() {
 		old := w.store.Snapshot()
 		if old.Login != s.Login {
 			if err := mygo.App.SetOpenAtLogin(s.Login); err != nil {
-				return "", fmt.Errorf(tr("登录项注册失败: %w"), err)
+				return "", fmt.Errorf(tr("settings.login.registrationFailed"), err)
 			}
 		}
 		if err := w.store.SavePreferences(s); err != nil {
@@ -88,7 +90,7 @@ func (w *settingsWindow) saveSettings() {
 				return "", err
 			}
 		}
-		return "设置已保存；连接设置将在下次启动生效", nil
+		return i18n.Translate(language, "settings.saved"), nil
 	}, func() {
 		w.settings = w.store.Snapshot()
 		applyTheme(w.settings.Theme)
@@ -100,11 +102,11 @@ func (w *settingsWindow) saveSettings() {
 				main.dispatch(func() { main.settings = w.settings; main.refreshDisk() })
 			}
 		}
-		w.loginStatus = fmt.Sprintf(tr("系统当前启用：%t"), mygo.App.OpenAtLogin())
+		w.loginStatus = fmt.Sprintf(tr("settings.login.status"), mygo.App.OpenAtLogin())
 	})
 }
 func (w *mainWindow) saveQuitPreference() {
-	w.run(tr("保存退出偏好"), func(context.Context) (string, error) {
-		return tr("已保存"), w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
+	w.run(tr("settings.saveQuitPreference"), func(context.Context) (string, error) {
+		return tr("common.saved"), w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
 	}, w.app.shutdown)
 }

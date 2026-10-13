@@ -41,21 +41,21 @@ func ValidateMembers(names []string) error {
 // explicitly create a default directory or pick an existing one before import.
 func ValidateDestination(dir string) error {
 	if !filepath.IsAbs(dir) {
-		return problem.Message(problem.Destination, "请选择绝对路径的下载目录")
+		return problem.Message(problem.Destination, "files.absolutePathRequired")
 	}
 	stat, err := os.Stat(dir)
 	if err != nil {
 		return problem.New(problem.Destination, dir, err)
 	}
 	if !stat.IsDir() {
-		return problem.Message(problem.Destination, "下载路径不是目录")
+		return problem.Message(problem.Destination, "files.notFolder")
 	}
 	entry, err := os.Lstat(dir)
 	if err != nil {
 		return err
 	}
 	if entry.Mode()&os.ModeSymlink != 0 {
-		return problem.Message(problem.Destination, "请选择真实目录，不能使用符号链接")
+		return problem.Message(problem.Destination, "files.symlinkFolder")
 	}
 	return nil
 }
@@ -92,7 +92,7 @@ func InspectExisting(dir string, names []string, allowExisting bool) (map[string
 				return nil, e
 			}
 			if st.Mode()&os.ModeSymlink != 0 || (i == len(parts)-1 && (!allowExisting || !st.Mode().IsRegular())) || (i < len(parts)-1 && !st.IsDir()) {
-				return nil, problem.Message(problem.Destination, "目标已存在或不安全，请选择另一个目录: %s", rel)
+				return nil, problem.Message(problem.Destination, "files.unsafeDestination", rel)
 			}
 			if i == len(parts)-1 {
 				id, err := FileIdentity(st)

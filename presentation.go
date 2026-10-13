@@ -11,10 +11,35 @@ import (
 )
 
 func filterLabels() []string {
-	return []string{tr("全部任务"), tr("下载中"), tr("做种中"), tr("已完成"), tr("已暂停"), tr("需要处理")}
+	return []string{tr("filter.all"), tr("phase.downloading"), tr("phase.seeding"), tr("phase.completed"), tr("phase.paused"), tr("phase.error")}
 }
 
-var phases = map[session.Phase]string{"queued": "等待队列", "metadata": "获取元数据", "verifying": "校验中", "waiting": "等待节点", "downloading": "下载中", "seeding": "做种中", "completed": "已完成", "paused": "已暂停", "error": "需要处理", "removing": "正在移除"}
+func phaseLabel(phase session.Phase) string {
+	switch phase {
+	case session.PhaseQueued:
+		return tr("phase.queued")
+	case session.PhaseMetadata:
+		return tr("phase.metadata")
+	case session.PhaseVerifying:
+		return tr("phase.verifying")
+	case session.PhaseWaiting:
+		return tr("phase.waiting")
+	case session.PhaseDownloading:
+		return tr("phase.downloading")
+	case session.PhaseSeeding:
+		return tr("phase.seeding")
+	case session.PhaseCompleted:
+		return tr("phase.completed")
+	case session.PhasePaused:
+		return tr("phase.paused")
+	case session.PhaseError:
+		return tr("phase.error")
+	case session.PhaseRemoving:
+		return tr("phase.removing")
+	default:
+		return "—"
+	}
+}
 
 func matches(t session.Task, filter int) bool {
 	switch filter {
@@ -81,12 +106,12 @@ func eta(t session.Task) string {
 	}
 	seconds := max(1, int(float64(t.Size-t.Done)/t.DownRate))
 	if seconds < 60 {
-		return fmt.Sprintf(tr("约 %d 秒"), seconds)
+		return fmt.Sprintf(tr("transfer.eta.seconds"), seconds)
 	}
 	if seconds < 3600 {
-		return fmt.Sprintf(tr("约 %d 分钟"), (seconds+30)/60)
+		return fmt.Sprintf(tr("transfer.eta.minutes"), (seconds+30)/60)
 	}
-	return fmt.Sprintf(tr("约 %d 小时 %d 分钟"), seconds/3600, seconds%3600/60)
+	return fmt.Sprintf(tr("transfer.eta.hours"), seconds/3600, seconds%3600/60)
 }
 func magnet(t session.Task) string {
 	v := url.Values{}
@@ -114,15 +139,15 @@ func taskPercent(t session.Task) string {
 }
 
 func seedingSummary(ratio float64, seconds int64) string {
-	summary := tr("无限做种")
+	summary := tr("seeding.forever")
 	if ratio == 0 {
-		return tr("下载完成后停止做种")
+		return tr("seeding.stopAfterDownload")
 	}
 	if ratio > 0 {
-		summary = fmt.Sprintf(tr("分享率达到 %.1f 时自动停止"), ratio)
+		summary = fmt.Sprintf(tr("seeding.ratioGoal"), ratio)
 	}
 	if seconds > 0 {
-		summary += " · " + fmt.Sprintf(tr("最长 %.1f 小时"), float64(seconds)/3600)
+		summary += " · " + fmt.Sprintf(tr("seeding.durationLimit"), float64(seconds)/3600)
 	}
 	return summary
 }

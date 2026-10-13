@@ -8,6 +8,8 @@ import (
 	"slices"
 	"strings"
 	"syscall"
+
+	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 type Code string
@@ -32,7 +34,7 @@ type Error struct {
 
 func (e *Error) Error() string {
 	if e.Key != "" {
-		return fmt.Sprintf(strings.ReplaceAll(e.Key, "%w", "%v"), e.Args...)
+		return fmt.Sprintf(strings.ReplaceAll(i18n.Translate("en", e.Key), "%w", "%v"), e.Args...)
 	}
 	if e.Cause != nil {
 		return fmt.Sprintf("%s: %s: %v", e.Code, e.Context, e.Cause)

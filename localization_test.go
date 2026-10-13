@@ -39,23 +39,26 @@ func TestLocalizedSurfaces(t *testing.T) {
 				width, height int
 				label         string
 			}{
-				{"main", w.view, 1180, 760, "全部任务"},
-				{"main-minimum", w.view, 880, 560, "全部任务"},
-				{"settings", settings.settingsView, 750, 630, "界面语言"},
-				{"settings-minimum", settings.settingsView, 640, 520, "界面语言"},
-				{"add", add.view, 550, 660, "添加下载"},
-				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), "打开主窗口"},
+				{"main", w.view, 1180, 760, "filter.all"},
+				{"main-minimum", w.view, 880, 560, "filter.all"},
+				{"settings", settings.settingsView, 750, 630, "settings.languageLabel"},
+				{"settings-minimum", settings.settingsView, 640, 520, "settings.languageLabel"},
+				{"add", add.view, 550, 660, "transfer.add"},
+				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), "tray.openWindow"},
 			} {
 				tt := ui.NewTester(surface.view, surface.width, surface.height)
 				tt.Frame()
+				if tt.HasText("Translation unavailable") {
+					t.Errorf("%s: missing translation reached the interface", surface.name)
+				}
 				if _, ok := tt.Find(tr(surface.label)); !ok {
 					t.Errorf("%s: missing %q", surface.name, tr(surface.label))
 				}
-				if surface.name == "settings" && !tt.HasText(tr("跟随系统")) {
+				if surface.name == "settings" && !tt.HasText(tr("common.followSystem")) {
 					t.Error("default language option missing")
 				}
 				if surface.name == "tray" {
-					for _, key := range []string{"打开主窗口", "添加下载", "设置", "限速模式"} {
+					for _, key := range []string{"tray.openWindow", "transfer.add", "settings.label", "transfer.speedLimit"} {
 						r, ok := tt.Find(tr(key))
 						if !ok || r.X < 0 || r.Y < 0 || r.X+r.W > float32(surface.width) || r.Y+r.H > float32(surface.height) {
 							t.Errorf("%s clipped: %+v", tr(key), r)
@@ -79,16 +82,16 @@ func TestLocalizedSurfaces(t *testing.T) {
 			}
 			// Native menus are built without installing them, preserving role shortcuts.
 			menu := app.menu()
-			if got := menu.Items()[2].Label; got != tr("编辑") {
+			if got := menu.Items()[2].Label; got != tr("menu.edit") {
 				t.Errorf("edit menu: %s", got)
 			}
 			item := app.menuItem("settings")
-			if item.Label != tr("设置…") || item.Accelerator != "CmdOrCtrl+," {
+			if item.Label != tr("menu.settings") || item.Accelerator != "CmdOrCtrl+," {
 				t.Fatal("settings command changed")
 			}
 			tt := ui.NewTester(w.view, 1180, 760)
 			tt.Frame()
-			if err := tt.Click(tr("已暂停")); err != nil {
+			if err := tt.Click(tr("phase.paused")); err != nil {
 				t.Fatal(err)
 			}
 			tt.Frame()

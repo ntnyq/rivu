@@ -22,10 +22,10 @@ func (w *mainWindow) view(c *ui.Context) {
 				ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
 					ui.Column(c).Grow(1).MinWidth(0).Children(func() {
 						ui.Row(c).Height(38).Shrink(0).Padding(0, 19).BorderWidth(0, 0, 1, 0).BorderColor(p.line).Children(func() {
-							ui.Text(c, tr("名称与进度")).FontSize(10).TextColor(p.muted)
+							ui.Text(c, tr("transfer.nameAndProgress")).FontSize(10).TextColor(p.muted)
 							ui.Spacer(c)
-							labels := []string{tr("添加时间"), tr("名称"), tr("进度"), tr("状态")}
-							menuControl(c, tr("任务排序"), fmt.Sprintf(tr("排序：%s"), labels[w.sort])).Menu(func(m *ui.Menu) {
+							labels := []string{tr("transfer.dateAdded"), tr("transfer.name"), tr("transfer.progressLabel"), tr("transfer.status")}
+							menuControl(c, tr("transfer.sort"), fmt.Sprintf(tr("transfer.sortLabel"), labels[w.sort])).Menu(func(m *ui.Menu) {
 								for i, label := range labels {
 									if m.Item(label).Checked(w.sort == i).Chosen() {
 										w.sort = i
@@ -46,7 +46,7 @@ func (w *mainWindow) view(c *ui.Context) {
 							}
 							ui.Row(c).Height(64).Shrink(0).Justify(ui.Center).Gap(4).Children(func() {
 								glyph(c, "plus", 13, p.muted)
-								ui.Text(c, tr("将种子文件拖到这里，或粘贴磁力链接")).FontSize(10).TextColor(p.muted)
+								ui.Text(c, tr("transfer.dropHint")).FontSize(10).TextColor(p.muted)
 							})
 						}
 					})
@@ -67,7 +67,7 @@ func (w *mainWindow) view(c *ui.Context) {
 		ui.DialogBase(c, &open, func(_, panel ui.Element) {
 			panel.Width(310).Height(550).Children(func() {
 				w.inspectorView(c)
-				if actionButton(c, "x", tr("关闭详情"), false).Clicked() {
+				if actionButton(c, "x", tr("transfer.closeDetails"), false).Clicked() {
 					w.inspector = false
 				}
 			})
@@ -82,16 +82,16 @@ func (w *mainWindow) emptyDownloads(c *ui.Context, p palette) {
 	ui.Column(c).Key("empty-downloads").Grow(1).MinHeight(0).FillWidth().Padding(24).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
 		ui.Column(c).FillWidth().Gap(14).AlignItems(ui.Center).Children(func() {
 			glyph(c, "download", 44, p.blue)
-			title, detail := tr("让下载安静地流动"), tr("添加种子文件或磁力链接，Rivu 会在后台继续下载。")
+			title, detail := tr("transfer.emptyTitle"), tr("transfer.emptyHint")
 			if len(w.snapshot.Tasks) > 0 {
-				title, detail = tr("没有匹配的任务"), tr("试试其他分类，或清除搜索内容。")
+				title, detail = tr("transfer.noMatches"), tr("transfer.noMatchesHint")
 			}
 			ui.Text(c, title).FontSize(17).Bold().TextAlign(ui.Center)
 			ui.Text(c, detail).FontSize(12).TextColor(p.muted).TextAlign(ui.Center)
-			if actionButton(c, "plus", tr("添加下载"), true).Clicked() && w.app != nil {
+			if actionButton(c, "plus", tr("transfer.add"), true).Clicked() && w.app != nil {
 				w.app.openAdd(nil)
 			}
-			ui.Text(c, tr("将种子文件拖到这里，或粘贴磁力链接")).FontSize(10).TextColor(p.muted).TextAlign(ui.Center)
+			ui.Text(c, tr("transfer.dropHint")).FontSize(10).TextColor(p.muted).TextAlign(ui.Center)
 		})
 	})
 }

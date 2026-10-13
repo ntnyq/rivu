@@ -66,31 +66,31 @@ func (s Settings) Validate() error {
 	}
 
 	if s.Version != 2 {
-		return fmt.Errorf(i18n.T("unsupported settings version %d"), s.Version)
+		return fmt.Errorf(i18n.T("config.unsupportedVersion"), s.Version)
 	}
 	if !i18n.Valid(s.Language) {
-		return fmt.Errorf(i18n.T("unknown language %q"), s.Language)
+		return fmt.Errorf(i18n.T("config.unknownLanguage"), s.Language)
 	}
 	if s.Theme != "system" && s.Theme != "light" && s.Theme != "dark" {
-		return fmt.Errorf(i18n.T("unknown theme %q"), s.Theme)
+		return fmt.Errorf(i18n.T("config.unknownTheme"), s.Theme)
 	}
 	if !filepath.IsAbs(s.Destination) {
-		return fmt.Errorf("%s", i18n.T("download destination must be absolute"))
+		return fmt.Errorf("%s", i18n.T("config.absoluteDestination"))
 	}
 	if s.Concurrent < 1 || s.Concurrent > 32 {
-		return fmt.Errorf("%s", i18n.T("concurrent downloads must be 1–32"))
+		return fmt.Errorf("%s", i18n.T("config.concurrency"))
 	}
 	if math.IsNaN(s.SeedRatio) || math.IsInf(s.SeedRatio, 0) || s.SeedRatio < -1 {
-		return fmt.Errorf("%s", i18n.T("invalid seed ratio"))
+		return fmt.Errorf("%s", i18n.T("config.seedRatio"))
 	}
 	if s.DownloadLimit < 0 || s.UploadLimit < 0 || s.SlowDownload <= 0 || s.SlowUpload <= 0 {
-		return fmt.Errorf("%s", i18n.T("invalid bandwidth limit"))
+		return fmt.Errorf("%s", i18n.T("config.bandwidth"))
 	}
 	if s.ListenPort < 0 || s.ListenPort > 65535 {
-		return fmt.Errorf("%s", i18n.T("invalid listening port"))
+		return fmt.Errorf("%s", i18n.T("config.listenPort"))
 	}
 	if s.AutoInstall && !s.AutoCheck {
-		return fmt.Errorf("%s", i18n.T("automatic installation requires automatic checks"))
+		return fmt.Errorf("%s", i18n.T("config.autoInstallRequiresCheck"))
 	}
 	return nil
 }

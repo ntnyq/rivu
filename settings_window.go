@@ -35,17 +35,17 @@ func (a *application) openSettings() {
 	}
 	w := newSettingsWindow(a.store)
 	w.app = a
-	w.loginStatus = fmt.Sprintf(tr("系统当前启用：%t（详细授权状态由系统设置显示）"), mygo.App.OpenAtLogin())
-	w.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("Rivu 设置"), TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
+	w.loginStatus = fmt.Sprintf(tr("settings.login.statusDetails"), mygo.App.OpenAtLogin())
+	w.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("settings.title"), TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
 	w.desktop.Parent = w.win
 	w.win.OnClosed(w.close)
 	a.settingsWindow = w
 }
 func (w *settingsWindow) pickFolder() {
 	var folder string
-	w.run(tr("选择下载目录"), func(context.Context) (string, error) {
+	w.run(tr("files.chooseDownloadFolder"), func(context.Context) (string, error) {
 		var err error
 		folder, err = w.desktop.PickFolder()
-		return tr("已选择目录"), err
+		return tr("files.folderSelected"), err
 	}, func() { w.destination = filepath.Clean(folder) })
 }

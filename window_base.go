@@ -55,6 +55,7 @@ func (w *windowBase) report(message string, err error) {
 	}
 }
 
+// run expects work to return display text, already translated if appropriate.
 func (w *windowBase) run(label string, work func(context.Context) (string, error), apply func()) {
 	if w.task.Running() {
 		return
@@ -64,7 +65,7 @@ func (w *windowBase) run(label string, work func(context.Context) (string, error
 	w.task.Start(w.dispatch, func(ctx context.Context, _ func(float64)) (string, error) { return work(ctx) }, func(float64) {}, func(message string, err error) {
 		w.job = ""
 		if errors.Is(err, desktop.ErrCanceled) || errors.Is(err, context.Canceled) {
-			w.report(tr("已取消"), nil)
+			w.report(tr("common.canceled"), nil)
 			return
 		}
 		if err != nil {
@@ -74,19 +75,19 @@ func (w *windowBase) run(label string, work func(context.Context) (string, error
 		if apply != nil {
 			apply()
 		}
-		w.report(tr(message), nil)
+		w.report(message, nil)
 	})
 }
 
 func (w *windowBase) reveal(path string) {
-	w.run(tr("在文件管理器中显示"), func(context.Context) (string, error) { return tr("已显示文件"), w.desktop.Reveal(path) }, nil)
+	w.run(tr("files.reveal"), func(context.Context) (string, error) { return tr("files.revealed"), w.desktop.Reveal(path) }, nil)
 }
 
 func (w *windowBase) copy(text string) {
-	w.run(tr("复制"), func(context.Context) (string, error) { return tr("已复制"), w.desktop.Copy(text) }, nil)
+	w.run(tr("common.copy"), func(context.Context) (string, error) { return tr("common.copied"), w.desktop.Copy(text) }, nil)
 }
 
 func (w *windowBase) openURL(raw string) {
-	w.run(tr("打开网页"), func(context.Context) (string, error) { return tr("已打开浏览器"), w.desktop.OpenURL(raw) }, nil)
+	w.run(tr("common.openWebsite"), func(context.Context) (string, error) { return tr("common.browserOpened"), w.desktop.OpenURL(raw) }, nil)
 }
 func applyTheme(theme string) { mygo.Theme.SetSource(mygo.ThemeSource(theme)) }

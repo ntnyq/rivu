@@ -53,7 +53,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 			ui.Row(c).Gap(10).Children(func() {
 				text := bytes(t.Done) + " / " + bytes(t.Size)
 				if t.Metadata == "" {
-					text = tr("文件列表和大小待获取")
+					text = tr("transfer.waitingFileList")
 				}
 				ui.Text(c, text).FontSize(10).TextColor(p.muted)
 				ui.Spacer(c)
@@ -61,7 +61,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 				if t.Completed || t.Error != "" {
 					color = taskColor(c, t.Phase)
 				}
-				ui.Text(c, tr(phases[t.Phase])).FontSize(10).TextColor(color)
+				ui.Text(c, phaseLabel(t.Phase)).FontSize(10).TextColor(color)
 			})
 			ui.Box(c).Margin(4, 0, 1, 0).Children(func() {
 				progressTrack(c, progress(t), taskColor(c, t.Phase), p.track, 3)
@@ -71,17 +71,17 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 				color := p.blue
 				switch t.Phase {
 				case "paused":
-					left, right, color = tr("任务已暂停"), tr("等待继续"), p.muted
+					left, right, color = tr("transfer.paused"), tr("transfer.waitingResume"), p.muted
 				case "completed":
-					left, right, color = tr("文件已准备就绪"), tr("已达到做种目标"), p.muted
+					left, right, color = tr("transfer.filesReady"), tr("seeding.goalReached"), p.muted
 				case "seeding":
 					left = "↑ " + rate(t.UpRate)
-					right = fmt.Sprintf(tr("分享率 %.2f / %.1f"), float64(t.Uploaded)/float64(max(1, t.TotalSize)), t.SeedRatio)
+					right = fmt.Sprintf(tr("seeding.ratioProgress"), float64(t.Uploaded)/float64(max(1, t.TotalSize)), t.SeedRatio)
 					color = p.muted
 				case "error":
-					left, right, color = taskError(t), tr("请处理后重试"), p.muted
+					left, right, color = taskError(t), tr("transfer.retryHint"), p.muted
 				case "metadata":
-					left, right, color = tr("正在获取元数据"), "", p.muted
+					left, right, color = tr("transfer.fetchingMetadata"), "", p.muted
 				}
 				ui.Text(c, left).FontSize(10).TextColor(color).SingleLine().Grow(1).MinWidth(0)
 				ui.Text(c, right).FontSize(10).TextColor(p.muted)
@@ -97,7 +97,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 		if t.Error != "" {
 			icon = "alert"
 		}
-		if compactIconButton(c, icon, fmt.Sprintf(tr("操作 %s"), t.ID), 23, 15, p.muted) && w.app != nil {
+		if compactIconButton(c, icon, fmt.Sprintf(tr("transfer.actions"), t.ID), 23, 15, p.muted) && w.app != nil {
 			if t.Phase == "completed" {
 				w.reveal(t.Destination)
 			} else {
@@ -141,27 +141,27 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 		w.toggleSelected()
 	}
 	row.ContextMenu(func(m *ui.Menu) {
-		kind, label := session.CommandResume, tr("继续")
+		kind, label := session.CommandResume, tr("transfer.resume")
 		if t.Run {
-			kind, label = session.CommandPause, tr("暂停")
+			kind, label = session.CommandPause, tr("transfer.pause")
 		}
 		if m.Item(label).Chosen() {
 			w.app.execute(session.Command{Kind: kind, IDs: []string{t.ID}})
 		}
-		if m.Item(tr("在 Finder 中显示")).Chosen() {
+		if m.Item(tr("files.showInFinder")).Chosen() {
 			w.reveal(t.Destination)
 		}
-		if m.Item(tr("复制磁力链接")).Chosen() {
+		if m.Item(tr("transfer.copyMagnet")).Chosen() {
 			w.copy(magnet(t))
 		}
-		if m.Item(tr("校验数据")).Chosen() {
+		if m.Item(tr("transfer.verify")).Chosen() {
 			w.app.execute(session.Command{Kind: session.CommandVerify, IDs: []string{t.ID}})
 		}
-		if m.Item(tr("优先开始")).Chosen() {
+		if m.Item(tr("transfer.startFirst")).Chosen() {
 			w.app.execute(session.Command{Kind: session.CommandFirst, IDs: []string{t.ID}})
 		}
 		m.Separator()
-		if m.Item(tr("移除…")).Chosen() {
+		if m.Item(tr("transfer.removeMenu")).Chosen() {
 			w.selectOnly(t.ID)
 			w.remove()
 		}
@@ -170,7 +170,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 
 func compactPath(path string) string {
 	if path == "" {
-		return tr("尚未选择")
+		return tr("transfer.notSelected")
 	}
 	parts := strings.Split(filepath.ToSlash(path), "/")
 	if len(parts) > 3 && parts[1] == "Users" {

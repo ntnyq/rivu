@@ -9,13 +9,13 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 	ui.Column(c).Width(191).Shrink(0).Background(p.sidebar).BorderWidth(0, 1, 0, 0).BorderColor(p.line).Children(func() {
 		ui.Row(c).Height(58).Shrink(0).Padding(0, 18).Children(func() {
 			ui.Spacer(c).DragWindow()
-			if iconButton(c, "sidebar", tr("收起侧栏"), true) {
+			if iconButton(c, "sidebar", tr("sidebar.collapse"), true) {
 				w.sidebarHidden = true
 			}
 		})
 		ui.Row(c).Height(41).Shrink(0).Padding(10, 14, 0, 14).Gap(7).Children(func() { ui.Image(c, appMark).Size(38, 38); ui.Text(c, "Rivu").FontSize(20).Bold() })
 		ui.Column(c).Padding(29, 12, 0, 12).Gap(3).Children(func() {
-			ui.Text(c, tr("任务库")).FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 8, 10)
+			ui.Text(c, tr("sidebar.library")).FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 8, 10)
 			icons := []string{"grid", "arrow-down", "arrow-up", "check", "pause", "alert"}
 			for i, label := range filterLabels() {
 				count := 0
@@ -61,19 +61,19 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 			ui.Row(c).Gap(8).Children(func() {
 				glyph(c, "drive", 17, p.muted)
 				ui.Column(c).Gap(5).MinWidth(0).Children(func() {
-					ui.Text(c, tr("下载位置")).FontSize(11)
+					ui.Text(c, tr("sidebar.downloadLocation")).FontSize(11)
 					ui.Text(c, compactPath(w.settings.Destination)).FontSize(9).SingleLine().TextColor(p.muted)
 				})
 			})
 			if w.diskTotal > 0 {
-				ui.Text(c, fmt.Sprintf(tr("可用 %s"), bytes(w.diskFree))).FontSize(9).TextColor(p.muted)
+				ui.Text(c, fmt.Sprintf(tr("sidebar.availableSpace"), bytes(w.diskFree))).FontSize(9).TextColor(p.muted)
 				progressTrack(c, 1-float64(w.diskFree)/float64(w.diskTotal), p.muted.Alpha(.5), p.track, 3)
 			} else {
 				ui.Box(c).Height(3).Background(p.track).Radius(3)
 			}
-			settings := navigationButton(c, tr("设置"), false, p).Margin(0, -6).Children(func() {
+			settings := navigationButton(c, tr("settings.label"), false, p).Margin(0, -6).Children(func() {
 				glyph(c, "settings", 17, p.text)
-				ui.Text(c, tr("设置")).FontSize(12)
+				ui.Text(c, tr("settings.label")).FontSize(12)
 				ui.Spacer(c)
 				ui.Text(c, "⌘,").FontSize(11).TextColor(p.muted)
 			})

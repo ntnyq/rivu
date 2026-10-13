@@ -11,8 +11,8 @@ func (w *mainWindow) palette(c *ui.Context) {
 	}
 	ui.DialogBase(c, &w.paletteOpen, func(_, p ui.Element) {
 		p.Width(460).Padding(22).Gap(12).Children(func() {
-			ui.Text(c, tr("命令面板")).FontSize(20).Bold()
-			ui.TextInput(c, &w.query).Label(tr("搜索命令")).Placeholder(tr("搜索操作…"))
+			ui.Text(c, tr("palette.title")).FontSize(20).Bold()
+			ui.TextInput(c, &w.query).Label(tr("palette.search")).Placeholder(tr("palette.searchPlaceholder"))
 			count := 0
 			if w.app != nil {
 				for _, cmd := range w.app.commands() {
@@ -27,9 +27,9 @@ func (w *mainWindow) palette(c *ui.Context) {
 				}
 			}
 			if count == 0 {
-				ui.Text(c, tr("没有匹配的命令"))
+				ui.Text(c, tr("palette.noMatches"))
 			}
-			if actionButton(c, "x", tr("关闭命令面板"), false).Clicked() {
+			if actionButton(c, "x", tr("palette.close"), false).Clicked() {
 				w.paletteOpen = false
 			}
 		})

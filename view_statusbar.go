@@ -13,7 +13,7 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		})
 		ui.Spacer(c)
 		message := w.status
-		if message == tr("准备就绪") {
+		if message == tr("common.ready") {
 			message = ""
 		}
 		if w.snapshot.Error != "" {
@@ -23,7 +23,7 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		if w.failed || w.snapshot.Error != "" {
 			col = c.Theme().Danger
 		}
-		if w.snapshot.Error != "" && ui.Button(c, tr("重新读取")).Clicked() && w.app != nil {
+		if w.snapshot.Error != "" && ui.Button(c, tr("common.reload")).Clicked() && w.app != nil {
 			w.app.command("reload")
 		}
 		ui.Text(c, message).SingleLine().MinWidth(0).FontSize(10).TextColor(col)
@@ -31,8 +31,11 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		if w.snapshot.SlowMode {
 			color = p.blue
 		}
-		limit := ui.Row(c).Gap(5).Focusable().Label(tr("限速模式"))
-		limit.Children(func() { glyph(c, "gauge", 13, color); ui.Text(c, tr("限速模式")).FontSize(10).TextColor(color) })
+		limit := ui.Row(c).Gap(5).Focusable().Label(tr("transfer.speedLimit"))
+		limit.Children(func() {
+			glyph(c, "gauge", 13, color)
+			ui.Text(c, tr("transfer.speedLimit")).FontSize(10).TextColor(color)
+		})
 		if limit.Clicked() && w.app != nil {
 			w.app.slowMode()
 		}
@@ -40,10 +43,10 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		for _, task := range w.snapshot.Tasks {
 			peers += task.Peers
 		}
-		network := tr("等待连接")
+		network := tr("tracker.waiting")
 		dot := p.muted
 		if peers > 0 {
-			network = tr("已连接节点")
+			network = tr("transfer.peersConnected")
 			dot = p.green
 		}
 		ui.Row(c).Gap(5).Children(func() {

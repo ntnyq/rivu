@@ -109,7 +109,7 @@ func main() {
 					a.openWindow()
 				}
 				if loadErr != nil {
-					a.report(fmt.Errorf(tr("设置读取失败，原文件已保留: %w"), loadErr))
+					a.report(fmt.Errorf(tr("settings.readFailed"), loadErr))
 				}
 				if sessionErr != nil {
 					a.report(sessionErr)

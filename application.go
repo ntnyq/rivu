@@ -32,7 +32,7 @@ type application struct {
 
 func (a *application) report(err error) {
 	if err != nil {
-		a.openWindow().report(tr("操作失败"), err)
+		a.openWindow().report(tr("common.operationFailed"), err)
 	}
 }
 func (a *application) receive(sources []string) {
@@ -105,10 +105,10 @@ func (a *application) notifications(s session.Snapshot) {
 			a.notifying[t.ID] = true
 			go func() {
 				if settings.NotifyComplete {
-					n := mygo.NewNotification(mygo.NotificationOptions{ID: fmt.Sprintf("rivu-%s-%d", t.ID, t.Epoch), Title: tr("下载完成"), Body: t.Source.Name})
+					n := mygo.NewNotification(mygo.NotificationOptions{ID: fmt.Sprintf("rivu-%s-%d", t.ID, t.Epoch), Title: tr("notification.complete"), Body: t.Source.Name})
 					n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.selectOnly(t.ID) }) })
 					if err := n.Show(); err != nil {
-						mygo.RunOnMain(func() { a.report(fmt.Errorf(tr("通知未送达: %w"), err)) })
+						mygo.RunOnMain(func() { a.report(fmt.Errorf(tr("notification.deliveryFailed"), err)) })
 					}
 				}
 				err := a.session.Execute(context.Background(), session.Command{Kind: session.CommandNotified, IDs: []string{t.ID}})
@@ -123,7 +123,7 @@ func (a *application) notifications(s session.Snapshot) {
 		if settings.NotifyError && t.Error != "" && a.errorsSeen[t.ID] != t.Error {
 			a.errorsSeen[t.ID] = t.Error
 			go func() {
-				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: tr("下载需要处理"), Body: t.Source.Name + "：" + taskError(t)})
+				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: tr("notification.attention"), Body: t.Source.Name + "：" + taskError(t)})
 				n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.filter = 5; w.selectOnly(t.ID) }) })
 				_ = n.Show()
 			}()
@@ -158,7 +158,7 @@ func (a *application) shutdown() {
 		mygo.RunOnMain(func() {
 			a.quitting = false
 			if err != nil {
-				a.report(fmt.Errorf(tr("无法保存会话，已取消退出: %w"), err))
+				a.report(fmt.Errorf(tr("quit.saveFailed"), err))
 				return
 			}
 			a.shutdownReady = true

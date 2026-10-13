@@ -241,7 +241,7 @@ func (s *rootedStorage) openWrite(name string) (*os.File, error) {
 	}
 	if !stat.Mode().IsRegular() || (s.owners[name] != id && s.adopted[name] != id) {
 		f.Close()
-		return nil, problem.Message(problem.Conflict, "文件已被替换或不属于该任务: %s", name)
+		return nil, problem.Message(problem.Conflict, "files.replaced", name)
 	}
 	return f, nil
 }

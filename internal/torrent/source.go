@@ -25,25 +25,25 @@ type Parser struct{}
 func (Parser) Parse(raw string) (session.Source, error) {
 	raw = strings.TrimSpace(raw)
 	if len(raw) > 65536 {
-		return session.Source{}, problem.Message(problem.Metadata, "下载来源过长")
+		return session.Source{}, problem.Message(problem.Metadata, "torrent.sourceTooLong")
 	}
 	if strings.HasPrefix(strings.ToLower(raw), "magnet:") {
 		spec, err := bt.TorrentSpecFromMagnetUri(raw)
 		if err != nil {
-			return session.Source{}, problem.Message(problem.Metadata, "无效的磁力链接")
+			return session.Source{}, problem.Message(problem.Metadata, "torrent.invalidMagnet")
 		}
 		s := session.Source{Raw: raw, Name: spec.DisplayName, Identity: identity(spec)}
 		if s.Identity.V1 == "" && s.Identity.V2 == "" {
-			return s, problem.Message(problem.Metadata, "磁力链接缺少有效 infohash")
+			return s, problem.Message(problem.Metadata, "torrent.missingInfohash")
 		}
 		if s.Name == "" {
-			s.Name = i18n.T("等待获取元数据")
+			s.Name = i18n.T("torrent.waitingMetadata")
 		}
 		for _, tier := range spec.Trackers {
 			s.Trackers = append(s.Trackers, tier...)
 		}
 		if len(s.Trackers) == 0 && len(spec.PeerAddrs) == 0 {
-			return s, problem.Message(problem.Metadata, "未解析的磁力链接需要 Tracker 或明确的节点地址；获取元数据前禁用 DHT/PEX")
+			return s, problem.Message(problem.Metadata, "torrent.bootstrapRequired")
 		}
 		return s, nil
 	}
@@ -57,7 +57,7 @@ func (Parser) Parse(raw string) (session.Source, error) {
 		return session.Source{}, err
 	}
 	if len(data) > maxMetadata {
-		return session.Source{}, problem.Message(problem.Metadata, "种子元数据超过 16 MB")
+		return session.Source{}, problem.Message(problem.Metadata, "torrent.metadataTooLarge")
 	}
 	return (Parser{}).ParseBytes(raw, data)
 }
@@ -84,7 +84,7 @@ func identity(spec *bt.TorrentSpec) session.Identity {
 func parseMeta(data []byte) (session.Source, error) {
 	mi, err := metainfo.Load(bytes.NewReader(data))
 	if err != nil {
-		return session.Source{}, problem.Message(problem.Metadata, "无法读取种子元数据: %w", err)
+		return session.Source{}, problem.Message(problem.Metadata, "torrent.readFailed", err)
 	}
 	info, err := mi.UnmarshalInfo()
 	if err != nil {
@@ -105,12 +105,12 @@ func parseMeta(data []byte) (session.Source, error) {
 		parts := append([]string{info.BestName()}, f.BestPath()...)
 		for _, part := range parts {
 			if strings.ContainsAny(part, "/\\") || part == "" || part == "." || part == ".." {
-				return s, problem.Message(problem.Metadata, "不安全的种子文件名")
+				return s, problem.Message(problem.Metadata, "torrent.unsafeFilename")
 			}
 		}
 		name := strings.Join(parts, "/")
 		if f.Length < 0 || f.Length > (1<<50)-total {
-			return s, problem.Message(problem.Metadata, "无效的文件大小")
+			return s, problem.Message(problem.Metadata, "torrent.invalidFileSize")
 		}
 		total += f.Length
 		names = append(names, name)
@@ -127,14 +127,14 @@ func parseMeta(data []byte) (session.Source, error) {
 func RedactTracker(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil {
-		return i18n.T("无效 Tracker")
+		return i18n.T("torrent.invalidTracker")
 	}
 	return u.Scheme + "://" + u.Hostname()
 }
 
 func validateInfo(info *metainfo.Info) error {
 	if info.PieceLength <= 0 || info.PieceLength > 64<<20 || len(info.Pieces)%20 != 0 {
-		return problem.Message(problem.Metadata, "不支持的种子结构")
+		return problem.Message(problem.Metadata, "torrent.unsupportedStructure")
 	}
 	if info.MetaVersion == 2 {
 		valid := info.PieceLength >= 16384 && info.PieceLength&(info.PieceLength-1) == 0
@@ -145,17 +145,17 @@ func validateInfo(info *metainfo.Info) error {
 			}
 		})
 		if !valid {
-			return problem.Message(problem.Metadata, "无效的 v2 文件树")
+			return problem.Message(problem.Metadata, "torrent.invalidFileTree")
 		}
 	}
 	members := info.UpvertedFiles()
 	if len(members) == 0 || len(members) > 100000 {
-		return problem.Message(problem.Metadata, "不支持的文件数量")
+		return problem.Message(problem.Metadata, "torrent.unsupportedFileCount")
 	}
 	var total int64
 	for _, f := range members {
 		if f.Length < 0 || f.Length > (1<<50)-total {
-			return problem.Message(problem.Metadata, "无效的文件大小")
+			return problem.Message(problem.Metadata, "torrent.invalidFileSize")
 		}
 		total += f.Length
 	}
@@ -167,7 +167,7 @@ func validateInfo(info *metainfo.Info) error {
 			pieces = int64(info.NumPieces())
 		}
 		if int64(len(info.Pieces)/20) != pieces {
-			return problem.Message(problem.Metadata, "不支持的种子结构")
+			return problem.Message(problem.Metadata, "torrent.unsupportedStructure")
 		}
 	}
 	return nil

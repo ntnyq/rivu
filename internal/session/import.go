@@ -34,7 +34,7 @@ func validateSelection(fs []File) error {
 		selected = selected || f.Priority > 0
 	}
 	if !selected {
-		return problem.Message(problem.Engine, "至少选择一个文件")
+		return problem.Message(problem.Engine, "files.selectionRequired")
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func (m *Manager) checkDestination(s Source, dir string, except string, adopt bo
 				left := strings.ToLower(filepath.Join(r.Destination, filepath.FromSlash(a.Path)))
 				right := strings.ToLower(filepath.Join(dir, filepath.FromSlash(b.Path)))
 				if left == right || strings.HasPrefix(left, right+string(filepath.Separator)) || strings.HasPrefix(right, left+string(filepath.Separator)) {
-					return problem.Message(problem.Engine, "目标路径已由另一个任务使用")
+					return problem.Message(problem.Engine, "files.destinationConflict")
 				}
 			}
 		}
@@ -107,7 +107,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 		return "", err
 	}
 	if m.closed || m.barrier {
-		return "", problem.Message(problem.Engine, "正在保存会话，请稍后重试")
+		return "", problem.Message(problem.Engine, "session.savingRetry")
 	}
 	if m.loadErr != nil {
 		return "", m.loadErr
@@ -121,7 +121,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 	in.Source.Trackers = slices.Clone(in.Source.Trackers)
 	in.Source.Meta = slices.Clone(in.Source.Meta)
 	if in.Source.Identity == (Identity{}) {
-		return "", problem.Message(problem.Engine, "无效的下载来源")
+		return "", problem.Message(problem.Engine, "import.invalidSource")
 	}
 	if len(in.Source.Files) > 0 {
 		if err := validateSelection(in.Source.Files); err != nil {

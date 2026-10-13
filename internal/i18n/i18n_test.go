@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -32,32 +33,147 @@ func TestResolve(t *testing.T) {
 
 func TestCatalogs(t *testing.T) {
 	format := regexp.MustCompile(`%[+#\- .0-9]*[a-zA-Z%]`)
+	keyPattern := regexp.MustCompile(`^[a-z][a-zA-Z0-9]*(\.[a-z][a-zA-Z0-9]*)+$`)
 	for code, catalog := range catalogs {
+		for key := range catalog {
+			if !keyPattern.MatchString(key) {
+				t.Errorf("%s: invalid semantic key: %q", code, key)
+			}
+			if _, ok := catalogs["en"][key]; !ok {
+				t.Errorf("%s: unknown key: %q", code, key)
+			}
+		}
 		if len(catalog) != len(catalogs["en"]) {
 			t.Errorf("%s: catalog size differs", code)
 		}
-		for key := range catalogs["en"] {
+		for key, english := range catalogs["en"] {
 			text, ok := catalog[key]
 			if !ok || strings.TrimSpace(text) == "" {
 				t.Errorf("%s missing %q", code, key)
 				continue
 			}
-			if !reflect.DeepEqual(format.FindAllString(key, -1), format.FindAllString(text, -1)) {
+			if !reflect.DeepEqual(format.FindAllString(english, -1), format.FindAllString(text, -1)) {
 				t.Errorf("%s: format mismatch for %q: %q", code, key, text)
 			}
 		}
 	}
-	if got := Translate("unsupported", "保存设置"); got != "Save Settings" {
+	if got := Translate("unsupported", "menu.pauseAll"); got != "Pause All" {
 		t.Fatal(got)
 	}
-	if got := Translate("en", "external diagnostic"); got != "external diagnostic" {
+	if got := Translate("en", "missing.key"); got != "Translation unavailable" {
 		t.Fatal(got)
 	}
 }
 
-// Check application call sites as well as catalogs so an untranslated new UI
-// message fails tests even when all five existing catalogs agree with each other.
+func TestMissingTranslationFallsBackToEnglish(t *testing.T) {
+	const key = "settings.save"
+	original := catalogs["ja"][key]
+	t.Cleanup(func() { catalogs["ja"][key] = original })
+	delete(catalogs["ja"], key)
+	if got := Translate("ja", key); got != "Save Settings" {
+		t.Fatal(got)
+	}
+	catalogs["ja"][key] = ""
+	if got := Translate("ja", key); got != "Save Settings" {
+		t.Fatal(got)
+	}
+}
+
+// Check application call sites as well as catalogs, including deferred errors.
+// Dynamic forwarding is confined to these small, audited presentation adapters;
+// new dynamic calls must not silently bypass reference checking.
+func messageReferences(path string, source any) ([]string, []string, error) {
+	file, err := parser.ParseFile(token.NewFileSet(), path, source, 0)
+	if err != nil {
+		return nil, nil, err
+	}
+	imports := map[string]string{}
+	for _, spec := range file.Imports {
+		name, _ := strconv.Unquote(spec.Path.Value)
+		alias := filepath.Base(name)
+		if spec.Name != nil {
+			alias = spec.Name.Name
+		}
+		imports[alias] = name
+	}
+	var keys, diagnostics []string
+	for _, decl := range file.Decls {
+		fn, ok := decl.(*ast.FuncDecl)
+		function := ""
+		if ok {
+			function = fn.Name.Name
+		}
+		ast.Inspect(decl, func(node ast.Node) bool {
+			call, ok := node.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			argument := -1
+			forwarding := false
+			switch callee := call.Fun.(type) {
+			case *ast.Ident:
+				if file.Name.Name == "main" && callee.Name == "tr" {
+					argument = 0
+					if path == "recovery_actions.go" && function == "problemText" && len(call.Args) == 1 {
+						if selector, ok := call.Args[0].(*ast.SelectorExpr); ok {
+							owner, ok := selector.X.(*ast.Ident)
+							forwarding = ok && owner.Name == "issue" && selector.Sel.Name == "Key"
+						}
+					}
+				}
+				if file.Name.Name == "i18n" && callee.Name == "Translate" {
+					argument = 1
+					if path == "internal/i18n/i18n.go" && function == "T" && len(call.Args) == 2 {
+						key, ok := call.Args[1].(*ast.Ident)
+						forwarding = ok && key.Name == "key"
+					}
+				}
+			case *ast.SelectorExpr:
+				owner, ok := callee.X.(*ast.Ident)
+				if !ok {
+					break
+				}
+				switch imports[owner.Name] {
+				case "github.com/ntnyq/rivu/internal/i18n":
+					switch callee.Sel.Name {
+					case "T":
+						argument = 0
+						if path == "localization.go" && function == "tr" && len(call.Args) == 1 {
+							key, ok := call.Args[0].(*ast.Ident)
+							forwarding = ok && key.Name == "key"
+						}
+					case "Translate":
+						argument = 1
+						if path == "internal/problem/problem.go" && function == "Error" && len(call.Args) == 2 {
+							if selector, ok := call.Args[1].(*ast.SelectorExpr); ok {
+								owner, ok := selector.X.(*ast.Ident)
+								forwarding = ok && owner.Name == "e" && selector.Sel.Name == "Key"
+							}
+						}
+					}
+				case "github.com/ntnyq/rivu/internal/problem":
+					if callee.Sel.Name == "Message" {
+						argument = 1
+					}
+				}
+			}
+			if argument < 0 || argument >= len(call.Args) {
+				return true
+			}
+			if literal, ok := call.Args[argument].(*ast.BasicLit); ok && literal.Kind == token.STRING {
+				key, _ := strconv.Unquote(literal.Value)
+				keys = append(keys, key)
+			} else if !forwarding {
+				diagnostics = append(diagnostics, "translation key must be a literal")
+			}
+			return true
+		})
+	}
+	return keys, diagnostics, nil
+}
+
 func TestMessageCoverage(t *testing.T) {
+	used := map[string]bool{}
 	err := filepath.WalkDir("../..", func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -71,51 +187,57 @@ func TestMessageCoverage(t *testing.T) {
 		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
-		file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+		relative, err := filepath.Rel("../..", path)
 		if err != nil {
 			return err
 		}
-		ast.Inspect(file, func(node ast.Node) bool {
-			call, ok := node.(*ast.CallExpr)
-			if !ok || len(call.Args) == 0 {
-				return true
-			}
-			name := ""
-			argument := 0
-			switch fn := call.Fun.(type) {
-			case *ast.Ident:
-				name = fn.Name
-			case *ast.SelectorExpr:
-				if x, ok := fn.X.(*ast.Ident); ok {
-					if x.Name == "i18n" {
-						name = fn.Sel.Name
-					}
-					if x.Name == "problem" && fn.Sel.Name == "Message" {
-						name = "T"
-						argument = 1
-					}
-				}
-			}
-			if name != "tr" && name != "T" {
-				return true
-			}
-			if len(call.Args) <= argument {
-				return true
-			}
-			literal, ok := call.Args[argument].(*ast.BasicLit)
-			if !ok || literal.Kind != token.STRING {
-				return true
-			}
-			key, _ := strconv.Unquote(literal.Value)
+		source, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		keys, diagnostics, err := messageReferences(filepath.ToSlash(relative), source)
+		if err != nil {
+			return err
+		}
+		for _, diagnostic := range diagnostics {
+			t.Errorf("%s: %s", path, diagnostic)
+		}
+		for _, key := range keys {
+			used[key] = true
 			if _, ok := catalogs["en"][key]; !ok {
 				t.Errorf("%s: missing message %q", path, key)
 			}
-			return true
-		})
+		}
 		return nil
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+	for key := range catalogs["en"] {
+		if !used[key] {
+			t.Errorf("unused message %q", key)
+		}
+	}
+}
+
+func TestMessageReferences(t *testing.T) {
+	for _, tc := range []struct {
+		name, source string
+		keys         []string
+		diagnostics  int
+	}{
+		{"literal", `package main; func view() { tr("settings.save") }`, []string{"settings.save"}, 0},
+		{"dynamic", `package main; func view(key string) { tr(key) }`, nil, 1},
+		{"alias", `package view; import messages "github.com/ntnyq/rivu/internal/i18n"; func view() { messages.T("settings.save"); messages.Translate("en", "menu.settings") }`, []string{"settings.save", "menu.settings"}, 0},
+		{"deferred", `package engine; import p "github.com/ntnyq/rivu/internal/problem"; func run(key string) { p.Message(p.Engine, "torrent.invalidIdentity"); p.Message(p.Engine, key) }`, []string{"torrent.invalidIdentity"}, 1},
+		{"unrelated", `package main; func view() { other.T("not a key") }`, nil, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			keys, diagnostics, err := messageReferences("example.go", tc.source)
+			if err != nil || !reflect.DeepEqual(keys, tc.keys) || len(diagnostics) != tc.diagnostics {
+				t.Fatalf("keys=%v diagnostics=%v err=%v", keys, diagnostics, err)
+			}
+		})
 	}
 }
 
@@ -127,7 +249,7 @@ func TestConcurrentSwitching(t *testing.T) {
 		workers.Go(func() {
 			for range 100 {
 				SetLanguage(code, "")
-				if T("保存设置") == "" {
+				if T("settings.save") == "" {
 					t.Error("empty translation")
 				}
 			}
@@ -135,7 +257,7 @@ func TestConcurrentSwitching(t *testing.T) {
 	}
 	workers.Wait()
 	SetLanguage("ja", "en-US")
-	if got := fmt.Sprintf(T("约 %d 秒"), 5); got != "約 5 秒" {
+	if got := fmt.Sprintf(T("transfer.eta.seconds"), 5); got != "約 5 秒" {
 		t.Fatal(got)
 	}
 }

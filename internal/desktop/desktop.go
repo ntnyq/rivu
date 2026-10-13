@@ -20,7 +20,7 @@ var ErrCanceled = errors.New("dialog canceled")
 type Service struct{ Parent *mygo.Window }
 
 func (s Service) PickFolder() (string, error) {
-	paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: s.Parent, Title: i18n.T("选择下载目录"), Directory: true})
+	paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: s.Parent, Title: i18n.T("files.chooseDownloadFolder"), Directory: true})
 	if err != nil {
 		return "", err
 	}

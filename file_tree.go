@@ -89,18 +89,18 @@ func fileTree(c *ui.Context, files []session.File, state *fileTreeState, enabled
 	if state.collapsed == nil {
 		state.collapsed = map[string]bool{}
 	}
-	ui.TextInput(c, &state.search).Label(tr("搜索文件")).Placeholder(tr("搜索文件"))
+	ui.TextInput(c, &state.search).Label(tr("files.search")).Placeholder(tr("files.search"))
 	rows := state.visible(files)
 	const pageSize = 60
 	pages := max(1, (len(rows)+pageSize-1)/pageSize)
 	state.page = min(state.page, pages-1)
 	if pages > 1 {
 		ui.Row(c).Gap(6).Children(func() {
-			if ui.Button(c, "←").Label(tr("上一页")).Disabled(state.page == 0).Clicked() {
+			if ui.Button(c, "←").Label(tr("files.previousPage")).Disabled(state.page == 0).Clicked() {
 				state.page--
 			}
 			ui.Text(c, fmt.Sprintf("%d / %d", state.page+1, pages)).FontSize(10)
-			if ui.Button(c, "→").Label(tr("下一页")).Disabled(state.page+1 == pages).Clicked() {
+			if ui.Button(c, "→").Label(tr("files.nextPage")).Disabled(state.page+1 == pages).Clicked() {
 				state.page++
 			}
 		})
@@ -128,14 +128,14 @@ func fileTree(c *ui.Context, files []session.File, state *fileTreeState, enabled
 					priority = -1
 				}
 			}
-			labels := []string{tr("不下载"), tr("普通"), tr("优先")}
-			label := tr("混合选择")
+			labels := []string{tr("files.priority.skip"), tr("files.priority.normal"), tr("files.priority.high")}
+			label := tr("files.priority.mixed")
 			if priority >= 0 {
 				label = labels[priority]
 			}
 			ui.Row(c).Gap(6).Children(func() {
 				ui.Text(c, bytes(size)).FontSize(10).Grow(1)
-				menuControl(c, row.name+" "+tr("优先级"), label).Disabled(!enabled).Menu(func(m *ui.Menu) {
+				menuControl(c, row.name+" "+tr("files.priority.label"), label).Disabled(!enabled).Menu(func(m *ui.Menu) {
 					for i, label := range labels {
 						if m.Item(label).Checked(priority == i).Chosen() {
 							change(row.indices, i)

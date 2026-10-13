@@ -46,7 +46,7 @@ func bandwidthField(c *ui.Context, label string, value *bandwidthInput, line boo
 		if value.unit == 1000000 {
 			unit = "MB/s"
 		}
-		menuControl(c, label+" "+tr("单位"), unit).Width(75).Menu(func(m *ui.Menu) {
+		menuControl(c, label+" "+tr("settings.bandwidthUnit"), unit).Width(75).Menu(func(m *ui.Menu) {
 			for _, choice := range []struct {
 				label string
 				scale int64
@@ -62,11 +62,11 @@ func bandwidthField(c *ui.Context, label string, value *bandwidthInput, line boo
 	})
 }
 func seedingControl(c *ui.Context, mode *int) {
-	labels := []string{tr("完成后停止"), tr("达到分享率"), tr("无限做种")}
+	labels := []string{tr("seeding.stopOnCompletion"), tr("seeding.untilRatio"), tr("seeding.forever")}
 	ui.Row(c).Padding(12, 0).Children(func() {
-		ui.Text(c, tr("做种策略")).FontSize(12)
+		ui.Text(c, tr("settings.seedingPolicy")).FontSize(12)
 		ui.Spacer(c)
-		menuControl(c, tr("做种策略"), labels[*mode]).Width(145).Menu(func(m *ui.Menu) {
+		menuControl(c, tr("settings.seedingPolicy"), labels[*mode]).Width(145).Menu(func(m *ui.Menu) {
 			for i, label := range labels {
 				if m.Item(label).Checked(*mode == i).Chosen() {
 					*mode = i
@@ -77,14 +77,14 @@ func seedingControl(c *ui.Context, mode *int) {
 }
 func (w *settingsWindow) automationView(c *ui.Context) {
 	settingGroup(c, func() {
-		switchRow(c, tr("定时限速"), tr("每天按本地时间启用临时限速，支持跨午夜。"), &w.settings.ScheduleEnabled, false, true)
-		settingField(c, tr("开始时间 HH:MM"), &w.scheduleStart, true)
-		settingField(c, tr("结束时间 HH:MM"), &w.scheduleEnd, true)
+		switchRow(c, tr("settings.schedule"), tr("settings.scheduleHint"), &w.settings.ScheduleEnabled, false, true)
+		settingField(c, tr("settings.scheduleStart"), &w.scheduleStart, true)
+		settingField(c, tr("settings.scheduleEnd"), &w.scheduleEnd, true)
 	})
 	settingGroup(c, func() {
-		switchRow(c, tr("监视文件夹"), tr("稳定的种子文件会自动导入默认下载目录；原文件保留。"), &w.settings.WatchEnabled, false, true)
-		settingField(c, tr("种子文件夹绝对路径"), &w.settings.WatchFolder, true)
-		settingField(c, tr("自动添加标签"), &w.settings.WatchTag, true)
+		switchRow(c, tr("settings.watchFolder"), tr("settings.watchFolderHint"), &w.settings.WatchEnabled, false, true)
+		settingField(c, tr("settings.watchFolderPath"), &w.settings.WatchFolder, true)
+		settingField(c, tr("settings.watchTag"), &w.settings.WatchTag, true)
 	})
-	ui.Text(c, tr("自动策略不会恢复手动暂停的任务。做种时长只累计实际做种时间。")).FontSize(11)
+	ui.Text(c, tr("settings.automationHint")).FontSize(11)
 }

@@ -13,23 +13,23 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 	ui.Column(c).Width(271).Shrink(0).FillHeight().Padding(22, 18).Gap(0).Background(p.alt).BorderWidth(0, 0, 0, 1).BorderColor(p.line).Children(func() {
 		t := w.chosen()
 		if t == nil {
-			ui.Text(c, tr("任务详情")).FontSize(14).FontWeight(600)
-			ui.Text(c, tr("选择一个任务以查看详细信息。")).FontSize(11).TextColor(p.muted).Padding(20, 0)
+			ui.Text(c, tr("transfer.details")).FontSize(14).FontWeight(600)
+			ui.Text(c, tr("transfer.selectHint")).FontSize(11).TextColor(p.muted).Padding(20, 0)
 			return
 		}
 		ui.Row(c).Height(48).Children(func() {
 			fileSymbol(c, *t, true)
 			ui.Spacer(c)
-			ui.Text(c, tr(phases[t.Phase])).FontSize(10).TextColor(taskColor(c, t.Phase)).Padding(4, 7).Radius(5).Background(p.soft)
+			ui.Text(c, phaseLabel(t.Phase)).FontSize(10).TextColor(taskColor(c, t.Phase)).Padding(4, 7).Radius(5).Background(p.soft)
 		})
 		ui.Text(c, t.Source.Name).FontSize(14).FontWeight(600).MaxLines(3).Padding(17, 0, 6, 0)
-		subtitle := fmt.Sprintf(tr("文件 · %s"), bytes(t.TotalSize))
+		subtitle := fmt.Sprintf(tr("transfer.fileSummary"), bytes(t.TotalSize))
 		if t.Metadata == "" {
-			subtitle = tr("等待元数据")
+			subtitle = tr("transfer.waitingMetadata")
 		}
 		ui.Text(c, subtitle).FontSize(10).TextColor(p.muted)
 		ui.Row(c).Height(28).Shrink(0).Padding(2).Gap(3).Radius(6).Background(p.track).Margin(22, 0).Children(func() {
-			for i, label := range []string{tr("概览"), tr("文件"), tr("连接")} {
+			for i, label := range []string{tr("transfer.overview"), tr("files.title"), tr("common.connections")} {
 				tab := ui.Row(c).Grow(1).Height(24).Radius(4).Justify(ui.Center).Focusable().Label(label)
 				if w.tab == i {
 					tab.Background(p.surface).Border(1, p.line)
@@ -44,7 +44,7 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 			ui.Column(c).Gap(0).Children(func() {
 				switch w.tab {
 				case 0:
-					ui.Text(c, tr("下载进度")).FontSize(10).TextColor(p.muted)
+					ui.Text(c, tr("transfer.progress")).FontSize(10).TextColor(p.muted)
 					ui.Row(c).Gap(2).AlignItems(ui.End).Padding(8, 0, 9, 0).Children(func() {
 						ui.Text(c, fmt.Sprintf("%.1f", progress(*t)*100)).FontSize(26).FontWeight(600)
 						ui.Text(c, "%").FontSize(13).TextColor(p.muted)
@@ -55,7 +55,7 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 						for i, v := range []struct {
 							label string
 							value float64
-						}{{tr("↓ 下载速度"), t.DownRate}, {tr("↑ 上传速度"), t.UpRate}} {
+						}{{tr("transfer.downloadSpeed"), t.DownRate}, {tr("transfer.uploadSpeed"), t.UpRate}} {
 							ui.Column(c).Grow(1).Gap(7).Children(func() {
 								ui.Text(c, v.label).FontSize(10).TextColor(p.muted)
 								number, unit := rateParts(v.value)
@@ -71,13 +71,13 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 						}
 					})
 					ui.Column(c).Padding(14, 0, 0, 0).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Gap(12).Children(func() {
-						for _, v := range [][2]string{{tr("预计剩余"), eta(*t)}, {tr("已上传"), bytes(t.Uploaded)}, {tr("分享率"), fmt.Sprintf("%.2f", float64(t.Uploaded)/float64(max(1, t.TotalSize)))}, {tr("连接节点"), fmt.Sprint(t.Peers)}, {tr("添加时间"), t.Added.Format("01-02 15:04")}} {
+						for _, v := range [][2]string{{tr("transfer.timeRemaining"), eta(*t)}, {tr("transfer.uploaded"), bytes(t.Uploaded)}, {tr("transfer.shareRatio"), fmt.Sprintf("%.2f", float64(t.Uploaded)/float64(max(1, t.TotalSize)))}, {tr("transfer.connectedPeers"), fmt.Sprint(t.Peers)}, {tr("transfer.dateAdded"), t.Added.Format("01-02 15:04")}} {
 							ui.Row(c).Gap(8).Children(func() { ui.Text(c, v[0]).FontSize(10).TextColor(p.muted); ui.Spacer(c); ui.Text(c, v[1]).FontSize(10) })
 						}
 					})
 					ui.Column(c).Margin(17, 0, 0, 0).Padding(17, 0, 0, 0).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Gap(10).Children(func() {
-						ui.Text(c, tr("保存位置")).FontSize(10).TextColor(p.muted)
-						loc := ui.Row(c).Gap(7).Focusable().Label(tr("在 Finder 中显示"))
+						ui.Text(c, tr("files.saveLocation")).FontSize(10).TextColor(p.muted)
+						loc := ui.Row(c).Gap(7).Focusable().Label(tr("files.showInFinder"))
 						loc.Children(func() {
 							glyph(c, "folder", 15, p.blue)
 							ui.Text(c, compactPath(t.Destination)).FontSize(10).SingleLine().Grow(1).MinWidth(0)
@@ -87,39 +87,39 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 							w.reveal(t.Destination)
 						}
 					})
-					seed := tr("下载完成后继续做种")
+					seed := tr("seeding.keep")
 					if t.SeedRatio == 0 {
-						seed = tr("下载完成后停止做种")
+						seed = tr("seeding.stopAfterDownload")
 					}
-					note := tr("无限做种")
+					note := tr("seeding.forever")
 					if t.SeedRatio == 0 {
 						note = ""
 					}
 					if t.SeedRatio > 0 {
-						note = fmt.Sprintf(tr("分享率达到 %.1f 时自动停止"), t.SeedRatio)
+						note = fmt.Sprintf(tr("seeding.ratioGoal"), t.SeedRatio)
 					}
 					ui.Text(c, seed+"\n"+note).FontSize(10).TextColor(p.muted).Padding(18, 0, 0, 0)
-					change := actionButton(c, "settings", tr("调整做种策略"), false).FontSize(10).TextColor(p.blue).Margin(10, 0).Disabled(w.app == nil)
+					change := actionButton(c, "settings", tr("seeding.policy"), false).FontSize(10).TextColor(p.blue).Margin(10, 0).Disabled(w.app == nil)
 					change.Menu(func(m *ui.Menu) {
 						for _, v := range []struct {
 							label string
 							ratio float64
-						}{{tr("完成后停止"), 0}, {tr("分享率 2.0"), 2}, {tr("无限做种"), -1}} {
+						}{{tr("seeding.stopOnCompletion"), 0}, {tr("seeding.ratioTwo"), 2}, {tr("seeding.forever"), -1}} {
 							if m.Item(v.label).Chosen() {
 								w.app.execute(session.Command{Kind: session.CommandSeed, IDs: []string{t.ID}, Ratio: v.ratio, SeedLimitSeconds: t.SeedLimitSeconds})
 							}
 						}
 					})
-					ui.Text(c, fmt.Sprintf(tr("累计做种 %.1f 小时"), float64(t.SeedSeconds)/3600)).FontSize(10).TextColor(p.muted)
-					durationLabel := tr("不限时长")
+					ui.Text(c, fmt.Sprintf(tr("seeding.elapsed"), float64(t.SeedSeconds)/3600)).FontSize(10).TextColor(p.muted)
+					durationLabel := tr("seeding.unlimitedDuration")
 					if t.SeedLimitSeconds > 0 {
-						durationLabel = fmt.Sprintf(tr("最长 %.1f 小时"), float64(t.SeedLimitSeconds)/3600)
+						durationLabel = fmt.Sprintf(tr("seeding.durationLimit"), float64(t.SeedLimitSeconds)/3600)
 					}
-					menuControl(c, tr("做种时长"), durationLabel).Disabled(w.app == nil).Menu(func(m *ui.Menu) {
+					menuControl(c, tr("seeding.duration"), durationLabel).Disabled(w.app == nil).Menu(func(m *ui.Menu) {
 						for _, hours := range []int64{0, 1, 24, 72} {
-							label := tr("不限时长")
+							label := tr("seeding.unlimitedDuration")
 							if hours > 0 {
-								label = fmt.Sprintf(tr("最长 %.1f 小时"), float64(hours))
+								label = fmt.Sprintf(tr("seeding.durationLimit"), float64(hours))
 							}
 							if m.Item(label).Checked(t.SeedLimitSeconds == hours*3600).Chosen() {
 								w.app.execute(session.Command{Kind: session.CommandSeed, IDs: []string{t.ID}, Ratio: t.SeedRatio, SeedLimitSeconds: hours * 3600})
@@ -130,53 +130,53 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 						w.tagsTask = t.ID
 						w.tagsDraft = strings.Join(t.Tags, ", ")
 					}
-					field(c, tr("标签（逗号分隔）"), &w.tagsDraft)
-					if ui.Button(c, tr("保存标签")).Disabled(w.app == nil).Clicked() {
+					field(c, tr("transfer.tags"), &w.tagsDraft)
+					if ui.Button(c, tr("transfer.saveTags")).Disabled(w.app == nil).Clicked() {
 						w.app.execute(session.Command{Kind: session.CommandTags, IDs: []string{t.ID}, Tags: parseTags(w.tagsDraft)})
 					}
-					if ui.Button(c, tr("重新定位目录…")).Disabled(w.app == nil || t.Metadata == "").Clicked() {
+					if ui.Button(c, tr("transfer.changeLocation")).Disabled(w.app == nil || t.Metadata == "").Clicked() {
 						w.chooseRelocation(t.ID)
 					}
 					if t.Error != "" {
 						ui.Text(c, taskError(*t)).FontSize(11).TextColor(p.orange).Padding(12).Radius(7).Background(p.orange.Alpha(.09))
-						if ui.Button(c, tr("重试任务")).Disabled(w.app == nil).Clicked() {
+						if ui.Button(c, tr("transfer.retry")).Disabled(w.app == nil).Clicked() {
 							w.app.execute(session.Command{Kind: session.CommandResume, IDs: []string{t.ID}})
 						}
 					}
 
 				case 1:
 					if t.Metadata == "" {
-						ui.Text(c, tr("等待元数据，文件列表尚不可用。"))
+						ui.Text(c, tr("files.pendingMetadata"))
 						return
 					}
-					ui.Text(c, tr("跨文件分片可能占用未选择文件的少量空间。")).FontSize(11).TextColor(theme.TextMuted)
+					ui.Text(c, tr("files.boundaryHint")).FontSize(11).TextColor(theme.TextMuted)
 					fileTree(c, t.Source.Files, &w.fileState, w.app != nil, func(indices []int, priority int) {
 						w.app.execute(session.Command{Kind: session.CommandPriority, IDs: []string{t.ID}, FileIndices: indices, Priority: priority})
 					})
 				case 2:
-					ui.Text(c, fmt.Sprintf(tr("已连接节点：%d"), t.Peers))
+					ui.Text(c, fmt.Sprintf(tr("transfer.peerCount"), t.Peers))
 					ui.Text(c, "Tracker").Bold()
 					if len(t.Trackers) == 0 {
-						ui.Text(c, tr("暂无 Tracker 观测")).TextColor(theme.TextMuted)
+						ui.Text(c, tr("tracker.noObservations")).TextColor(theme.TextMuted)
 					}
 					for _, tr := range t.Trackers {
 						ui.Text(c, tr).FontSize(12).MaxLines(2)
 					}
 					for _, tracker := range t.Diagnostics {
-						state := map[string]string{"waiting": tr("等待连接"), "announcing": tr("正在公告"), "ok": tr("公告成功"), "failed": tr("公告失败")}[tracker.State]
-						detail := map[string]string{"timeout": tr("连接超时"), "dns": tr("域名解析失败"), "refused": tr("连接被拒绝"), "authorization": tr("Tracker 授权失败"), "announce": tr("Tracker 返回错误")}[tracker.Detail]
+						state := map[string]string{"waiting": tr("tracker.waiting"), "announcing": tr("tracker.announcing"), "ok": tr("tracker.succeeded"), "failed": tr("tracker.failed")}[tracker.State]
+						detail := map[string]string{"timeout": tr("tracker.timeout"), "dns": tr("tracker.dnsFailed"), "refused": tr("tracker.refused"), "authorization": tr("tracker.unauthorized"), "announce": tr("tracker.error")}[tracker.Detail]
 						ui.Text(c, tracker.Host+" · "+state).FontSize(11).MaxLines(2)
 						if detail != "" {
 							ui.Text(c, detail).FontSize(10).TextColor(p.orange)
 						}
 						if !tracker.Next.IsZero() {
-							ui.Text(c, tr("下次公告：")+tracker.Next.Local().Format("15:04:05")).FontSize(10)
+							ui.Text(c, fmt.Sprintf(tr("tracker.nextAnnounce"), tracker.Next.Local().Format("15:04:05"))).FontSize(10)
 						}
 					}
 					if t.Peers == 0 {
-						ui.Text(c, tr("等待节点：请检查网络和 Tracker，或稍后重试。")).FontSize(11)
+						ui.Text(c, tr("tracker.waitingHint")).FontSize(11)
 					}
-					ui.Text(c, tr("Tracker 地址已隐藏凭据；诊断每 5 秒刷新。")).FontSize(10).TextColor(theme.TextMuted)
+					ui.Text(c, tr("tracker.privacyHint")).FontSize(10).TextColor(theme.TextMuted)
 				}
 			})
 		})

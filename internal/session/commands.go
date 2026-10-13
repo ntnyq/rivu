@@ -17,7 +17,7 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 		return err
 	}
 	if m.closed || m.barrier {
-		return problem.Message(problem.Persistence, "会话正在保存")
+		return problem.Message(problem.Persistence, "session.saving")
 	}
 	if m.loadErr != nil {
 		return m.loadErr

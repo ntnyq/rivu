@@ -1,10 +1,11 @@
-// Package i18n provides Rivu's application messages. Simplified Chinese source
-// messages are stable catalog keys; missing translations fall back to English.
+// Package i18n provides Rivu's application messages using stable semantic keys.
+// Missing translations fall back to the English catalog.
 package i18n
 
 import (
 	"embed"
 	"encoding/json"
+	"log/slog"
 	"strings"
 	"sync/atomic"
 )
@@ -81,14 +82,18 @@ func Language() string {
 	return "en"
 }
 
-func T(message string) string { return Translate(Language(), message) }
+func T(key string) string { return Translate(Language(), key) }
 
-func Translate(language, message string) string {
-	if text := catalogs[language][message]; text != "" {
+// Translate resolves a semantic key. Unknown keys are programming errors: report
+// them without exposing internal identifiers in the interface. Catalog tests
+// validate application references before release.
+func Translate(language, key string) string {
+	if text := catalogs[language][key]; text != "" {
 		return text
 	}
-	if text := catalogs["en"][message]; text != "" {
+	if text := catalogs["en"][key]; text != "" {
 		return text
 	}
-	return message
+	slog.Error("missing translation key", "key", key)
+	return "Translation unavailable"
 }

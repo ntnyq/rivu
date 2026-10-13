@@ -17,7 +17,7 @@ func (m *Manager) finishRemoval(i int) error {
 	}
 	if r.Trash {
 		if m.trash == nil {
-			return problem.Message(problem.Conflict, "系统废纸篓不可用")
+			return problem.Message(problem.Conflict, "files.trashUnavailable")
 		}
 		if err := files.ValidateDestination(r.Destination); err != nil {
 			return err
@@ -39,19 +39,19 @@ func (m *Manager) finishRemoval(i int) error {
 				}
 			}
 			if shared {
-				return problem.Message(problem.Conflict, "文件由其他任务共享，无法移到废纸篓")
+				return problem.Message(problem.Conflict, "files.shared")
 			}
 			real, err := filepath.EvalSymlinks(full)
 			if err == nil {
 				if real != full {
-					return problem.Message(problem.Conflict, "文件已被符号链接替换")
+					return problem.Message(problem.Conflict, "files.symlinkReplaced")
 				}
 				st, er := os.Lstat(full)
 				if er != nil {
 					return er
 				}
 				if !st.Mode().IsRegular() {
-					return problem.Message(problem.Conflict, "只允许移除任务的普通文件")
+					return problem.Message(problem.Conflict, "files.regularOwnedOnly")
 				}
 				owners, er := files.ReadOwnership(r.Metadata + ".files.json")
 				if er != nil {
@@ -62,7 +62,7 @@ func (m *Manager) finishRemoval(i int) error {
 					return er
 				}
 				if owners[f.Path] != identity {
-					return problem.Message(problem.Conflict, "文件归属已改变，已保留: %s", f.Path)
+					return problem.Message(problem.Conflict, "files.ownershipChanged", f.Path)
 				}
 				if err = m.trash(full); err != nil {
 					return err

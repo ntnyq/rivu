@@ -90,7 +90,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return er
 		}
 		if !parsed.Identity.Matches(r.Source.Identity) {
-			return problem.Message(problem.Engine, "元数据标识不匹配")
+			return problem.Message(problem.Engine, "torrent.identityMismatch")
 		}
 		mi, er := metainfo.Load(bytes.NewReader(data))
 		if er != nil {
@@ -107,7 +107,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return err
 		}
 		if !identity(original).Matches(r.Source.Identity) {
-			return problem.Message(problem.Engine, "元数据标识不匹配")
+			return problem.Message(problem.Engine, "torrent.identityMismatch")
 		}
 		// Metainfo retains trackers, but not the magnet's explicit peers.
 		spec.PeerAddrs = original.PeerAddrs
@@ -133,7 +133,7 @@ func (e *Engine) Attach(r session.Record) error {
 	}
 	if !fresh {
 		root.Close()
-		return problem.Message(problem.Engine, "此下载已在引擎中运行")
+		return problem.Message(problem.Engine, "torrent.alreadyRunning")
 	}
 	e.handles[r.ID] = &handle{torrent: t, storage: st, raw: r.Source.Raw, metadata: metadata}
 	return nil
@@ -141,7 +141,7 @@ func (e *Engine) Attach(r session.Record) error {
 func (e *Engine) Start(id string, policy []session.File) error {
 	h := e.handles[id]
 	if h == nil {
-		return problem.Message(problem.Engine, "下载尚未接入引擎")
+		return problem.Message(problem.Engine, "torrent.notAdded")
 	}
 	if h.started {
 		return nil
@@ -151,7 +151,7 @@ func (e *Engine) Start(id string, policy []session.File) error {
 	}
 	fs := h.torrent.Files()
 	if len(fs) != len(policy) {
-		return problem.Message(problem.Engine, "文件选择与元数据不一致")
+		return problem.Message(problem.Engine, "torrent.selectionMismatch")
 	}
 	if err := h.storage.admit(policy); err != nil {
 		return err
@@ -290,7 +290,7 @@ func addSpec(c *bt.Client, spec *bt.TorrentSpec) (*bt.Torrent, bool, error) {
 		copy.InfoHashV2.SetNone()
 	}
 	if copy.InfoHash == (metainfo.Hash{}) {
-		return nil, false, problem.Message(problem.Engine, "无效的下载标识")
+		return nil, false, problem.Message(problem.Engine, "torrent.invalidIdentity")
 	}
 	return c.AddTorrentSpec(&copy)
 }

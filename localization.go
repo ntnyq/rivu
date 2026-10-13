@@ -7,7 +7,7 @@ import (
 	"github.com/ntnyq/rivu/internal/i18n"
 )
 
-func tr(message string) string { return i18n.T(message) }
+func tr(key string) string { return i18n.T(key) }
 
 // Autonyms remain recognizable even if the user selects an unfamiliar language.
 func languageName(code string) string {
@@ -23,7 +23,7 @@ func languageName(code string) string {
 	case "ko":
 		return "한국어"
 	default:
-		return tr("跟随系统")
+		return tr("common.followSystem")
 	}
 }
 
@@ -39,13 +39,13 @@ func (a *application) applyLanguage() {
 		})
 	}
 	if w := a.settingsWindow; w != nil && !w.closed {
-		w.win.SetTitle(tr("Rivu 设置"))
+		w.win.SetTitle(tr("settings.title"))
 		w.dispatch(func() {
-			w.loginStatus = fmt.Sprintf(tr("系统当前启用：%t（详细授权状态由系统设置显示）"), mygo.App.OpenAtLogin())
+			w.loginStatus = fmt.Sprintf(tr("settings.login.statusDetails"), mygo.App.OpenAtLogin())
 		})
 	}
 	if d := a.add; d != nil && !d.closed {
-		d.win.SetTitle(tr("添加下载"))
+		d.win.SetTitle(tr("transfer.add"))
 		d.dispatch(func() {})
 	}
 	// A tray menu is captured by its native right-click handler. Recreate it so
