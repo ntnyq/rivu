@@ -318,6 +318,9 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 	next := cloneState(m.state)
 	stopIDs := []string{}
 	selectedIDs := []string{}
+	if cmd.Kind == "first" {
+		prioritize(next.Tasks, cmd.IDs)
+	}
 	for i := range next.Tasks {
 		r := &next.Tasks[i]
 		selected := slices.Contains(cmd.IDs, r.ID)
@@ -351,17 +354,19 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 			r.Run = true
 			r.Reason = "verify"
 		case "first":
-			r.Order = 0
 			r.Run = true
 		case "priority":
 			if cmd.FileIndex < 0 || cmd.FileIndex >= len(r.Source.Files) {
 				return fmt.Errorf("invalid file")
 			}
+			previous := r.Source.Files[cmd.FileIndex].Priority
 			r.Source.Files[cmd.FileIndex].Priority = cmd.Priority
 			if err := validateSelection(r.Source.Files); err != nil {
 				return err
 			}
-			r.Completed = false
+			if (previous == 0) != (cmd.Priority == 0) {
+				r.Completed = false
+			}
 			stopIDs = append(stopIDs, r.ID)
 		case "seed":
 			if math.IsNaN(cmd.Ratio) || math.IsInf(cmd.Ratio, 0) || cmd.Ratio < -1 {

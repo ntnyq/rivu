@@ -1,9 +1,25 @@
 package session
 
 import (
+	"slices"
 	"sort"
 	"time"
 )
+
+// Put the requested group ahead of the existing queue while retaining order
+// within each group. Compact ranks avoid ties and repeated-decrement overflow.
+func prioritize(records []Record, ids []string) {
+	sort.SliceStable(records, func(i, j int) bool {
+		left, right := slices.Contains(ids, records[i].ID), slices.Contains(ids, records[j].ID)
+		if left != right {
+			return left
+		}
+		return records[i].Order < records[j].Order
+	})
+	for i := range records {
+		records[i].Order = int64(i)
+	}
+}
 
 // schedule decides the complete admission set before touching handles, so
 // reprioritizing work never temporarily exceeds either concurrency limit.

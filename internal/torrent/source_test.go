@@ -108,3 +108,51 @@ func TestV2MetadataRejectsInvalidRoot(t *testing.T) {
 		t.Fatal("accepted truncated pieces root")
 	}
 }
+
+func TestMetadataGeometryValidation(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		length int64
+		root   string
+		hybrid bool
+		hashes int
+		valid  bool
+	}{
+		{"empty", 0, "", false, 0, true},
+		{"empty short root", 0, "short", false, 0, false},
+		{"empty long root", 0, string(make([]byte, 33)), false, 0, false},
+		{"missing root", 16384, "", false, 0, false},
+		{"v2", 16384, string(make([]byte, 32)), false, 0, true},
+		{"hybrid missing hashes", 16384, string(make([]byte, 32)), true, 0, false},
+		{"hybrid too few hashes", 32768, string(make([]byte, 32)), true, 1, false},
+		{"hybrid too many hashes", 16384, string(make([]byte, 32)), true, 2, false},
+		{"hybrid", 16384, string(make([]byte, 32)), true, 1, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			info := metainfo.Info{Name: "payload", MetaVersion: 2, PieceLength: 16384,
+				FileTree: metainfo.FileTree{File: metainfo.FileTreeFile{Length: tc.length, PiecesRoot: tc.root}}}
+			if tc.hybrid {
+				info.Length = tc.length
+				info.Pieces = make([]byte, tc.hashes*20)
+			}
+			encoded, err := bencode.Marshal(&info)
+			if err != nil {
+				t.Fatal(err)
+			}
+			mi := metainfo.MetaInfo{InfoBytes: encoded}
+			var data bytes.Buffer
+			if err = mi.Write(&data); err != nil {
+				t.Fatal(err)
+			}
+			// Both imported files and metadata arriving through an engine handle
+			// must reject these structures without relying on panic recovery.
+			if _, err = parseMeta(data.Bytes()); (err == nil) != tc.valid {
+				t.Fatalf("parseMeta: valid=%t, error=%v", tc.valid, err)
+			}
+			st := &rootedStorage{}
+			if _, err = st.OpenTorrent(t.Context(), &info, mi.HashInfoBytes()); (err == nil) != tc.valid {
+				t.Fatalf("OpenTorrent: valid=%t, error=%v", tc.valid, err)
+			}
+		})
+	}
+}

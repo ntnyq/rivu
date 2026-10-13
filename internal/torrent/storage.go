@@ -10,12 +10,14 @@ import (
 	"maps"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"sync"
 
 	"github.com/anacrolix/torrent/metainfo"
 	btstorage "github.com/anacrolix/torrent/storage"
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/session"
 	"github.com/ntnyq/rivu/internal/storage"
 
 	"github.com/ntnyq/rivu/internal/i18n"
@@ -29,7 +31,7 @@ type rootedStorage struct {
 	mu         sync.Mutex
 	allowed    bool
 	err        error
-	info       *metainfo.Info
+	members    []metainfo.FileInfo
 	names      []string
 	complete   map[int]bool
 	manifest   string
@@ -42,7 +44,8 @@ func (s *rootedStorage) OpenTorrent(_ context.Context, info *metainfo.Info, _ me
 		return btstorage.TorrentImpl{}, err
 	}
 	var names []string
-	for _, f := range info.UpvertedFiles() {
+	members := info.UpvertedFiles()
+	for _, f := range members {
 		parts := append([]string{info.BestName()}, f.BestPath()...)
 		for _, p := range parts {
 			if p == "" || p == "." || p == ".." || strings.ContainsAny(p, "/\\") {
@@ -54,17 +57,55 @@ func (s *rootedStorage) OpenTorrent(_ context.Context, info *metainfo.Info, _ me
 	if err := files.ValidateMembers(names); err != nil {
 		return btstorage.TorrentImpl{}, err
 	}
-	s.info = info
+	s.members = members
 	s.names = names
 	s.complete = map[int]bool{}
-	return btstorage.TorrentImpl{Piece: func(p metainfo.Piece) btstorage.PieceImpl { return &rootedPiece{s: s, p: p} }, Close: func() error { return nil }}, nil
+	return btstorage.TorrentImpl{Piece: func(p metainfo.Piece) btstorage.PieceImpl {
+		last := members[len(members)-1]
+		if info.HasV2() {
+			// A v2 piece ends at its file's boundary rather than including the
+			// alignment gap. Avoid Piece.Length's repeated file-tree traversal.
+			first := sort.Search(len(members), func(i int) bool {
+				return members[i].TorrentOffset+members[i].Length > p.Offset()
+			})
+			last = members[first]
+		}
+		length := min(info.PieceLength, last.TorrentOffset+last.Length-p.Offset())
+		return &rootedPiece{s: s, p: p, length: length}
+	}, Close: func() error { return nil }}, nil
 }
 func (s *rootedStorage) setAllowed(v bool) { s.mu.Lock(); defer s.mu.Unlock(); s.allowed = v }
 func (s *rootedStorage) failure() error    { s.mu.Lock(); defer s.mu.Unlock(); return s.err }
 
+// Empty files never intersect a piece write. Create selected ones through the
+// ownership journal before allowing payload activity, including on reattachment.
+func (s *rootedStorage) admit(policy []session.File) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i, f := range s.members {
+		if f.Length != 0 || policy[i].Priority == 0 {
+			continue
+		}
+		name := s.names[i]
+		if err := s.root.MkdirAll(path.Dir(name), 0o755); err != nil {
+			return err
+		}
+		file, err := s.openWrite(name)
+		if err != nil {
+			return err
+		}
+		if err := file.Close(); err != nil {
+			return err
+		}
+	}
+	s.allowed = true
+	return nil
+}
+
 type rootedPiece struct {
-	s *rootedStorage
-	p metainfo.Piece
+	s      *rootedStorage
+	p      metainfo.Piece
+	length int64
 }
 
 func (p *rootedPiece) Completion() btstorage.Completion {
@@ -94,13 +135,21 @@ func (p *rootedPiece) access(b []byte, off int64, write bool) (int, error) {
 	if write && !s.allowed {
 		return 0, fmt.Errorf("payload is not admitted")
 	}
-	if off < 0 || off+int64(len(b)) > p.p.Length() {
+	if off < 0 || off > p.length || int64(len(b)) > p.length-off {
 		return 0, io.EOF
 	}
 	abs := p.p.Offset() + off
 	end := abs + int64(len(b))
 	n := 0
-	for i, f := range s.info.UpvertedFiles() {
+	first := sort.Search(len(s.members), func(i int) bool {
+		f := s.members[i]
+		return f.TorrentOffset+f.Length > abs
+	})
+	for i := first; i < len(s.members); i++ {
+		f := s.members[i]
+		if f.TorrentOffset >= end {
+			break
+		}
 		start := max(abs, f.TorrentOffset)
 		stop := min(end, f.TorrentOffset+f.Length)
 		if stop <= start {

@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"crypto/sha256"
+	"fmt"
 	"github.com/anacrolix/torrent/bencode"
 	"os"
 	"path/filepath"
@@ -72,14 +73,19 @@ func testLocalTransfer(t *testing.T, seedDir string, meta, payload []byte, fromM
 	r := session.Record{ID: "fixture", Source: s, Metadata: metadata, Destination: destination}
 	if fromMagnet {
 		r.Metadata = ""
-		r.Source = session.Source{Raw: "magnet:?xt=urn:btih:" + s.Identity.V1, Identity: s.Identity}
+		raw := fmt.Sprintf("magnet:?xt=urn:btih:%s&x.pe=127.0.0.1:%d", s.Identity.V1, seed.LocalPort())
+		r.Source, err = (Parser{}).Parse(raw)
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	if err = engine.Attach(r); err != nil {
 		t.Fatal(err)
 	}
-	h := engine.handles[r.ID]
-	h.torrent.AddClientPeer(seed)
+	if !fromMagnet {
+		engine.handles[r.ID].torrent.AddClientPeer(seed)
+	}
 	if fromMagnet {
 		for {
 			obs := engine.Observe(r.ID)
@@ -87,6 +93,10 @@ func testLocalTransfer(t *testing.T, seedDir string, meta, payload []byte, fromM
 				t.Fatal(obs.Error)
 			}
 			if obs.Metadata != nil {
+				r.Source = *obs.Metadata
+				if err = os.WriteFile(metadata, obs.Metadata.Meta, 0600); err != nil {
+					t.Fatal(err)
+				}
 				break
 			}
 			select {
@@ -101,13 +111,10 @@ func testLocalTransfer(t *testing.T, seedDir string, meta, payload []byte, fromM
 		if err = engine.Stop(r.ID); err != nil {
 			t.Fatal(err)
 		}
-		r.Source = s
 		r.Metadata = metadata
 		if err = engine.Attach(r); err != nil {
 			t.Fatal(err)
 		}
-		h = engine.handles[r.ID]
-		h.torrent.AddClientPeer(seed)
 	}
 
 	time.Sleep(200 * time.Millisecond)
@@ -141,6 +148,13 @@ func testLocalTransfer(t *testing.T, seedDir string, meta, payload []byte, fromM
 	if err != nil || !bytes.Equal(got, payload) {
 		t.Fatal("download integrity failed", err)
 	}
+	if fromMagnet {
+		// Force another peer connection after restore, rather than only
+		// rehashing an already complete file.
+		if err = os.Remove(filepath.Join(destination, "payload.txt")); err != nil {
+			t.Fatal(err)
+		}
+	}
 	if err = engine.Attach(r); err != nil {
 		t.Fatal(err)
 	}
@@ -158,9 +172,13 @@ func testLocalTransfer(t *testing.T, seedDir string, meta, payload []byte, fromM
 		case <-time.After(20 * time.Millisecond):
 		}
 	}
+	got, err = os.ReadFile(filepath.Join(destination, "payload.txt"))
+	if err != nil || !bytes.Equal(got, payload) {
+		t.Fatal("restored transfer integrity failed", err)
+	}
 }
 
-func TestLocalMagnetMetadataIsPayloadFree(t *testing.T) {
+func TestLocalMagnetExplicitPeerSurvivesMetadataAndRestore(t *testing.T) {
 	dir, meta, data := fixture(t)
 	testLocalTransfer(t, dir, meta, data, true)
 }
@@ -211,6 +229,11 @@ func TestSelectedFileAcrossPieceBoundary(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(bundle, "b.bin"), skipped, 0600); err != nil {
 		t.Fatal(err)
 	}
+	for _, name := range []string{"c-empty", "d-skipped-empty"} {
+		if err := os.WriteFile(filepath.Join(bundle, name), nil, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
 	info := metainfo.Info{PieceLength: 16384}
 	if err := info.BuildFromFilePath(bundle); err != nil {
 		t.Fatal(err)
@@ -254,6 +277,7 @@ func TestSelectedFileAcrossPieceBoundary(t *testing.T) {
 		t.Fatalf("parser did not retain shared-piece geometry: %+v", source)
 	}
 	source.Files[1].Priority = 0
+	source.Files[3].Priority = 0
 	metaPath := filepath.Join(t.TempDir(), "fixture.torrent")
 	if err = os.WriteFile(metaPath, data.Bytes(), 0600); err != nil {
 		t.Fatal(err)
@@ -276,7 +300,7 @@ func TestSelectedFileAcrossPieceBoundary(t *testing.T) {
 		if obs.Error != "" {
 			t.Fatal(obs.Error)
 		}
-		if len(obs.Files) == 2 && obs.Files[0].Done == int64(len(selected)) {
+		if len(obs.Files) == 4 && obs.Files[0].Done == int64(len(selected)) {
 			break
 		}
 		select {
@@ -298,5 +322,11 @@ func TestSelectedFileAcrossPieceBoundary(t *testing.T) {
 	}
 	if len(overlap) != 16384-len(selected) || !bytes.Equal(overlap, skipped[:len(overlap)]) {
 		t.Fatalf("unexpected skipped overlap: %d", len(overlap))
+	}
+	if stat, err := os.Stat(filepath.Join(record.Destination, "bundle", "c-empty")); err != nil || stat.Size() != 0 {
+		t.Fatalf("selected empty file was not created: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(record.Destination, "bundle", "d-skipped-empty")); !os.IsNotExist(err) {
+		t.Fatalf("skipped empty file was created: %v", err)
 	}
 }

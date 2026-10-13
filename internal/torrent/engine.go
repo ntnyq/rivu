@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	alog "github.com/anacrolix/log"
 	bt "github.com/anacrolix/torrent"
@@ -99,6 +100,17 @@ func (e *Engine) Attach(r session.Record) error {
 	if err != nil {
 		return err
 	}
+	if !metadata && strings.HasPrefix(strings.ToLower(r.Source.Raw), "magnet:") {
+		original, err := bt.TorrentSpecFromMagnetUri(r.Source.Raw)
+		if err != nil {
+			return err
+		}
+		if !identity(original).Matches(r.Source.Identity) {
+			return fmt.Errorf("%s", i18n.T("元数据标识不匹配"))
+		}
+		// Metainfo retains trackers, but not the magnet's explicit peers.
+		spec.PeerAddrs = original.PeerAddrs
+	}
 	c, err := e.getClient(metadata)
 	if err != nil {
 		return err
@@ -140,13 +152,17 @@ func (e *Engine) Start(id string, policy []session.File) error {
 	if len(fs) != len(policy) {
 		return fmt.Errorf("%s", i18n.T("文件选择与元数据不一致"))
 	}
-	h.storage.setAllowed(true)
+	if err := h.storage.admit(policy); err != nil {
+		return err
+	}
 	for i, f := range fs {
 		priority := bt.PiecePriorityNone
-		if policy[i].Priority == 1 {
+		// Empty files are already created by admission. Upstream can otherwise
+		// prioritize the preceding shared piece for a zero-length file.
+		if f.Length() > 0 && policy[i].Priority == 1 {
 			priority = bt.PiecePriorityNormal
 		}
-		if policy[i].Priority == 2 {
+		if f.Length() > 0 && policy[i].Priority == 2 {
 			priority = bt.PiecePriorityHigh
 		}
 		f.SetPriority(priority)

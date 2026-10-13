@@ -130,7 +130,8 @@ func validateInfo(info *metainfo.Info) error {
 	if info.MetaVersion == 2 {
 		valid := info.PieceLength >= 16384 && info.PieceLength&(info.PieceLength-1) == 0
 		info.FileTree.Walk(nil, func(_ []string, ft *metainfo.FileTree) {
-			if !ft.IsDir() && (ft.File.Length < 0 || ft.File.Length > 1<<50 || ft.File.Length > 0 && len(ft.File.PiecesRoot) != 32) {
+			if !ft.IsDir() && (ft.File.Length < 0 || ft.File.Length > 1<<50 ||
+				(ft.File.Length > 0 || ft.File.PiecesRoot != "") && len(ft.File.PiecesRoot) != 32) {
 				valid = false
 			}
 		})
@@ -142,6 +143,23 @@ func validateInfo(info *metainfo.Info) error {
 	if len(members) == 0 || len(members) > 100000 {
 		return fmt.Errorf("%s", i18n.T("不支持的文件数量"))
 	}
-
+	var total int64
+	for _, f := range members {
+		if f.Length < 0 || f.Length > (1<<50)-total {
+			return fmt.Errorf("%s", i18n.T("无效的文件大小"))
+		}
+		total += f.Length
+	}
+	if info.HasV1() {
+		pieces := (total + info.PieceLength - 1) / info.PieceLength
+		if info.HasV2() {
+			// Hybrid storage uses the v2 geometry, but the engine indexes the
+			// v1 hash array once for every v2 piece.
+			pieces = int64(info.NumPieces())
+		}
+		if int64(len(info.Pieces)/20) != pieces {
+			return fmt.Errorf("%s", i18n.T("不支持的种子结构"))
+		}
+	}
 	return nil
 }

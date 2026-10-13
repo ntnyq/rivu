@@ -199,3 +199,73 @@ func TestTickHonorsMaintenanceAndRecovery(t *testing.T) {
 		}
 	}
 }
+
+func TestRepeatedPrioritizationSurvivesReload(t *testing.T) {
+	m := observedManager(t, Observation{Phase: "waiting", Files: []File{{Size: 10}}})
+	m.settings.Concurrent = 1
+	a := addPayload(t, m, "a")
+	b := addPayload(t, m, "b")
+	c := addPayload(t, m, "c")
+	for _, id := range []string{a, b, a, c, b} {
+		exec(t, m, "first", id)
+		if len(m.active) != 1 || !m.active[id] {
+			t.Fatalf("latest priority %s not admitted: %v", id, m.active)
+		}
+	}
+	if err := m.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	for _, id := range []string{b, c, a} {
+		if !m.active[id] {
+			t.Fatalf("queue order lost after reload; expected %s", id)
+		}
+		exec(t, m, "pause", id)
+	}
+}
+
+func TestFilePriorityPreservesCompletionEpoch(t *testing.T) {
+	m := observedManager(t, Observation{Phase: "waiting", Files: []File{{Size: 10, Done: 10}}})
+	id := addPayload(t, m, "a")
+	m.tick()
+	exec(t, m, "notified", id)
+	epoch := m.state.Tasks[0].Epoch
+	for _, priority := range []int{2, 1, 1} {
+		if err := m.Execute(t.Context(), Command{Kind: "priority", IDs: []string{id}, FileIndex: 0, Priority: priority}); err != nil {
+			t.Fatal(err)
+		}
+		engine := m.engine.(*observedEngine)
+		engine.observation.Phase = "verifying"
+		engine.observation.Files[0].Done = 5
+		m.tick()
+		engine.observation.Phase = "waiting"
+		engine.observation.Files[0].Done = 10
+		m.tick()
+		task := m.Snapshot().Tasks[0]
+		if !task.Completed || task.Epoch != epoch || task.Notified != epoch {
+			t.Fatalf("priority %d repeated completion: %+v", priority, task)
+		}
+	}
+}
+
+func TestSelectingAnotherFileClearsCompletion(t *testing.T) {
+	m := observedManager(t, Observation{Phase: "waiting", Files: []File{{Size: 10, Done: 10}, {Size: 10}}})
+	id, err := m.Import(t.Context(), Import{Source: Source{Name: "selection", Identity: Identity{V1: "selection"}, Meta: []byte("fixture"),
+		Files: []File{{Path: "a", Size: 10, Priority: 1}, {Path: "b", Size: 10}}}, Destination: t.TempDir(), Run: true, SeedRatio: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.tick()
+	epoch := m.state.Tasks[0].Epoch
+	if err = m.Execute(t.Context(), Command{Kind: "priority", IDs: []string{id}, FileIndex: 1, Priority: 1}); err != nil {
+		t.Fatal(err)
+	}
+	m.tick()
+	if m.Snapshot().Tasks[0].Completed {
+		t.Fatal("newly selected incomplete file retained completion")
+	}
+	m.engine.(*observedEngine).observation.Files[1].Done = 10
+	m.tick()
+	if task := m.Snapshot().Tasks[0]; !task.Completed || task.Epoch != epoch+1 {
+		t.Fatalf("newly completed selection did not publish completion: %+v", task)
+	}
+}
