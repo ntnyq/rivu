@@ -1,5 +1,8 @@
 # Rivu Product and Interface Design
 
+> Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](architecture.md), [source structure](implementation-structure.md), and [implementation status](implementation-status.md).
+
+
 Date: October 12, 2026. Status: proposed product specification and interactive design prototype. The download engine and operating system integrations described here are not implemented by this deliverable.
 
 ## Product direction

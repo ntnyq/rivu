@@ -13,8 +13,8 @@ func (a *application) commands() []command {
 	return []command{
 		{"add", tr("添加下载…"), "CmdOrCtrl+N", func() { a.openAdd(nil) }},
 		{"open", tr("打开种子文件…"), "CmdOrCtrl+O", func() { a.openAdd(nil); a.add.pickTorrents() }},
-		{"pauseAll", tr("暂停全部"), "", func() { a.execute(session.Command{Kind: "pauseAll"}) }},
-		{"resumeBatch", tr("恢复本次暂停"), "", func() { a.execute(session.Command{Kind: "resumeBatch"}) }},
+		{"pauseAll", tr("暂停全部"), "", func() { a.execute(session.Command{Kind: session.CommandPauseAll}) }},
+		{"resumeBatch", tr("恢复本次暂停"), "", func() { a.execute(session.Command{Kind: session.CommandResumeBatch}) }},
 		{"slow", tr("切换限速模式"), "", a.slowMode},
 		{"main", tr("打开 Rivu"), "CmdOrCtrl+1", func() { a.openWindow() }},
 		{"settings", tr("设置…"), "CmdOrCtrl+,", a.openSettings},
@@ -32,7 +32,6 @@ func (a *application) commands() []command {
 				return tr("已重新读取"), a.session.Configure(a.store.Snapshot())
 			}, func() {
 				w.settings = a.store.Snapshot()
-				w.resetSettings()
 				applyTheme(w.settings.Theme)
 				a.applyLanguage()
 			})

@@ -27,11 +27,12 @@ func TestLocalizedSurfaces(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			settings := newSettingsWindow(store)
 			w := newWindow(store)
 			w.snapshot = fixtureSnapshot()
 			w.selectOnly("1")
 			app := &application{store: store, snapshot: w.snapshot}
-			add := &addWindow{window: newWindow(store), start: true}
+			add := &addWindow{windowBase: &windowBase{}, settings: store.Snapshot(), destination: store.Snapshot().Destination, start: true}
 			for _, surface := range []struct {
 				name          string
 				view          func(*ui.Context)
@@ -40,8 +41,8 @@ func TestLocalizedSurfaces(t *testing.T) {
 			}{
 				{"main", w.view, 1180, 760, "全部任务"},
 				{"main-minimum", w.view, 880, 560, "全部任务"},
-				{"settings", w.settingsView, 750, 630, "界面语言"},
-				{"settings-minimum", w.settingsView, 640, 520, "界面语言"},
+				{"settings", settings.settingsView, 750, 630, "界面语言"},
+				{"settings-minimum", settings.settingsView, 640, 520, "界面语言"},
 				{"add", add.view, 550, 660, "添加下载"},
 				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), "打开主窗口"},
 			} {

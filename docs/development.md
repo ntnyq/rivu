@@ -91,6 +91,16 @@ The `language` preference accepts `system` (default), `zh-Hans`, `zh-Hant`, `en`
 
 Translations are embedded from `internal/i18n/locales`. Catalog tests check message coverage and format placeholders; localized UI tests cover normal and minimum window sizes. Operating-system dialogs and third-party diagnostic messages may use their own language.
 
+## Collection benchmarks
+
+```sh
+rtk proxy go test . ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
+```
+
+See [the refactor report](refactor-validation.md) for measured results, persistence migration and feature semantics. The local Tracker integration test checks the pinned engine's diagnostics output contract and must pass after engine upgrades.
+
+Native capture also accepts `RIVU_CAPTURE_SURFACE=settings-downloads` or `settings-automation` to exercise the new settings surfaces.
+
 ## Further reading
 
 - [Architecture](architecture.md): session ownership, engine integration, and persistence.

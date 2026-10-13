@@ -15,6 +15,47 @@ import (
 	"github.com/ntnyq/rivu/internal/storage"
 )
 
+func TestAdoptedFileRepairDoesNotClaimOrReplace(t *testing.T) {
+	dir := t.TempDir()
+	name := filepath.Join(dir, "payload")
+	if err := os.WriteFile(name, []byte("old"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	adopted, err := files.InspectExisting(dir, []string{"payload"}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
+	journal := filepath.Join(t.TempDir(), "owners.json")
+	s := rootedStorage{root: root, manifest: journal, adopted: adopted}
+	f, err := s.openWrite("payload")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = f.WriteAt([]byte("new"), 0); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	owners, err := files.ReadOwnership(journal)
+	if err != nil || len(owners) != 0 {
+		t.Fatal("repair claimed adopted data", err)
+	}
+	if err = os.Rename(name, filepath.Join(dir, "original")); err != nil {
+		t.Fatal(err)
+	}
+	if err = os.WriteFile(name, []byte("unrelated"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if f, err = s.openWrite("payload"); err == nil {
+		f.Close()
+		t.Fatal("overwrote replacement at adopted path")
+	}
+}
+
 func TestOwnershipPublicationRecoversFromJournalFailure(t *testing.T) {
 	for _, uncertain := range []bool{false, true} {
 		name := "before commit"

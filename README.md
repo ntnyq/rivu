@@ -27,10 +27,12 @@
 See what's downloading, seeding, finished, or waiting for attention. Search and sort your transfers, then open the details panel for progress, files, and connection information.
 
 - **Add it your way.** Open a `.torrent` file, paste a magnet link, or drag a torrent into the window. Supports v1, v2, and hybrid torrents.
-- **Download what you need.** Choose files, set their priorities, and pick a destination before starting a torrent with known metadata.
+- **Download what you need.** Choose files, set their priorities, and pick a destination before starting. Magnet links resolve metadata in a cancellable preview.
 - **Set the pace.** Limit bandwidth and concurrent downloads, pause individual transfers, or pause the whole queue. Resuming a paused batch respects tasks you had already paused yourself.
 - **Pick up where you left off.** Tasks and pause choices survive restarts. Rivu checks downloaded data when restoring a transfer.
-- **Seed on your terms.** Set a share-ratio target and let completed downloads stop seeding when they reach it.
+- **Seed on your terms.** Stop on completion, choose a share-ratio target, or seed without a ratio limit. Add a cumulative seeding-time limit when needed.
+- **Make it automatic.** Schedule daily bandwidth limits, organize tasks with tags, or watch a folder for new torrent files.
+- **Reuse your data.** Explicitly adopt existing downloads or point a task to a new location; Rivu verifies the data and preserves existing-file deletion rights.
 - **Keep your files.** Removing a task keeps its files by default. Moving downloaded files to Trash is a separate choice.
 
 ## Close the window. Keep downloading.
@@ -69,4 +71,4 @@ See the [user guide](docs/usage.md) for magnet-link requirements, destination ha
 
 ## Explore the project
 
-[Development](docs/development.md) · [Architecture](docs/architecture.md) · [Release status](docs/implementation-status.md) · [Building releases](docs/releasing.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+[Documentation index](docs/README.md) · [Development](docs/development.md) · [Architecture](docs/architecture.md) · [Release status](docs/implementation-status.md) · [Building releases](docs/releasing.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)

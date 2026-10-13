@@ -2,6 +2,7 @@
 package session
 
 import "time"
+import "github.com/ntnyq/rivu/internal/problem"
 
 type Identity struct {
 	V1 string `json:"v1,omitempty"`
@@ -30,37 +31,50 @@ type Source struct {
 	Meta        []byte   `json:"-"`
 }
 type Record struct {
-	ID           string    `json:"id"`
-	Source       Source    `json:"source"`
-	Metadata     string    `json:"metadata,omitempty"`
-	Destination  string    `json:"destination"`
-	Run          bool      `json:"run"`
-	Reason       string    `json:"reason,omitempty"`
-	Batch        bool      `json:"batch"`
-	SeedRatio    float64   `json:"seedRatio"`
-	SeedOverride bool      `json:"seedOverride"`
-	Uploaded     int64     `json:"uploaded"`
-	Added        time.Time `json:"added"`
-	Order        int64     `json:"order"`
-	Completed    bool      `json:"completed"`
-	Epoch        uint64    `json:"epoch"`
-	Notified     uint64    `json:"notified"`
-	Removing     bool      `json:"removing"`
-	Trash        bool      `json:"trash"`
-	Trashed      []string  `json:"trashed,omitempty"`
+	Adopted          map[string]string `json:"adopted,omitempty"`
+	Tags             []string          `json:"tags,omitempty"`
+	SeedSeconds      int64             `json:"seedSeconds,omitempty"`
+	SeedLimitSeconds int64             `json:"seedLimitSeconds,omitempty"`
+	ID               string            `json:"id"`
+	Source           Source            `json:"source"`
+	Metadata         string            `json:"metadata,omitempty"`
+	Destination      string            `json:"destination"`
+	Run              bool              `json:"run"`
+	Reason           PauseReason       `json:"reason,omitempty"`
+	Batch            bool              `json:"batch"`
+	SeedRatio        float64           `json:"seedRatio"`
+	SeedOverride     bool              `json:"seedOverride"`
+	Uploaded         int64             `json:"uploaded"`
+	Added            time.Time         `json:"added"`
+	Order            int64             `json:"order"`
+	Completed        bool              `json:"completed"`
+	Epoch            uint64            `json:"epoch"`
+	Notified         uint64            `json:"notified"`
+	Removing         bool              `json:"removing"`
+	Trash            bool              `json:"trash"`
+	Trashed          []string          `json:"trashed,omitempty"`
 }
+type TrackerStatus struct {
+	Host, State, Detail string
+	Next                time.Time
+}
+
 type Observation struct {
+	Diagnostics          []TrackerStatus
+	Failure              error
 	Metadata             *Source
 	Files                []File
-	Phase                string
+	Phase                Phase
 	Downloaded, Uploaded int64
 	Peers                int
 	Error                string
 	Trackers             []string
 }
 type Task struct {
+	Diagnostics []TrackerStatus
+	Issue       *problem.Error
 	Record
-	Phase                 string
+	Phase                 Phase
 	Done, Size, TotalSize int64
 	DownRate, UpRate      float64
 	Peers                 int
@@ -69,6 +83,7 @@ type Task struct {
 	Trackers              []string
 }
 type Snapshot struct {
+	Issue            *problem.Error
 	Revision         uint64
 	Tasks            []Task
 	Error            string
@@ -77,17 +92,24 @@ type Snapshot struct {
 	Quiesced         bool
 }
 type Command struct {
-	Kind                string
+	FileIndices         []int
+	Destination         string
+	Tags                []string
+	SeedLimitSeconds    int64
+	Kind                CommandKind
 	IDs                 []string
 	FileIndex, Priority int
 	Ratio               float64
 	Trash               bool
 }
 type Import struct {
-	Source      Source
-	Destination string
-	Run         bool
-	SeedRatio   float64
+	AdoptExisting    bool
+	Tags             []string
+	SeedLimitSeconds int64
+	Source           Source
+	Destination      string
+	Run              bool
+	SeedRatio        float64
 }
 type Engine interface {
 	Attach(Record) error

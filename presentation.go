@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"sort"
 	"strings"
 
@@ -13,7 +14,7 @@ func filterLabels() []string {
 	return []string{tr("全部任务"), tr("下载中"), tr("做种中"), tr("已完成"), tr("已暂停"), tr("需要处理")}
 }
 
-var phases = map[string]string{"queued": "等待队列", "metadata": "获取元数据", "verifying": "校验中", "waiting": "等待节点", "downloading": "下载中", "seeding": "做种中", "completed": "已完成", "paused": "已暂停", "error": "需要处理", "removing": "正在移除"}
+var phases = map[session.Phase]string{"queued": "等待队列", "metadata": "获取元数据", "verifying": "校验中", "waiting": "等待节点", "downloading": "下载中", "seeding": "做种中", "completed": "已完成", "paused": "已暂停", "error": "需要处理", "removing": "正在移除"}
 
 func matches(t session.Task, filter int) bool {
 	switch filter {
@@ -30,10 +31,10 @@ func matches(t session.Task, filter int) bool {
 	}
 	return true
 }
-func (w *window) visible() []session.Task {
+func (w *mainWindow) visible() []session.Task {
 	var out []session.Task
 	for _, t := range w.snapshot.Tasks {
-		if matches(t, w.filter) && strings.Contains(strings.ToLower(t.Source.Name), strings.ToLower(w.search)) {
+		if (w.tagFilter == "" || slices.Contains(t.Tags, w.tagFilter)) && matches(t, w.filter) && strings.Contains(strings.ToLower(t.Source.Name), strings.ToLower(w.search)) {
 			out = append(out, t)
 		}
 	}
@@ -110,4 +111,18 @@ func taskPercent(t session.Task) string {
 		return "100%"
 	}
 	return fmt.Sprintf("%.1f%%", progress(t)*100)
+}
+
+func seedingSummary(ratio float64, seconds int64) string {
+	summary := tr("无限做种")
+	if ratio == 0 {
+		return tr("下载完成后停止做种")
+	}
+	if ratio > 0 {
+		summary = fmt.Sprintf(tr("分享率达到 %.1f 时自动停止"), ratio)
+	}
+	if seconds > 0 {
+		summary += " · " + fmt.Sprintf(tr("最长 %.1f 小时"), float64(seconds)/3600)
+	}
+	return summary
 }

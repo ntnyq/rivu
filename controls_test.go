@@ -49,7 +49,7 @@ func TestSettingsLanguageMenu(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	w := newWindow(store)
+	w := newSettingsWindow(store)
 	tt := ui.NewTester(w.settingsView, 640, 520)
 	for _, code := range []string{"en", "ja", "ko", "zh-Hant", "zh-Hans", "system"} {
 		if err := tt.Click("界面语言"); err != nil {

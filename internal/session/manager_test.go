@@ -51,7 +51,7 @@ func add(t *testing.T, m *Manager, name string, run bool) string {
 	}
 	return id
 }
-func exec(t *testing.T, m *Manager, kind string, ids ...string) {
+func exec(t *testing.T, m *Manager, kind CommandKind, ids ...string) {
 	t.Helper()
 	if err := m.Execute(context.Background(), Command{Kind: kind, IDs: ids}); err != nil {
 		t.Fatal(err)
@@ -105,7 +105,7 @@ func TestFailedPauseStaysStopped(t *testing.T) {
 	m.path = filepath.Join(dir, "blocked", "session.json")
 	_ = os.WriteFile(filepath.Join(dir, "blocked"), []byte("file"), 0o600)
 	m.mu.Unlock()
-	if m.Execute(context.Background(), Command{Kind: "pause", IDs: []string{id}}) == nil {
+	if m.Execute(context.Background(), Command{Kind: CommandPause, IDs: []string{id}}) == nil {
 		t.Fatal("save should fail")
 	}
 	s := m.Snapshot()
@@ -131,7 +131,7 @@ func TestCorruptSessionPreserved(t *testing.T) {
 		t.Fatal("accepted corrupt session")
 	}
 	defer func() { m.cancel(); <-m.done }()
-	if m.Execute(context.Background(), Command{Kind: "pauseAll"}) == nil {
+	if m.Execute(context.Background(), Command{Kind: CommandPauseAll}) == nil {
 		t.Fatal("mutation allowed")
 	}
 	got, _ := os.ReadFile(path)
@@ -163,7 +163,7 @@ func TestRemoveRetainsFilesAndTrashFailureIsRecoverable(t *testing.T) {
 	if err = files.SaveOwnership(filepath.Join(stateDir, "fixture.torrent.files.json"), map[string]string{"payload.txt": identity}); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.Execute(context.Background(), Command{Kind: "remove", IDs: []string{id}, Trash: true}); err != nil {
+	if err := m.Execute(context.Background(), Command{Kind: CommandRemove, IDs: []string{id}, Trash: true}); err != nil {
 		t.Fatal(err)
 	}
 	if len(m.Snapshot().Tasks) != 1 || m.Snapshot().Tasks[0].Error == "" {
@@ -197,7 +197,7 @@ func TestBatchResumeDoesNotClearOtherError(t *testing.T) {
 			m.state.Tasks[i].Run = true
 		}
 	}
-	m.holds[b] = "disk missing"
+	m.holds[b] = errors.New("disk missing")
 	m.mu.Unlock()
 	exec(t, m, "resumeBatch")
 	for _, v := range m.Snapshot().Tasks {

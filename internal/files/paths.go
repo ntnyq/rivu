@@ -2,13 +2,12 @@ package files
 
 import (
 	"fmt"
+	"github.com/ntnyq/rivu/internal/problem"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 func ValidateMembers(names []string) error {
@@ -42,37 +41,44 @@ func ValidateMembers(names []string) error {
 // explicitly create a default directory or pick an existing one before import.
 func ValidateDestination(dir string) error {
 	if !filepath.IsAbs(dir) {
-		return fmt.Errorf("%s", i18n.T("请选择绝对路径的下载目录"))
+		return problem.Message(problem.Destination, "请选择绝对路径的下载目录")
 	}
 	stat, err := os.Stat(dir)
 	if err != nil {
-		return fmt.Errorf(i18n.T("下载目录不可用: %w"), err)
+		return problem.New(problem.Destination, dir, err)
 	}
 	if !stat.IsDir() {
-		return fmt.Errorf("%s", i18n.T("下载路径不是目录"))
+		return problem.Message(problem.Destination, "下载路径不是目录")
 	}
 	entry, err := os.Lstat(dir)
 	if err != nil {
 		return err
 	}
 	if entry.Mode()&os.ModeSymlink != 0 {
-		return fmt.Errorf("%s", i18n.T("请选择真实目录，不能使用符号链接"))
+		return problem.Message(problem.Destination, "请选择真实目录，不能使用符号链接")
 	}
 	return nil
 }
 
 func CheckConflicts(dir string, names []string) error {
+	_, err := InspectExisting(dir, names, false)
+	return err
+}
+
+// InspectExisting rejects links in every path component and records stable file identities.
+func InspectExisting(dir string, names []string, allowExisting bool) (map[string]string, error) {
 	if err := ValidateDestination(dir); err != nil {
-		return err
+		return nil, err
 	}
 	if err := ValidateMembers(names); err != nil {
-		return err
+		return nil, err
 	}
 	root, err := os.OpenRoot(dir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer root.Close()
+	identities := map[string]string{}
 	for _, name := range names {
 		// Check every component: a pre-existing directory is fine, a symlink isn't.
 		parts := strings.Split(name, "/")
@@ -83,12 +89,19 @@ func CheckConflicts(dir string, names []string) error {
 				continue
 			}
 			if e != nil {
-				return e
+				return nil, e
 			}
-			if st.Mode()&os.ModeSymlink != 0 || i == len(parts)-1 || !st.IsDir() {
-				return fmt.Errorf(i18n.T("目标已存在或不安全，请选择另一个目录: %s"), rel)
+			if st.Mode()&os.ModeSymlink != 0 || (i == len(parts)-1 && (!allowExisting || !st.Mode().IsRegular())) || (i < len(parts)-1 && !st.IsDir()) {
+				return nil, problem.Message(problem.Destination, "目标已存在或不安全，请选择另一个目录: %s", rel)
+			}
+			if i == len(parts)-1 {
+				id, err := FileIdentity(st)
+				if err != nil {
+					return nil, err
+				}
+				identities[name] = id
 			}
 		}
 	}
-	return nil
+	return identities, nil
 }

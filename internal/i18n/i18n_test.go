@@ -81,18 +81,28 @@ func TestMessageCoverage(t *testing.T) {
 				return true
 			}
 			name := ""
+			argument := 0
 			switch fn := call.Fun.(type) {
 			case *ast.Ident:
 				name = fn.Name
 			case *ast.SelectorExpr:
-				if x, ok := fn.X.(*ast.Ident); ok && x.Name == "i18n" {
-					name = fn.Sel.Name
+				if x, ok := fn.X.(*ast.Ident); ok {
+					if x.Name == "i18n" {
+						name = fn.Sel.Name
+					}
+					if x.Name == "problem" && fn.Sel.Name == "Message" {
+						name = "T"
+						argument = 1
+					}
 				}
 			}
 			if name != "tr" && name != "T" {
 				return true
 			}
-			literal, ok := call.Args[0].(*ast.BasicLit)
+			if len(call.Args) <= argument {
+				return true
+			}
+			literal, ok := call.Args[argument].(*ast.BasicLit)
 			if !ok || literal.Kind != token.STRING {
 				return true
 			}

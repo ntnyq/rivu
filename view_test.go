@@ -122,18 +122,20 @@ func TestPresentation(t *testing.T) {
 func TestAuxiliaryViewSnapshots(t *testing.T) {
 	useTestLanguage(t, "zh-Hans")
 	store, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
-	w := newWindow(store)
+	settings := newSettingsWindow(store)
 	app := &application{store: store, snapshot: fixtureSnapshot()}
 	emptyApp := &application{store: store}
-	add := &addWindow{window: newWindow(store), start: true, input: "Ubuntu 24.04.1 Desktop.torrent", preparedInput: "Ubuntu 24.04.1 Desktop.torrent", free: 128000000000, items: []importItem{{source: session.Source{Name: "Ubuntu 24.04.1 Desktop", Files: []session.File{{Path: "ubuntu-24.04.1-desktop-arm64.iso", Size: 5900000000, Priority: 1}}}}}}
+	add := &addWindow{windowBase: &windowBase{}, settings: store.Snapshot(), destination: store.Snapshot().Destination, start: true, input: "Ubuntu 24.04.1 Desktop.torrent", preparedInput: "Ubuntu 24.04.1 Desktop.torrent", free: 128000000000, items: []importItem{{source: session.Source{Name: "Ubuntu 24.04.1 Desktop", Files: []session.File{{Path: "ubuntu-24.04.1-desktop-arm64.iso", Size: 5900000000, Priority: 1}}}}}}
 	for _, dark := range []bool{false, true} {
 		for _, v := range []struct {
 			name          string
 			view          func(*ui.Context)
 			width, height int
 		}{
-			{"settings-general", func(c *ui.Context) { w.settingsTab = 0; w.settingsView(c) }, 750, 630},
-			{"settings-updates", func(c *ui.Context) { w.settingsTab = 4; w.settingsView(c) }, 750, 630},
+			{"settings-general", func(c *ui.Context) { settings.settingsTab = 0; settings.settingsView(c) }, 750, 630},
+			{"settings-updates", func(c *ui.Context) { settings.settingsTab = 4; settings.settingsView(c) }, 750, 630},
+			{"settings-downloads", func(c *ui.Context) { settings.settingsTab = 1; settings.settingsView(c) }, 750, 630},
+			{"settings-automation", func(c *ui.Context) { settings.settingsTab = 5; settings.settingsView(c) }, 750, 630},
 			{"add-download", add.view, 550, 660},
 			{"menu-bar", app.trayView, trayWidth, presentTray(app.snapshot).height()},
 			{"menu-bar-empty", emptyApp.trayView, trayWidth, presentTray(emptyApp.snapshot).height()},

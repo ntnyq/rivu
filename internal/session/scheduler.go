@@ -1,6 +1,7 @@
 package session
 
 import (
+	"github.com/ntnyq/rivu/internal/problem"
 	"slices"
 	"sort"
 	"time"
@@ -29,7 +30,7 @@ func (m *Manager) schedule(now time.Time) {
 	admitted := make(map[string]bool)
 	downloads, metadata := 0, 0
 	for _, r := range records {
-		if r.Removing || !r.Run || m.holds[r.ID] != "" || now.Before(m.samples[r.ID].retry) {
+		if r.Removing || !r.Run || m.holds[r.ID] != nil || now.Before(m.samples[r.ID].retry) {
 			continue
 		}
 		if r.Metadata == "" {
@@ -37,7 +38,7 @@ func (m *Manager) schedule(now time.Time) {
 				continue
 			}
 			metadata++
-		} else if !m.active[r.ID] || m.samples[r.ID].task.Phase != "seeding" {
+		} else if !m.active[r.ID] || m.samples[r.ID].task.Phase != PhaseSeeding {
 			if downloads >= m.settings.Concurrent {
 				continue
 			}
@@ -56,7 +57,7 @@ func (m *Manager) schedule(now time.Time) {
 		}
 		if !m.active[r.ID] {
 			if err := m.engine.Attach(r); err != nil {
-				m.holds[r.ID] = err.Error()
+				m.holds[r.ID] = problem.From(err)
 				continue
 			}
 			m.active[r.ID] = true
@@ -66,7 +67,7 @@ func (m *Manager) schedule(now time.Time) {
 		}
 		if r.Metadata != "" {
 			if err := m.engine.Start(r.ID, r.Source.Files); err != nil {
-				m.holds[r.ID] = err.Error()
+				m.holds[r.ID] = problem.From(err)
 				_ = m.stop(r.ID)
 			}
 		}

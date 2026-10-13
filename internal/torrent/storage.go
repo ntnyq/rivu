@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/ntnyq/rivu/internal/problem"
 	"io"
 	"maps"
 	"os"
@@ -19,8 +20,6 @@ import (
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/session"
 	"github.com/ntnyq/rivu/internal/storage"
-
-	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 // Rooted storage resolves every payload open relative to an OS directory
@@ -36,6 +35,7 @@ type rootedStorage struct {
 	complete   map[int]bool
 	manifest   string
 	owners     map[string]string
+	adopted    map[string]string
 	saveOwners func(string, map[string]string) error
 }
 
@@ -239,9 +239,9 @@ func (s *rootedStorage) openWrite(name string) (*os.File, error) {
 		f.Close()
 		return nil, err
 	}
-	if !stat.Mode().IsRegular() || s.owners[name] != id {
+	if !stat.Mode().IsRegular() || (s.owners[name] != id && s.adopted[name] != id) {
 		f.Close()
-		return nil, fmt.Errorf(i18n.T("文件已被替换或不属于该任务: %s"), name)
+		return nil, problem.Message(problem.Conflict, "文件已被替换或不属于该任务: %s", name)
 	}
 	return f, nil
 }

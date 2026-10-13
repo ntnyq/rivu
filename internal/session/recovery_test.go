@@ -137,7 +137,7 @@ func TestMetadataLimitSurvivesPriorityChange(t *testing.T) {
 func TestSchedulerKeepsVerifyingSeedingAndProgressingTasks(t *testing.T) {
 	for _, phase := range []string{"verifying", "seeding", "downloading"} {
 		t.Run(phase, func(t *testing.T) {
-			observation := Observation{Phase: phase, Files: []File{{Path: "a", Size: 10}}}
+			observation := Observation{Phase: Phase(phase), Files: []File{{Path: "a", Size: 10}}}
 			if phase == "seeding" {
 				observation.Files[0].Done = 10
 			}
@@ -230,7 +230,7 @@ func TestFilePriorityPreservesCompletionEpoch(t *testing.T) {
 	exec(t, m, "notified", id)
 	epoch := m.state.Tasks[0].Epoch
 	for _, priority := range []int{2, 1, 1} {
-		if err := m.Execute(t.Context(), Command{Kind: "priority", IDs: []string{id}, FileIndex: 0, Priority: priority}); err != nil {
+		if err := m.Execute(t.Context(), Command{Kind: CommandPriority, IDs: []string{id}, FileIndex: 0, Priority: priority}); err != nil {
 			t.Fatal(err)
 		}
 		engine := m.engine.(*observedEngine)
@@ -256,7 +256,7 @@ func TestSelectingAnotherFileClearsCompletion(t *testing.T) {
 	}
 	m.tick()
 	epoch := m.state.Tasks[0].Epoch
-	if err = m.Execute(t.Context(), Command{Kind: "priority", IDs: []string{id}, FileIndex: 1, Priority: 1}); err != nil {
+	if err = m.Execute(t.Context(), Command{Kind: CommandPriority, IDs: []string{id}, FileIndex: 1, Priority: 1}); err != nil {
 		t.Fatal(err)
 	}
 	m.tick()

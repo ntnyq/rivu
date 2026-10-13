@@ -3,9 +3,10 @@ package torrent
 import (
 	"bytes"
 	"errors"
-	"fmt"
+	"github.com/ntnyq/rivu/internal/problem"
 	"os"
 	"strings"
+	"time"
 
 	alog "github.com/anacrolix/log"
 	bt "github.com/anacrolix/torrent"
@@ -14,8 +15,6 @@ import (
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/session"
 	"golang.org/x/time/rate"
-
-	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 type handle struct {
@@ -27,6 +26,8 @@ type handle struct {
 }
 type Engine struct {
 	settings         config.Settings
+	diagnostics      map[string][]session.TrackerStatus
+	diagnosticAt     time.Time
 	client, metadata *bt.Client
 	handles          map[string]*handle
 	down, up         *rate.Limiter
@@ -34,7 +35,7 @@ type Engine struct {
 
 func New(s config.Settings) *Engine {
 	e := &Engine{settings: s, handles: map[string]*handle{}, down: rate.NewLimiter(rate.Inf, 1<<20), up: rate.NewLimiter(rate.Inf, 1<<20)}
-	d, u := s.Limits()
+	d, u := s.LimitsAt(time.Now())
 	e.Limits(d, u)
 	return e
 }
@@ -89,7 +90,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return er
 		}
 		if !parsed.Identity.Matches(r.Source.Identity) {
-			return fmt.Errorf("%s", i18n.T("元数据标识不匹配"))
+			return problem.Message(problem.Engine, "元数据标识不匹配")
 		}
 		mi, er := metainfo.Load(bytes.NewReader(data))
 		if er != nil {
@@ -106,7 +107,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return err
 		}
 		if !identity(original).Matches(r.Source.Identity) {
-			return fmt.Errorf("%s", i18n.T("元数据标识不匹配"))
+			return problem.Message(problem.Engine, "元数据标识不匹配")
 		}
 		// Metainfo retains trackers, but not the magnet's explicit peers.
 		spec.PeerAddrs = original.PeerAddrs
@@ -119,7 +120,7 @@ func (e *Engine) Attach(r session.Record) error {
 	if err != nil {
 		return err
 	}
-	st := &rootedStorage{root: root, manifest: r.Metadata + ".files.json"}
+	st := &rootedStorage{root: root, manifest: r.Metadata + ".files.json", adopted: r.Adopted}
 	spec.Storage = st
 	spec.DisallowDataDownload = true
 	spec.DisallowDataUpload = true
@@ -132,7 +133,7 @@ func (e *Engine) Attach(r session.Record) error {
 	}
 	if !fresh {
 		root.Close()
-		return fmt.Errorf("%s", i18n.T("此下载已在引擎中运行"))
+		return problem.Message(problem.Engine, "此下载已在引擎中运行")
 	}
 	e.handles[r.ID] = &handle{torrent: t, storage: st, raw: r.Source.Raw, metadata: metadata}
 	return nil
@@ -140,7 +141,7 @@ func (e *Engine) Attach(r session.Record) error {
 func (e *Engine) Start(id string, policy []session.File) error {
 	h := e.handles[id]
 	if h == nil {
-		return fmt.Errorf("%s", i18n.T("下载尚未接入引擎"))
+		return problem.Message(problem.Engine, "下载尚未接入引擎")
 	}
 	if h.started {
 		return nil
@@ -150,7 +151,7 @@ func (e *Engine) Start(id string, policy []session.File) error {
 	}
 	fs := h.torrent.Files()
 	if len(fs) != len(policy) {
-		return fmt.Errorf("%s", i18n.T("文件选择与元数据不一致"))
+		return problem.Message(problem.Engine, "文件选择与元数据不一致")
 	}
 	if err := h.storage.admit(policy); err != nil {
 		return err
@@ -190,9 +191,11 @@ func (e *Engine) Observe(id string) session.Observation {
 		return session.Observation{}
 	}
 	t := h.torrent
-	o := session.Observation{Phase: "metadata"}
+	e.refreshDiagnostics()
+	o := session.Observation{Phase: session.PhaseMetadata, Diagnostics: e.diagnostics[t.InfoHash().HexString()]}
 	if err := h.storage.failure(); err != nil {
-		o.Error = i18n.T("文件写入失败: ") + err.Error()
+		o.Failure = err
+		o.Error = err.Error()
 		return o
 	}
 	stats := t.Stats()
@@ -287,7 +290,7 @@ func addSpec(c *bt.Client, spec *bt.TorrentSpec) (*bt.Torrent, bool, error) {
 		copy.InfoHashV2.SetNone()
 	}
 	if copy.InfoHash == (metainfo.Hash{}) {
-		return nil, false, fmt.Errorf("%s", i18n.T("无效的下载标识"))
+		return nil, false, problem.Message(problem.Engine, "无效的下载标识")
 	}
 	return c.AddTorrentSpec(&copy)
 }

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/session"
+	"strings"
 )
 
-func (w *window) inspectorView(c *ui.Context) {
+func (w *mainWindow) inspectorView(c *ui.Context) {
 	p := designTheme(c)
 	theme := c.Theme()
 	ui.Column(c).Width(271).Shrink(0).FillHeight().Padding(22, 18).Gap(0).Background(p.alt).BorderWidth(0, 0, 0, 1).BorderColor(p.line).Children(func() {
@@ -105,12 +106,42 @@ func (w *window) inspectorView(c *ui.Context) {
 							ratio float64
 						}{{tr("完成后停止"), 0}, {tr("分享率 2.0"), 2}, {tr("无限做种"), -1}} {
 							if m.Item(v.label).Chosen() {
-								w.app.execute(session.Command{Kind: "seed", IDs: []string{t.ID}, Ratio: v.ratio})
+								w.app.execute(session.Command{Kind: session.CommandSeed, IDs: []string{t.ID}, Ratio: v.ratio, SeedLimitSeconds: t.SeedLimitSeconds})
 							}
 						}
 					})
+					ui.Text(c, fmt.Sprintf(tr("累计做种 %.1f 小时"), float64(t.SeedSeconds)/3600)).FontSize(10).TextColor(p.muted)
+					durationLabel := tr("不限时长")
+					if t.SeedLimitSeconds > 0 {
+						durationLabel = fmt.Sprintf(tr("最长 %.1f 小时"), float64(t.SeedLimitSeconds)/3600)
+					}
+					menuControl(c, tr("做种时长"), durationLabel).Disabled(w.app == nil).Menu(func(m *ui.Menu) {
+						for _, hours := range []int64{0, 1, 24, 72} {
+							label := tr("不限时长")
+							if hours > 0 {
+								label = fmt.Sprintf(tr("最长 %.1f 小时"), float64(hours))
+							}
+							if m.Item(label).Checked(t.SeedLimitSeconds == hours*3600).Chosen() {
+								w.app.execute(session.Command{Kind: session.CommandSeed, IDs: []string{t.ID}, Ratio: t.SeedRatio, SeedLimitSeconds: hours * 3600})
+							}
+						}
+					})
+					if w.tagsTask != t.ID {
+						w.tagsTask = t.ID
+						w.tagsDraft = strings.Join(t.Tags, ", ")
+					}
+					field(c, tr("标签（逗号分隔）"), &w.tagsDraft)
+					if ui.Button(c, tr("保存标签")).Disabled(w.app == nil).Clicked() {
+						w.app.execute(session.Command{Kind: session.CommandTags, IDs: []string{t.ID}, Tags: parseTags(w.tagsDraft)})
+					}
+					if ui.Button(c, tr("重新定位目录…")).Disabled(w.app == nil || t.Metadata == "").Clicked() {
+						w.chooseRelocation(t.ID)
+					}
 					if t.Error != "" {
-						ui.Text(c, t.Error).FontSize(11).TextColor(p.orange).Padding(12).Radius(7).Background(p.orange.Alpha(.09))
+						ui.Text(c, taskError(*t)).FontSize(11).TextColor(p.orange).Padding(12).Radius(7).Background(p.orange.Alpha(.09))
+						if ui.Button(c, tr("重试任务")).Disabled(w.app == nil).Clicked() {
+							w.app.execute(session.Command{Kind: session.CommandResume, IDs: []string{t.ID}})
+						}
 					}
 
 				case 1:
@@ -119,20 +150,9 @@ func (w *window) inspectorView(c *ui.Context) {
 						return
 					}
 					ui.Text(c, tr("跨文件分片可能占用未选择文件的少量空间。")).FontSize(11).TextColor(theme.TextMuted)
-					for i, f := range t.Source.Files {
-						ui.Column(c).Key(f.Path).Gap(6).Children(func() {
-							ui.Text(c, f.Path).FontSize(12).MaxLines(3)
-							done := int64(0)
-							if i < len(t.Files) {
-								done = t.Files[i].Done
-							}
-							ui.Text(c, bytes(done)+" / "+bytes(f.Size)).FontSize(11).TextColor(theme.TextMuted)
-							labels := []string{tr("不下载"), tr("普通"), tr("优先")}
-							if ui.Button(c, labels[f.Priority]).Disabled(w.app == nil).Clicked() {
-								w.app.execute(session.Command{Kind: "priority", IDs: []string{t.ID}, FileIndex: i, Priority: (f.Priority + 1) % 3})
-							}
-						})
-					}
+					fileTree(c, t.Source.Files, &w.fileState, w.app != nil, func(indices []int, priority int) {
+						w.app.execute(session.Command{Kind: session.CommandPriority, IDs: []string{t.ID}, FileIndices: indices, Priority: priority})
+					})
 				case 2:
 					ui.Text(c, fmt.Sprintf(tr("已连接节点：%d"), t.Peers))
 					ui.Text(c, "Tracker").Bold()
@@ -142,7 +162,21 @@ func (w *window) inspectorView(c *ui.Context) {
 					for _, tr := range t.Trackers {
 						ui.Text(c, tr).FontSize(12).MaxLines(2)
 					}
-					ui.Text(c, tr("Tracker 地址已隐藏凭据。当前引擎接口未提供逐 Tracker 的公告结果。")).FontSize(11).TextColor(theme.TextMuted)
+					for _, tracker := range t.Diagnostics {
+						state := map[string]string{"waiting": tr("等待连接"), "announcing": tr("正在公告"), "ok": tr("公告成功"), "failed": tr("公告失败")}[tracker.State]
+						detail := map[string]string{"timeout": tr("连接超时"), "dns": tr("域名解析失败"), "refused": tr("连接被拒绝"), "authorization": tr("Tracker 授权失败"), "announce": tr("Tracker 返回错误")}[tracker.Detail]
+						ui.Text(c, tracker.Host+" · "+state).FontSize(11).MaxLines(2)
+						if detail != "" {
+							ui.Text(c, detail).FontSize(10).TextColor(p.orange)
+						}
+						if !tracker.Next.IsZero() {
+							ui.Text(c, tr("下次公告：")+tracker.Next.Local().Format("15:04:05")).FontSize(10)
+						}
+					}
+					if t.Peers == 0 {
+						ui.Text(c, tr("等待节点：请检查网络和 Tracker，或稍后重试。")).FontSize(11)
+					}
+					ui.Text(c, tr("Tracker 地址已隐藏凭据；诊断每 5 秒刷新。")).FontSize(10).TextColor(theme.TextMuted)
 				}
 			})
 		})

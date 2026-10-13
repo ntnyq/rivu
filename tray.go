@@ -164,9 +164,9 @@ func (a *application) trayView(c *ui.Context) {
 							w := a.openWindow()
 							w.dispatch(func() { w.selectOnly(t.ID) })
 						}
-						kind, icon := "resume", "play"
+						kind, icon := session.CommandResume, "play"
 						if t.Run {
-							kind, icon = "pause", "pause"
+							kind, icon = session.CommandPause, "pause"
 						}
 						if compactIconButton(c, icon, fmt.Sprintf(tr("控制 %s"), t.ID), 23, 15, p.muted) {
 							a.execute(session.Command{Kind: kind, IDs: []string{t.ID}})
@@ -197,9 +197,9 @@ func (a *application) trayView(c *ui.Context) {
 			})
 		})
 		ui.Row(c).Height(58).Shrink(0).Gap(8).Padding(15, 0, 13, 0).Children(func() {
-			label, kind, icon := tr("全部暂停"), "pauseAll", "pause"
+			label, kind, icon := tr("全部暂停"), session.CommandPauseAll, "pause"
 			if preview.hasBatch {
-				label, kind, icon = tr("恢复本次暂停"), "resumeBatch", "play"
+				label, kind, icon = tr("恢复本次暂停"), session.CommandResumeBatch, "play"
 			}
 			if actionButton(c, icon, label, false).FontSize(10).Height(30).Grow(1).Disabled(preview.active == 0 && !preview.hasBatch).Clicked() {
 				a.execute(session.Command{Kind: kind})

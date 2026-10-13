@@ -10,7 +10,7 @@ import (
 
 // An opt-in native smoke check, similar to godiff's capture workflow. It waits
 // for initial I/O, captures the actual native content, then exits the app.
-func (w *window) captureIfRequested() {
+func (w *mainWindow) captureIfRequested() {
 	path := os.Getenv("RIVU_CAPTURE")
 	if path == "" {
 		return
@@ -31,6 +31,21 @@ func (w *window) captureIfRequested() {
 			time.Sleep(100 * time.Millisecond)
 		}
 		target := w.win
+		switch os.Getenv("RIVU_CAPTURE_SURFACE") {
+		case "settings-downloads", "settings-automation":
+			mygo.RunOnMain(func() {
+				w.app.openSettings()
+				settings := w.app.settingsWindow
+				settings.dispatch(func() {
+					settings.settingsTab = 1
+					if os.Getenv("RIVU_CAPTURE_SURFACE") == "settings-automation" {
+						settings.settingsTab = 5
+					}
+				})
+				target = settings.win
+			})
+			time.Sleep(500 * time.Millisecond)
+		}
 		if os.Getenv("RIVU_CAPTURE_SURFACE") == "tray" {
 			mygo.RunOnMain(func() {
 				target = nil

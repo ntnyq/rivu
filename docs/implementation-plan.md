@@ -1,5 +1,8 @@
 # Rivu Code Implementation Plan
 
+> Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](architecture.md), [source structure](implementation-structure.md), and [implementation status](implementation-status.md).
+
+
 Date: October 12, 2026. Status: implementation design; native transfer features are not implemented by this document.
 
 Implement the [product requirements](product-design.md) and [screen prototype](design/README.md) as a Go and MyGo macOS application. Use [the proposed file structure](implementation-structure.md) as the file ownership guide. Preserve the existing native stack, introduce one application-owned transfer session, and make the main window and menu bar panel projections of that session.

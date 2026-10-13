@@ -92,3 +92,7 @@ Windows and Linux cross-compilation and the ad-hoc signed macOS arm64 app
 build also passed. Native main-window and AppKit popover content captures used
 temporary data directories and isolated instance sockets; both processes exited
 cleanly. These smoke checks do not replace the release acceptance checks above.
+
+## October 13 refactor verification
+
+The refactored build's main window, download settings, and automation settings were captured through actual AppKit windows using separate temporary data and instance-socket directories. Each process exited through the session save coordinator with exit code 0. Captures are `snapshots/native-refactor-main.png`, `native-refactor-settings-downloads.png`, and `native-refactor-settings-automation.png`. These isolated smoke checks do not claim the real-transfer/hardware acceptance rows above. Feature semantics, local-swarm checks and collection benchmarks are in [the refactor report](refactor-validation.md).

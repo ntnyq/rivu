@@ -17,7 +17,8 @@ type application struct {
 	store                                    *config.Store
 	session                                  *session.Manager
 	updater                                  *updater.Service
-	window, settingsWindow                   *window
+	window                                   *mainWindow
+	settingsWindow                           *settingsWindow
 	add                                      *addWindow
 	tray                                     *mygo.Tray
 	panel                                    *mygo.Window
@@ -47,6 +48,7 @@ func (a *application) receive(sources []string) {
 func (a *application) observe() {
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancel = cancel
+	go a.watchFolder(ctx)
 	ch, off := a.session.Watch()
 	go func() {
 		defer off()
@@ -87,6 +89,8 @@ func (a *application) observe() {
 }
 func (a *application) execute(cmd session.Command) {
 	cmd.IDs = append([]string(nil), cmd.IDs...)
+	cmd.FileIndices = append([]int(nil), cmd.FileIndices...)
+	cmd.Tags = append([]string(nil), cmd.Tags...)
 	go func() {
 		err := a.session.Execute(context.Background(), cmd)
 		if err != nil {
@@ -107,7 +111,7 @@ func (a *application) notifications(s session.Snapshot) {
 						mygo.RunOnMain(func() { a.report(fmt.Errorf(tr("通知未送达: %w"), err)) })
 					}
 				}
-				err := a.session.Execute(context.Background(), session.Command{Kind: "notified", IDs: []string{t.ID}})
+				err := a.session.Execute(context.Background(), session.Command{Kind: session.CommandNotified, IDs: []string{t.ID}})
 				mygo.RunOnMain(func() {
 					delete(a.notifying, t.ID)
 					if err != nil {
@@ -119,7 +123,7 @@ func (a *application) notifications(s session.Snapshot) {
 		if settings.NotifyError && t.Error != "" && a.errorsSeen[t.ID] != t.Error {
 			a.errorsSeen[t.ID] = t.Error
 			go func() {
-				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: tr("下载需要处理"), Body: t.Source.Name + "：" + t.Error})
+				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: tr("下载需要处理"), Body: t.Source.Name + "：" + taskError(t)})
 				n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.filter = 5; w.selectOnly(t.ID) }) })
 				_ = n.Show()
 			}()
@@ -158,6 +162,9 @@ func (a *application) shutdown() {
 				return
 			}
 			a.shutdownReady = true
+			if a.cancel != nil {
+				a.cancel()
+			}
 			if a.relaunch {
 				mygo.App.Relaunch()
 			} else {

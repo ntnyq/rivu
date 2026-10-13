@@ -1,6 +1,7 @@
 package main
 
 import "github.com/egoist/mygo/ui"
+import "github.com/ntnyq/rivu/internal/session"
 
 type palette struct{ surface, sidebar, alt, text, muted, line, blue, soft, green, orange, track ui.Color }
 
@@ -25,7 +26,7 @@ func designTheme(c *ui.Context) palette {
 	c.SetTheme(&theme)
 	return p
 }
-func taskColor(c *ui.Context, phase string) ui.Color {
+func taskColor(c *ui.Context, phase session.Phase) ui.Color {
 	t := c.Theme()
 	switch phase {
 	case "completed", "seeding":

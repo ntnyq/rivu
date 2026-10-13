@@ -9,7 +9,7 @@ import (
 	"github.com/ntnyq/rivu/internal/updater"
 )
 
-func (w *window) updateSettingsView(c *ui.Context, p palette) {
+func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 	ui.Row(c).Gap(13).Children(func() {
 		ui.Image(c, appMark).Size(48, 48)
 		ui.Column(c).Gap(7).Children(func() {

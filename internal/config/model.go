@@ -5,12 +5,21 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/ntnyq/rivu/internal/i18n"
 )
 
 type Settings struct {
+	ScheduleEnabled  bool   `json:"scheduleEnabled"`
+	ScheduleStart    int    `json:"scheduleStart"`
+	ScheduleEnd      int    `json:"scheduleEnd"`
+	SeedLimitSeconds int64  `json:"seedLimitSeconds"`
+	WatchFolder      string `json:"watchFolder,omitempty"`
+	WatchTag         string `json:"watchTag,omitempty"`
+	WatchEnabled     bool   `json:"watchEnabled"`
+
 	Version         int       `json:"version"`
 	Theme           string    `json:"theme"`
 	Language        string    `json:"language"`
@@ -40,9 +49,22 @@ type Settings struct {
 
 func Default() Settings {
 	home, _ := os.UserHomeDir()
-	return Settings{Version: 2, Theme: "system", Language: "system", Destination: filepath.Join(home, "Downloads", "Rivu"), Concurrent: 3, Restore: true, Tray: true, BackgroundLogin: true, NotifyComplete: true, NotifyError: true, ConfirmQuit: true, SeedRatio: 2, SlowDownload: 2000000, SlowUpload: 512000, DHT: true, PEX: true}
+	return Settings{ScheduleStart: 22 * 60, ScheduleEnd: 8 * 60, Version: 2, Theme: "system", Language: "system", Destination: filepath.Join(home, "Downloads", "Rivu"), Concurrent: 3, Restore: true, Tray: true, BackgroundLogin: true, NotifyComplete: true, NotifyError: true, ConfirmQuit: true, SeedRatio: 2, SlowDownload: 2000000, SlowUpload: 512000, DHT: true, PEX: true}
 }
 func (s Settings) Validate() error {
+	if s.ScheduleStart < 0 || s.ScheduleStart >= 1440 || s.ScheduleEnd < 0 || s.ScheduleEnd >= 1440 || s.ScheduleEnabled && s.ScheduleStart == s.ScheduleEnd {
+		return fmt.Errorf("invalid schedule interval")
+	}
+	if s.SeedLimitSeconds < 0 || s.SeedLimitSeconds > 315360000 {
+		return fmt.Errorf("invalid seeding duration")
+	}
+	if s.WatchEnabled && !filepath.IsAbs(s.WatchFolder) {
+		return fmt.Errorf("watch folder must be absolute")
+	}
+	if len(s.WatchTag) > 80 || strings.ContainsAny(s.WatchTag, ",\n\r\x00") || strings.TrimSpace(s.WatchTag) != s.WatchTag {
+		return fmt.Errorf("invalid watch folder tag")
+	}
+
 	if s.Version != 2 {
 		return fmt.Errorf(i18n.T("unsupported settings version %d"), s.Version)
 	}

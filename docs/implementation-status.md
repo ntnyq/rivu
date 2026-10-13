@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: October 12, 2026. Scope: macOS-first development build of Rivu 0.1.0.
+Date: October 13, 2026. Scope: macOS-first development build of Rivu 0.1.0.
 
 ## Implemented
 
@@ -9,6 +9,8 @@ The application now has a real application-owned torrent session, native main/se
 The visual implementation follows `docs/design/styles.css` and the approved prototype rather than the old starter screens: 191 pt sidebar, solid blue navigation, 69 pt toolbar, 102 pt task rows, 271 pt inspector, segmented tabs, file symbols and small secondary labels. Settings use a 168 pt category sidebar and grouped rows/switches. Both appearances and the 880 × 560 minimum window are rendered in tests.
 
 The engine is pinned to anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e. Controlled local swarm tests verify v1, v2-only and hybrid byte integrity, magnet metadata without payload writes, pause detachment, resume rehash and selected-file transfers across shared piece boundaries. The adapter retains the short-hash admission path introduced for v1.61.0, retaining/comparing full identity in Rivu before payload admission. No dependency cache source was modified.
+
+The October 13 refactor adds isolated magnetic-link preview, structured recovery hints, bandwidth units and explicit seeding modes, existing-data adoption, directory relocation, file trees and directory priorities, per-tracker diagnostics, scheduled speed limits, cumulative seeding duration, task tags, and opt-in watch-folder importing. See [current source structure](implementation-structure.md) and [feature semantics and validation](refactor-validation.md).
 
 ## Verification performed
 
@@ -24,9 +26,7 @@ This is not a claim that every milestone's hardware acceptance gate has passed. 
 
 - Production Developer ID signing, notarization, update hosting and verification keys are not available. The updater coordinator exists, but a full signed replacement/restart has not been exercised.
 - Detailed macOS login/notification authorization adapters, multi-monitor flyout behavior, VoiceOver and permission-denial/revocation flows need packaged native acceptance.
-- The first version rejects pre-existing conflicting payloads; a deliberate compatible-data adoption workflow is not implemented. Unknown magnets can be submitted as pending default-all tasks, but there is no live metadata-only preview inside the import draft.
-- Tracker hostnames and peer count are observable; per-tracker announce results are not exposed by this adapter.
-- Forced-termination injection across every persistence/Trash boundary, 1,000-task/10,000-file profiling remain to be expanded.
+- Forced-termination injection across every persistence/Trash boundary remains to be expanded. Large-list profiling and regression benchmarks are recorded in [the refactor report](refactor-validation.md).
 - Upload totals can lag up to one checkpoint interval after a crash. Session error holds are runtime observations; durable user pauses survive restart, while environmental failures are detected again on admission.
 - Atomic replacement syncs the file and parent directory on macOS/Linux. A post-rename sync failure blocks further mutation pending reload; hard power-loss recovery still needs filesystem-specific acceptance.
 - Windows amd64 and Linux amd64 cross-compilation passed. These outputs are compilation checks only. Windows payload ownership/free-space adapters are unavailable and refuse download admission.
