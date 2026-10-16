@@ -7,7 +7,7 @@ tool github.com/egoist/mygo/cmd/mygo
 require (
 	github.com/anacrolix/log v0.17.1-0.20251118025802-918f1157b7bb
 	github.com/anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e
-	github.com/egoist/mygo v0.4.8
+	github.com/egoist/mygo v0.5.5
 	golang.org/x/sys v0.49.0
 	golang.org/x/time v0.16.0
 )
@@ -47,7 +47,7 @@ require (
 	github.com/go-text/typesetting-utils v0.0.0-20261009215314-bb530f4842f3 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261012231050-2af12c3f4d87 // indirect
+	github.com/google/pprof v0.0.0-20261014150452-c3b4e57cab2c // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/huandu/xstrings v1.6.2 // indirect
@@ -60,7 +60,7 @@ require (
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pion/datachannel v1.6.3 // indirect
-	github.com/pion/dtls/v3 v3.1.10 // indirect
+	github.com/pion/dtls/v3 v3.1.12 // indirect
 	github.com/pion/ice/v4 v4.4.7 // indirect
 	github.com/pion/interceptor v0.1.49 // indirect
 	github.com/pion/logging v0.2.4 // indirect
@@ -89,7 +89,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
-	golang.org/x/exp v0.0.0-20261011100332-faecfb24eb49 // indirect
+	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
 	golang.org/x/image v0.47.0 // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
