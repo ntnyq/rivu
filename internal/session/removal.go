@@ -1,13 +1,14 @@
 package session
 
 import (
-	"github.com/ntnyq/rivu/internal/problem"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (m *Manager) finishRemoval(i int) error {
@@ -17,7 +18,7 @@ func (m *Manager) finishRemoval(i int) error {
 	}
 	if r.Trash {
 		if m.trash == nil {
-			return problem.Message(problem.Conflict, "files.trashUnavailable")
+			return problem.Message(problem.Conflict, locales.Messages.FilesTrashUnavailable, nil)
 		}
 		if err := files.ValidateDestination(r.Destination); err != nil {
 			return err
@@ -39,19 +40,19 @@ func (m *Manager) finishRemoval(i int) error {
 				}
 			}
 			if shared {
-				return problem.Message(problem.Conflict, "files.shared")
+				return problem.Message(problem.Conflict, locales.Messages.FilesShared, nil)
 			}
 			real, err := filepath.EvalSymlinks(full)
 			if err == nil {
 				if real != full {
-					return problem.Message(problem.Conflict, "files.symlinkReplaced")
+					return problem.Message(problem.Conflict, locales.Messages.FilesSymlinkReplaced, nil)
 				}
 				st, er := os.Lstat(full)
 				if er != nil {
 					return er
 				}
 				if !st.Mode().IsRegular() {
-					return problem.Message(problem.Conflict, "files.regularOwnedOnly")
+					return problem.Message(problem.Conflict, locales.Messages.FilesRegularOwnedOnly, nil)
 				}
 				owners, er := files.ReadOwnership(r.Metadata + ".files.json")
 				if er != nil {
@@ -62,7 +63,7 @@ func (m *Manager) finishRemoval(i int) error {
 					return er
 				}
 				if owners[f.Path] != identity {
-					return problem.Message(problem.Conflict, "files.ownershipChanged", f.Path)
+					return problem.Message(problem.Conflict, func(m locales.Messages) string { return m.FilesOwnershipChanged(f.Path) }, nil)
 				}
 				if err = m.trash(full); err != nil {
 					return err

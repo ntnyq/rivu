@@ -8,6 +8,7 @@ import (
 
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type fileTreeState struct {
@@ -89,18 +90,18 @@ func fileTree(c *ui.Context, files []session.File, state *fileTreeState, enabled
 	if state.collapsed == nil {
 		state.collapsed = map[string]bool{}
 	}
-	ui.TextInput(c, &state.search).Label(tr("files.search")).Placeholder(tr("files.search"))
+	ui.TextInput(c, &state.search).Label(locales.FilesSearch()).Placeholder(locales.FilesSearch())
 	rows := state.visible(files)
 	const pageSize = 60
 	pages := max(1, (len(rows)+pageSize-1)/pageSize)
 	state.page = min(state.page, pages-1)
 	if pages > 1 {
 		ui.Row(c).Gap(6).Children(func() {
-			if ui.Button(c, "←").Label(tr("files.previousPage")).Disabled(state.page == 0).Clicked() {
+			if ui.Button(c, "←").Label(locales.FilesPreviousPage()).Disabled(state.page == 0).Clicked() {
 				state.page--
 			}
 			ui.Text(c, fmt.Sprintf("%d / %d", state.page+1, pages)).FontSize(10)
-			if ui.Button(c, "→").Label(tr("files.nextPage")).Disabled(state.page+1 == pages).Clicked() {
+			if ui.Button(c, "→").Label(locales.FilesNextPage()).Disabled(state.page+1 == pages).Clicked() {
 				state.page++
 			}
 		})
@@ -128,14 +129,14 @@ func fileTree(c *ui.Context, files []session.File, state *fileTreeState, enabled
 					priority = -1
 				}
 			}
-			labels := []string{tr("files.priority.skip"), tr("files.priority.normal"), tr("files.priority.high")}
-			label := tr("files.priority.mixed")
+			labels := []string{locales.FilesPrioritySkip(), locales.FilesPriorityNormal(), locales.FilesPriorityHigh()}
+			label := locales.FilesPriorityMixed()
 			if priority >= 0 {
 				label = labels[priority]
 			}
 			ui.Row(c).Gap(6).Children(func() {
 				ui.Text(c, bytes(size)).FontSize(10).Grow(1)
-				menuControl(c, row.name+" "+tr("files.priority.label"), label).Disabled(!enabled).Menu(func(m *ui.Menu) {
+				menuControl(c, row.name+" "+locales.FilesPriorityLabel(), label).Disabled(!enabled).Menu(func(m *ui.Menu) {
 					for i, label := range labels {
 						if m.Item(label).Checked(priority == i).Chosen() {
 							change(row.indices, i)

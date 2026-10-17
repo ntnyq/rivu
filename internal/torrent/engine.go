@@ -3,7 +3,6 @@ package torrent
 import (
 	"bytes"
 	"errors"
-	"github.com/ntnyq/rivu/internal/problem"
 	"os"
 	"strings"
 	"time"
@@ -13,7 +12,9 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 	"golang.org/x/time/rate"
 )
 
@@ -90,7 +91,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return er
 		}
 		if !parsed.Identity.Matches(r.Source.Identity) {
-			return problem.Message(problem.Engine, "torrent.identityMismatch")
+			return problem.Message(problem.Engine, locales.Messages.TorrentIdentityMismatch, nil)
 		}
 		mi, er := metainfo.Load(bytes.NewReader(data))
 		if er != nil {
@@ -107,7 +108,7 @@ func (e *Engine) Attach(r session.Record) error {
 			return err
 		}
 		if !identity(original).Matches(r.Source.Identity) {
-			return problem.Message(problem.Engine, "torrent.identityMismatch")
+			return problem.Message(problem.Engine, locales.Messages.TorrentIdentityMismatch, nil)
 		}
 		// Metainfo retains trackers, but not the magnet's explicit peers.
 		spec.PeerAddrs = original.PeerAddrs
@@ -133,7 +134,7 @@ func (e *Engine) Attach(r session.Record) error {
 	}
 	if !fresh {
 		root.Close()
-		return problem.Message(problem.Engine, "torrent.alreadyRunning")
+		return problem.Message(problem.Engine, locales.Messages.TorrentAlreadyRunning, nil)
 	}
 	e.handles[r.ID] = &handle{torrent: t, storage: st, raw: r.Source.Raw, metadata: metadata}
 	return nil
@@ -141,7 +142,7 @@ func (e *Engine) Attach(r session.Record) error {
 func (e *Engine) Start(id string, policy []session.File) error {
 	h := e.handles[id]
 	if h == nil {
-		return problem.Message(problem.Engine, "torrent.notAdded")
+		return problem.Message(problem.Engine, locales.Messages.TorrentNotAdded, nil)
 	}
 	if h.started {
 		return nil
@@ -151,7 +152,7 @@ func (e *Engine) Start(id string, policy []session.File) error {
 	}
 	fs := h.torrent.Files()
 	if len(fs) != len(policy) {
-		return problem.Message(problem.Engine, "torrent.selectionMismatch")
+		return problem.Message(problem.Engine, locales.Messages.TorrentSelectionMismatch, nil)
 	}
 	if err := h.storage.admit(policy); err != nil {
 		return err
@@ -290,7 +291,7 @@ func addSpec(c *bt.Client, spec *bt.TorrentSpec) (*bt.Torrent, bool, error) {
 		copy.InfoHashV2.SetNone()
 	}
 	if copy.InfoHash == (metainfo.Hash{}) {
-		return nil, false, problem.Message(problem.Engine, "torrent.invalidIdentity")
+		return nil, false, problem.Message(problem.Engine, locales.Messages.TorrentInvalidIdentity, nil)
 	}
 	return c.AddTorrentSpec(&copy)
 }

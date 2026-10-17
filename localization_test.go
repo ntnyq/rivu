@@ -1,22 +1,43 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"image/png"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/config"
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
+
+func TestLocalePreference(t *testing.T) {
+	for _, tc := range []struct{ preference, want string }{
+		{"system", ""}, {"en", "en"}, {"zh-Hant", "zh-Hant"},
+	} {
+		if got := localePreference(tc.preference); got != tc.want {
+			t.Errorf("%q override = %q; want %q", tc.preference, got, tc.want)
+		}
+	}
+}
+
+func TestLocalizedErrorPreservesCause(t *testing.T) {
+	useTestLanguage(t, "ja")
+	cause := errors.New("permission denied")
+	err := messageError{locales.SettingsReadFailed(cause), cause}
+	if !errors.Is(err, cause) || err.Error() != locales.In("ja").SettingsReadFailed(cause) {
+		t.Fatalf("message or cause was lost: %v", err)
+	}
+}
 
 func useTestLanguage(t *testing.T, code string) {
 	t.Helper()
-	old := i18n.Language()
-	i18n.SetLanguage(code, "en-US")
-	t.Cleanup(func() { i18n.SetLanguage(old, "") })
+	old := i18n.Locale()
+	i18n.SetLocaleFunc(func() string { return code })
+	t.Cleanup(func() { i18n.SetLocaleFunc(func() string { return old }) })
 }
 
 func TestLocalizedSurfaces(t *testing.T) {
@@ -39,29 +60,30 @@ func TestLocalizedSurfaces(t *testing.T) {
 				width, height int
 				label         string
 			}{
-				{"main", w.view, 1180, 760, "filter.all"},
-				{"main-minimum", w.view, 880, 560, "filter.all"},
-				{"settings", settings.settingsView, 750, 630, "settings.languageLabel"},
-				{"settings-minimum", settings.settingsView, 640, 520, "settings.languageLabel"},
-				{"add", add.view, 550, 660, "transfer.add"},
-				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), "tray.openWindow"},
+				{"main", w.view, 1180, 760, locales.FilterAll()},
+				{"main-minimum", w.view, 880, 560, locales.FilterAll()},
+				{"settings", settings.settingsView, 750, 630, locales.SettingsLanguageLabel()},
+				{"settings-minimum", settings.settingsView, 640, 520, locales.SettingsLanguageLabel()},
+				{"add", add.view, 550, 660, locales.TransferAdd()},
+				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), locales.TrayOpenWindow()},
 			} {
 				tt := ui.NewTester(surface.view, surface.width, surface.height)
+				tt.SetLocale(code)
 				tt.Frame()
 				if tt.HasText("Translation unavailable") {
 					t.Errorf("%s: missing translation reached the interface", surface.name)
 				}
-				if _, ok := tt.Find(tr(surface.label)); !ok {
-					t.Errorf("%s: missing %q", surface.name, tr(surface.label))
+				if _, ok := tt.Find(surface.label); !ok {
+					t.Errorf("%s: missing %q", surface.name, surface.label)
 				}
-				if surface.name == "settings" && !tt.HasText(tr("common.followSystem")) {
+				if surface.name == "settings" && !tt.HasText(locales.CommonFollowSystem()) {
 					t.Error("default language option missing")
 				}
 				if surface.name == "tray" {
-					for _, key := range []string{"tray.openWindow", "transfer.add", "settings.label", "transfer.speedLimit"} {
-						r, ok := tt.Find(tr(key))
+					for _, label := range []string{locales.TrayOpenWindow(), locales.TransferAdd(), locales.SettingsLabel(), locales.TransferSpeedLimit()} {
+						r, ok := tt.Find(label)
 						if !ok || r.X < 0 || r.Y < 0 || r.X+r.W > float32(surface.width) || r.Y+r.H > float32(surface.height) {
-							t.Errorf("%s clipped: %+v", tr(key), r)
+							t.Errorf("%s clipped: %+v", label, r)
 						}
 					}
 				}
@@ -82,16 +104,17 @@ func TestLocalizedSurfaces(t *testing.T) {
 			}
 			// Native menus are built without installing them, preserving role shortcuts.
 			menu := app.menu()
-			if got := menu.Items()[2].Label; got != tr("menu.edit") {
+			if got := menu.Items()[2].Label; got != locales.MenuEdit() {
 				t.Errorf("edit menu: %s", got)
 			}
 			item := app.menuItem("settings")
-			if item.Label != tr("menu.settings") || item.Accelerator != "CmdOrCtrl+," {
+			if item.Label != locales.MenuSettings() || item.Accelerator != "CmdOrCtrl+," {
 				t.Fatal("settings command changed")
 			}
 			tt := ui.NewTester(w.view, 1180, 760)
+			tt.SetLocale(code)
 			tt.Frame()
-			if err := tt.Click(tr("phase.paused")); err != nil {
+			if err := tt.Click(locales.PhasePaused()); err != nil {
 				t.Fatal(err)
 			}
 			tt.Frame()
@@ -107,11 +130,13 @@ func TestLanguageChangeRefreshesExistingViews(t *testing.T) {
 	store, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	w := newWindow(store)
 	tt := ui.NewTester(w.view, 1180, 760)
+	tt.SetLocale("zh-Hans")
 	tt.Frame()
 	if !tt.HasText("全部任务") {
 		t.Fatal("initial language")
 	}
-	i18n.SetLanguage("ja", "zh-CN")
+	i18n.SetLocaleFunc(func() string { return "ja" })
+	tt.SetLocale("ja")
 	tt.Frame()
 	if !tt.HasText("すべての転送") || tt.HasText("全部任务") {
 		t.Fatal("existing view did not change language")

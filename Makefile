@@ -1,4 +1,4 @@
-.PHONY: dev run build test race vet fmt check snapshots icon integration
+.PHONY: dev run build test race vet fmt check generate i18n snapshots icon integration
 
 dev:
 	go tool mygo dev
@@ -21,7 +21,13 @@ vet:
 fmt:
 	gofmt -w .
 
-check: test vet
+generate:
+	go tool mygo generate
+
+i18n:
+	go tool mygo i18n check
+
+check: test vet i18n
 
 snapshots:
 	RIVU_SNAPSHOTS="$(CURDIR)/snapshots" go test . -run 'Test(View|AuxiliaryView)Snapshots|TestLocalizedSurfaces' -count=1

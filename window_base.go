@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/ntnyq/rivu/internal/problem"
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/desktop"
+	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/tasks"
+	"github.com/ntnyq/rivu/locales"
 )
 
 // windowBase owns only native lifetime, status, and cancellable work.
@@ -65,7 +66,7 @@ func (w *windowBase) run(label string, work func(context.Context) (string, error
 	w.task.Start(w.dispatch, func(ctx context.Context, _ func(float64)) (string, error) { return work(ctx) }, func(float64) {}, func(message string, err error) {
 		w.job = ""
 		if errors.Is(err, desktop.ErrCanceled) || errors.Is(err, context.Canceled) {
-			w.report(tr("common.canceled"), nil)
+			w.report(locales.CommonCanceled(), nil)
 			return
 		}
 		if err != nil {
@@ -80,14 +81,14 @@ func (w *windowBase) run(label string, work func(context.Context) (string, error
 }
 
 func (w *windowBase) reveal(path string) {
-	w.run(tr("files.reveal"), func(context.Context) (string, error) { return tr("files.revealed"), w.desktop.Reveal(path) }, nil)
+	w.run(locales.FilesReveal(), func(context.Context) (string, error) { return locales.FilesRevealed(), w.desktop.Reveal(path) }, nil)
 }
 
 func (w *windowBase) copy(text string) {
-	w.run(tr("common.copy"), func(context.Context) (string, error) { return tr("common.copied"), w.desktop.Copy(text) }, nil)
+	w.run(locales.CommonCopy(), func(context.Context) (string, error) { return locales.CommonCopied(), w.desktop.Copy(text) }, nil)
 }
 
 func (w *windowBase) openURL(raw string) {
-	w.run(tr("common.openWebsite"), func(context.Context) (string, error) { return tr("common.browserOpened"), w.desktop.OpenURL(raw) }, nil)
+	w.run(locales.CommonOpenWebsite(), func(context.Context) (string, error) { return locales.CommonBrowserOpened(), w.desktop.OpenURL(raw) }, nil)
 }
 func applyTheme(theme string) { mygo.Theme.SetSource(mygo.ThemeSource(theme)) }

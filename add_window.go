@@ -3,18 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ntnyq/rivu/internal/config"
-	"github.com/ntnyq/rivu/internal/problem"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/desktop"
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
 	torrentengine "github.com/ntnyq/rivu/internal/torrent"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type importItem struct {
@@ -52,7 +53,7 @@ func (a *application) openAdd(sources []string) {
 	parent := a.openWindow()
 	d := &addWindow{windowBase: &windowBase{}, settings: a.store.Snapshot(), destination: a.store.Snapshot().Destination, start: true}
 	d.app = a
-	d.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("transfer.add"), Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
+	d.win = mygo.NewWindow(mygo.WindowOptions{Title: locales.TransferAdd(), Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
 	d.desktop.Parent = d.win
 	d.win.OnClosed(d.close)
 	a.add = d
@@ -73,7 +74,7 @@ func (d *addWindow) prepare() {
 	var items []importItem
 	var free int64
 	var spaceError string
-	d.run(tr("import.readSources"), func(ctx context.Context) (string, error) {
+	d.run(locales.ImportReadSources(), func(ctx context.Context) (string, error) {
 		home, _ := os.UserHomeDir()
 		if destination == filepath.Join(home, "Downloads", "Rivu") {
 			if err := os.MkdirAll(destination, 0o755); err != nil {
@@ -100,7 +101,7 @@ func (d *addWindow) prepare() {
 			if err != nil {
 				item.source.Name = filepath.Base(line)
 				if strings.HasPrefix(line, "magnet:") {
-					item.source.Name = tr("import.magnet")
+					item.source.Name = locales.ImportMagnet()
 				}
 				item.error = err.Error()
 				item.issue = problem.From(err)
@@ -108,9 +109,9 @@ func (d *addWindow) prepare() {
 			items = append(items, item)
 		}
 		if len(items) == 0 {
-			return "", fmt.Errorf("%s", tr("import.sourceRequired"))
+			return "", fmt.Errorf("%s", locales.ImportSourceRequired())
 		}
-		return tr("import.reviewHint"), nil
+		return locales.ImportReviewHint(), nil
 	}, func() {
 		if gen == d.generation {
 			d.items = items
@@ -122,29 +123,29 @@ func (d *addWindow) prepare() {
 }
 func (d *addWindow) pickTorrents() {
 	var paths []string
-	d.run(tr("import.chooseFiles"), func(context.Context) (string, error) {
+	d.run(locales.ImportChooseFiles(), func(context.Context) (string, error) {
 		var err error
-		paths, err = mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: d.win, Title: tr("import.chooseFiles"), Multiple: true})
+		paths, err = mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: d.win, Title: locales.ImportChooseFiles(), Multiple: true})
 		if err != nil {
 			return "", err
 		}
 		if len(paths) == 0 {
 			return "", desktop.ErrCanceled
 		}
-		return tr("import.filesSelected"), nil
+		return locales.ImportFilesSelected(), nil
 	}, func() { d.input = strings.Join(paths, "\n"); d.items = nil })
 }
 func (d *addWindow) paste() {
 	var value string
-	d.run(tr("import.pasteMagnet"), func(context.Context) (string, error) {
+	d.run(locales.ImportPasteMagnet(), func(context.Context) (string, error) {
 		var err error
 		value, err = d.desktop.Paste()
-		return tr("import.pasted"), err
+		return locales.ImportPasted(), err
 	}, func() { d.input = value; d.items = nil })
 }
 func (d *addWindow) submit() {
 	if d.input != d.preparedInput {
-		d.report(tr("import.readAgain"), fmt.Errorf("%s", tr("import.sourcesChanged")))
+		d.report(locales.ImportReadAgain(), fmt.Errorf("%s", locales.ImportSourcesChanged()))
 		return
 	}
 	items := make([]importItem, len(d.items))
@@ -156,7 +157,7 @@ func (d *addWindow) submit() {
 	adopt, tags, seedLimit := d.adoptExisting, parseTags(d.tags), d.settings.SeedLimitSeconds
 	var selected string
 	var failed bool
-	d.run(tr("transfer.add"), func(ctx context.Context) (string, error) {
+	d.run(locales.TransferAdd(), func(ctx context.Context) (string, error) {
 		for i := range items {
 			item := &items[i]
 			if item.error != "" || item.submitted {
@@ -173,7 +174,7 @@ func (d *addWindow) submit() {
 				selected = id
 			}
 		}
-		return tr("import.processed"), nil
+		return locales.ImportProcessed(), nil
 	}, func() {
 		d.items = items
 		if selected != "" {
@@ -188,9 +189,9 @@ func (d *addWindow) submit() {
 
 func (d *addWindow) pickFolder() {
 	var folder string
-	d.run(tr("files.chooseDownloadFolder"), func(context.Context) (string, error) {
+	d.run(locales.FilesChooseDownloadFolder(), func(context.Context) (string, error) {
 		var err error
 		folder, err = d.desktop.PickFolder()
-		return tr("files.folderSelected"), err
+		return locales.FilesFolderSelected(), err
 	}, func() { d.destination = filepath.Clean(folder) })
 }

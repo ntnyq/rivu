@@ -5,11 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"slices"
-	"strings"
 	"syscall"
 
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type Code string
@@ -28,13 +26,12 @@ type Error struct {
 	Code    Code
 	Context string
 	Cause   error
-	Key     string
-	Args    []any
+	Message func(locales.Messages) string
 }
 
 func (e *Error) Error() string {
-	if e.Key != "" {
-		return fmt.Sprintf(strings.ReplaceAll(i18n.Translate("en", e.Key), "%w", "%v"), e.Args...)
+	if e.Message != nil {
+		return e.Message(locales.In("en"))
 	}
 	if e.Cause != nil {
 		return fmt.Sprintf("%s: %s: %v", e.Code, e.Context, e.Cause)
@@ -52,7 +49,6 @@ func From(err error) *Error {
 	var p *Error
 	if errors.As(err, &p) && p != nil {
 		copy := *p
-		copy.Args = slices.Clone(p.Args)
 		return &copy
 	}
 	code := Engine
@@ -65,13 +61,6 @@ func From(err error) *Error {
 }
 
 // Message defers translation until presentation and preserves wrapped OS errors.
-func Message(code Code, key string, args ...any) *Error {
-	e := &Error{Code: code, Key: key, Args: slices.Clone(args)}
-	for _, arg := range args {
-		if cause, ok := arg.(error); ok {
-			e.Cause = cause
-			break
-		}
-	}
-	return e
+func Message(code Code, message func(locales.Messages) string, cause error) *Error {
+	return &Error{Code: code, Message: message, Cause: cause}
 }

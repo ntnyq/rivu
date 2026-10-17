@@ -4,25 +4,26 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/egoist/mygo/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func TestMessageDiagnosticPreservesEnglishAndCause(t *testing.T) {
-	old := i18n.Language()
-	t.Cleanup(func() { i18n.SetLanguage(old, "") })
-	i18n.SetLanguage("ja", "")
+	old := i18n.Locale()
+	t.Cleanup(func() { i18n.SetLocaleFunc(func() string { return old }) })
+	i18n.SetLocaleFunc(func() string { return "ja" })
 	cause := errors.New("permission denied")
-	issue := Message(Metadata, "torrent.readFailed", cause)
+	issue := Message(Metadata, func(m locales.Messages) string { return m.TorrentReadFailed(cause) }, cause)
 	if got := issue.Error(); got != "Cannot read torrent metadata: permission denied" {
 		t.Fatal(got)
 	}
 	if !errors.Is(issue, cause) {
 		t.Fatal("wrapped cause was lost")
 	}
-	if issue.Key != "torrent.readFailed" || len(issue.Args) != 1 {
+	if issue.Message == nil || issue.Message(locales.In("ja")) == issue.Error() {
 		t.Fatal("deferred presentation data was lost")
 	}
-	i18n.SetLanguage("zh-Hans", "")
+	i18n.SetLocaleFunc(func() string { return "zh-Hans" })
 	if got := issue.Error(); got != "Cannot read torrent metadata: permission denied" {
 		t.Fatal("diagnostic changed with interface language:", got)
 	}

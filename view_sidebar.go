@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (w *mainWindow) sidebar(c *ui.Context, p palette) {
@@ -11,7 +13,7 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 		if bar.Height > 0 {
 			ui.Row(c).Height(bar.Height).Shrink(0).Padding(0, 12, 0, bar.Left).DragWindow().Children(func() {
 				ui.Spacer(c)
-				if iconButton(c, "sidebar", tr("sidebar.collapse"), true) {
+				if iconButton(c, "sidebar", locales.SidebarCollapse(), true) {
 					w.sidebarHidden = true
 				}
 			})
@@ -24,12 +26,12 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 			ui.Image(c, appMark).Size(32, 32)
 			ui.Text(c, "Rivu").FontSize(18).Bold()
 			ui.Spacer(c).DragWindow()
-			if bar.Height == 0 && iconButton(c, "sidebar", tr("sidebar.collapse"), true) {
+			if bar.Height == 0 && iconButton(c, "sidebar", locales.SidebarCollapse(), true) {
 				w.sidebarHidden = true
 			}
 		})
 		ui.Column(c).Padding(16, 12, 0, 12).Gap(3).Children(func() {
-			ui.Text(c, tr("sidebar.library")).FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 8, 10)
+			ui.Text(c, locales.SidebarLibrary()).FontSize(11).Bold().TextColor(p.muted).Padding(0, 10, 8, 10)
 			icons := []string{"grid", "arrow-down", "arrow-up", "check", "pause", "alert"}
 			for i, label := range filterLabels() {
 				count := 0
@@ -75,19 +77,19 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 			ui.Row(c).Gap(8).Children(func() {
 				glyph(c, "drive", 17, p.muted)
 				ui.Column(c).Gap(5).MinWidth(0).Children(func() {
-					ui.Text(c, tr("sidebar.downloadLocation")).FontSize(11)
+					ui.Text(c, locales.SidebarDownloadLocation()).FontSize(11)
 					ui.Text(c, compactPath(w.settings.Destination)).FontSize(9).SingleLine().TextColor(p.muted)
 				})
 			})
 			if w.diskTotal > 0 {
-				ui.Text(c, fmt.Sprintf(tr("sidebar.availableSpace"), bytes(w.diskFree))).FontSize(9).TextColor(p.muted)
+				ui.Text(c, locales.SidebarAvailableSpace(bytes(w.diskFree))).FontSize(9).TextColor(p.muted)
 				progressTrack(c, 1-float64(w.diskFree)/float64(w.diskTotal), p.muted.Alpha(.5), p.track, 3)
 			} else {
 				ui.Box(c).Height(3).Background(p.track).Radius(3)
 			}
-			settings := navigationButton(c, tr("settings.label"), false, p).Margin(0, -6).Children(func() {
+			settings := navigationButton(c, locales.SettingsLabel(), false, p).Margin(0, -6).Children(func() {
 				glyph(c, "settings", 17, p.text)
-				ui.Text(c, tr("settings.label")).FontSize(12)
+				ui.Text(c, locales.SettingsLabel()).FontSize(12)
 				ui.Spacer(c)
 				ui.Text(c, "⌘,").FontSize(11).TextColor(p.muted)
 			})

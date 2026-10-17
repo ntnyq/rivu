@@ -11,10 +11,10 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
-	"github.com/ntnyq/rivu/internal/i18n"
 	"github.com/ntnyq/rivu/internal/session"
 	torrentengine "github.com/ntnyq/rivu/internal/torrent"
 	"github.com/ntnyq/rivu/internal/updater"
+	"github.com/ntnyq/rivu/locales"
 )
 
 const appName = "Rivu"
@@ -81,6 +81,12 @@ func main() {
 	})
 	mygo.App.OnWindowAllClosed(func() {})
 	mygo.App.OnBeforeQuit(a.beforeQuit)
+	mygo.App.SetLocale(localePreference(store.Snapshot().Language))
+	mygo.App.OnLocaleChanged(func(string) {
+		if a.ready {
+			a.refreshLanguage()
+		}
+	})
 	mygo.App.OnQuit(func() {
 		if a.cancel != nil {
 			a.cancel()
@@ -93,7 +99,6 @@ func main() {
 		}
 	})
 	mygo.App.WhenReady(func() {
-		i18n.SetLanguage(store.Snapshot().Language, mygo.App.Locale())
 		applyTheme(store.Snapshot().Theme)
 		go func() {
 			engine := torrentengine.New(store.Snapshot())
@@ -109,7 +114,7 @@ func main() {
 					a.openWindow()
 				}
 				if loadErr != nil {
-					a.report(fmt.Errorf(tr("settings.readFailed"), loadErr))
+					a.report(messageError{locales.SettingsReadFailed(loadErr), loadErr})
 				}
 				if sessionErr != nil {
 					a.report(sessionErr)

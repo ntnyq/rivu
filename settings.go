@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (w *settingsWindow) resetSettings() {
@@ -52,10 +53,10 @@ func switchRow(c *ui.Context, title, caption string, value *bool, line bool, ena
 func (w *settingsWindow) settingsView(c *ui.Context) {
 	p := designTheme(c)
 	c.Root().Background(p.alt)
-	labels := []string{tr("settings.general"), tr("settings.downloads"), tr("common.connections"), tr("settings.notifications"), tr("settings.updates"), tr("settings.automation")}
+	labels := []string{locales.SettingsGeneral(), locales.SettingsDownloads(), locales.CommonConnections(), locales.SettingsNotifications(), locales.SettingsUpdates(), locales.SettingsAutomation()}
 	icons := []string{"settings", "download", "globe", "bell", "refresh", "settings"}
 	ui.Column(c).Fill().Children(func() {
-		ui.Row(c).Height(50).Shrink(0).Justify(ui.Center).Background(p.sidebar).BorderWidth(0, 0, 1, 0).BorderColor(p.line).DragWindow().Children(func() { ui.Text(c, tr("settings.label")).FontSize(13).Bold() })
+		ui.Row(c).Height(50).Shrink(0).Justify(ui.Center).Background(p.sidebar).BorderWidth(0, 0, 1, 0).BorderColor(p.line).DragWindow().Children(func() { ui.Text(c, locales.SettingsLabel()).FontSize(13).Bold() })
 		ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
 			ui.Column(c).Width(168).Shrink(0).Padding(18, 10).Gap(3).Background(p.sidebar).BorderWidth(0, 1, 0, 0).BorderColor(p.line).Children(func() {
 				for i, label := range labels {
@@ -80,10 +81,10 @@ func (w *settingsWindow) settingsView(c *ui.Context) {
 						case 0:
 							settingGroup(c, func() {
 								ui.Row(c).Padding(15, 0).Children(func() {
-									ui.Text(c, tr("settings.appearance")).FontSize(12)
+									ui.Text(c, locales.SettingsAppearance()).FontSize(12)
 									ui.Spacer(c)
-									labels := map[string]string{"system": tr("common.followSystem"), "light": tr("settings.theme.light"), "dark": tr("settings.theme.dark")}
-									menuControl(c, tr("settings.appearance"), labels[w.settings.Theme]).Width(145).Menu(func(m *ui.Menu) {
+									labels := map[string]string{"system": locales.CommonFollowSystem(), "light": locales.SettingsThemeLight(), "dark": locales.SettingsThemeDark()}
+									menuControl(c, locales.SettingsAppearance(), labels[w.settings.Theme]).Width(145).Menu(func(m *ui.Menu) {
 										for _, v := range []string{"system", "light", "dark"} {
 											if m.Item(labels[v]).Checked(w.settings.Theme == v).Chosen() {
 												w.settings.Theme = v
@@ -92,28 +93,28 @@ func (w *settingsWindow) settingsView(c *ui.Context) {
 									})
 								})
 								ui.Row(c).Padding(15, 0).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Children(func() {
-									ui.Text(c, tr("settings.language")).FontSize(12)
+									ui.Text(c, locales.SettingsLanguage()).FontSize(12)
 									ui.Spacer(c)
-									menuControl(c, tr("settings.languageLabel"), languageName(w.settings.Language)).Width(145).Menu(func(m *ui.Menu) {
-										for _, code := range []string{"system", "zh-Hans", "zh-Hant", "en", "ja", "ko"} {
+									menuControl(c, locales.SettingsLanguageLabel(), languageName(w.settings.Language)).Width(145).Menu(func(m *ui.Menu) {
+										for _, code := range append([]string{"system"}, locales.Catalog.Languages()...) {
 											if m.Item(languageName(code)).Checked(w.settings.Language == code).Chosen() {
 												w.settings.Language = code
 											}
 										}
 									})
 								})
-								switchRow(c, tr("settings.tray"), tr("settings.trayHint"), &w.settings.Tray, true, true)
+								switchRow(c, locales.SettingsTray(), locales.SettingsTrayHint(), &w.settings.Tray, true, true)
 							})
 							settingGroup(c, func() {
-								switchRow(c, tr("settings.login.enable"), "", &w.settings.Login, false, true)
-								switchRow(c, tr("settings.login.background"), tr("settings.login.backgroundHint"), &w.settings.BackgroundLogin, true, w.settings.Login)
-								switchRow(c, tr("settings.restore"), tr("settings.restoreHint"), &w.settings.Restore, true, true)
+								switchRow(c, locales.SettingsLoginEnable(), "", &w.settings.Login, false, true)
+								switchRow(c, locales.SettingsLoginBackground(), locales.SettingsLoginBackgroundHint(), &w.settings.BackgroundLogin, true, w.settings.Login)
+								switchRow(c, locales.SettingsRestore(), locales.SettingsRestoreHint(), &w.settings.Restore, true, true)
 							})
 							settingGroup(c, func() {
-								switchRow(c, tr("settings.confirmQuit"), tr("settings.confirmQuitHint"), &w.settings.ConfirmQuit, false, true)
+								switchRow(c, locales.SettingsConfirmQuit(), locales.SettingsConfirmQuitHint(), &w.settings.ConfirmQuit, false, true)
 							})
-							ui.Text(c, tr("settings.languageHint")).FontSize(11).TextColor(p.muted)
-							ui.Text(c, tr("settings.backgroundHint")).FontSize(11).TextColor(p.muted)
+							ui.Text(c, locales.SettingsLanguageHint()).FontSize(11).TextColor(p.muted)
+							ui.Text(c, locales.SettingsBackgroundHint()).FontSize(11).TextColor(p.muted)
 							if w.loginStatus != "" {
 								ui.Text(c, w.loginStatus).FontSize(10).TextColor(p.muted)
 							}
@@ -121,42 +122,42 @@ func (w *settingsWindow) settingsView(c *ui.Context) {
 						case 1:
 							settingGroup(c, func() {
 								ui.Column(c).Padding(15, 0).Gap(10).Children(func() {
-									ui.Text(c, tr("settings.destination")).FontSize(12)
+									ui.Text(c, locales.SettingsDestination()).FontSize(12)
 									ui.Row(c).Gap(8).Children(func() {
-										ui.TextInput(c, &w.destination).Label(tr("settings.destinationLabel")).FontSize(11).Grow(1).MinWidth(0)
-										if actionButton(c, "folder", tr("common.choose"), false).FontSize(11).Clicked() {
+										ui.TextInput(c, &w.destination).Label(locales.SettingsDestinationLabel()).FontSize(11).Grow(1).MinWidth(0)
+										if actionButton(c, "folder", locales.CommonChoose(), false).FontSize(11).Clicked() {
 											w.pickFolder()
 										}
 									})
 								})
-								settingField(c, tr("settings.concurrency"), &w.concurrent, true)
+								settingField(c, locales.SettingsConcurrency(), &w.concurrent, true)
 								seedingControl(c, &w.seedMode)
 								if w.seedMode == 1 {
-									settingField(c, tr("settings.seedRatio"), &w.seedRatio, true)
+									settingField(c, locales.SettingsSeedRatio(), &w.seedRatio, true)
 								}
-								settingField(c, tr("settings.seedHours"), &w.seedHours, true)
+								settingField(c, locales.SettingsSeedHours(), &w.seedHours, true)
 							})
 							settingGroup(c, func() {
-								bandwidthField(c, tr("settings.downloadLimit"), &w.downloadLimit, false)
-								bandwidthField(c, tr("settings.uploadLimit"), &w.uploadLimit, true)
-								bandwidthField(c, tr("settings.temporaryDownloadLimit"), &w.slowDownload, true)
-								bandwidthField(c, tr("settings.temporaryUploadLimit"), &w.slowUpload, true)
+								bandwidthField(c, locales.SettingsDownloadLimit(), &w.downloadLimit, false)
+								bandwidthField(c, locales.SettingsUploadLimit(), &w.uploadLimit, true)
+								bandwidthField(c, locales.SettingsTemporaryDownloadLimit(), &w.slowDownload, true)
+								bandwidthField(c, locales.SettingsTemporaryUploadLimit(), &w.slowUpload, true)
 							})
-							ui.Text(c, tr("settings.bandwidthHint")).FontSize(10).TextColor(p.muted)
+							ui.Text(c, locales.SettingsBandwidthHint()).FontSize(10).TextColor(p.muted)
 
 						case 2:
 							settingGroup(c, func() {
-								ui.Column(c).Padding(15, 0).Gap(10).Children(func() { field(c, tr("settings.listenPort"), &w.listenPort) })
-								switchRow(c, tr("settings.dht"), tr("settings.publicOnly"), &w.settings.DHT, true, true)
-								switchRow(c, tr("settings.pex"), tr("settings.publicOnly"), &w.settings.PEX, true, true)
+								ui.Column(c).Padding(15, 0).Gap(10).Children(func() { field(c, locales.SettingsListenPort(), &w.listenPort) })
+								switchRow(c, locales.SettingsDht(), locales.SettingsPublicOnly(), &w.settings.DHT, true, true)
+								switchRow(c, locales.SettingsPex(), locales.SettingsPublicOnly(), &w.settings.PEX, true, true)
 							})
-							ui.Text(c, tr("settings.connectionsHint")).FontSize(11).TextColor(p.muted)
+							ui.Text(c, locales.SettingsConnectionsHint()).FontSize(11).TextColor(p.muted)
 						case 3:
 							settingGroup(c, func() {
-								switchRow(c, tr("settings.notifyComplete"), tr("settings.notifyCompleteHint"), &w.settings.NotifyComplete, false, true)
-								switchRow(c, tr("settings.notifyError"), tr("settings.notifyErrorHint"), &w.settings.NotifyError, true, true)
+								switchRow(c, locales.SettingsNotifyComplete(), locales.SettingsNotifyCompleteHint(), &w.settings.NotifyComplete, false, true)
+								switchRow(c, locales.SettingsNotifyError(), locales.SettingsNotifyErrorHint(), &w.settings.NotifyError, true, true)
 							})
-							ui.Text(c, tr("settings.notificationsHint")).FontSize(11).TextColor(p.muted)
+							ui.Text(c, locales.SettingsNotificationsHint()).FontSize(11).TextColor(p.muted)
 
 						case 4:
 							w.updateSettingsView(c, p)
@@ -168,7 +169,7 @@ func (w *settingsWindow) settingsView(c *ui.Context) {
 				})
 				ui.Row(c).Gap(12).Children(func() {
 					ui.Text(c, w.status).FontSize(10).TextColor(p.muted).Grow(1).MinWidth(0).MaxLines(2)
-					if actionButton(c, "check", tr("settings.save"), true).FontSize(12).Disabled(w.task.Running()).Clicked() {
+					if actionButton(c, "check", locales.SettingsSave(), true).FontSize(12).Disabled(w.task.Running()).Clicked() {
 						w.saveSettings()
 					}
 				})

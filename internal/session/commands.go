@@ -2,11 +2,13 @@ package session
 
 import (
 	"context"
-	"github.com/ntnyq/rivu/internal/files"
-	"github.com/ntnyq/rivu/internal/problem"
 	"path/filepath"
 	"slices"
 	"time"
+
+	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (m *Manager) Execute(ctx context.Context, cmd Command) error {
@@ -17,7 +19,7 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 		return err
 	}
 	if m.closed || m.barrier {
-		return problem.Message(problem.Persistence, "session.saving")
+		return problem.Message(problem.Persistence, locales.Messages.SessionSaving, nil)
 	}
 	if m.loadErr != nil {
 		return m.loadErr

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (w *mainWindow) statusBar(c *ui.Context, p palette) {
@@ -13,7 +14,7 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		})
 		ui.Spacer(c)
 		message := w.status
-		if message == tr("common.ready") {
+		if message == locales.CommonReady() {
 			message = ""
 		}
 		if w.snapshot.Error != "" {
@@ -23,7 +24,7 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		if w.failed || w.snapshot.Error != "" {
 			col = c.Theme().Danger
 		}
-		if w.snapshot.Error != "" && ui.Button(c, tr("common.reload")).Clicked() && w.app != nil {
+		if w.snapshot.Error != "" && ui.Button(c, locales.CommonReload()).Clicked() && w.app != nil {
 			w.app.command("reload")
 		}
 		ui.Text(c, message).SingleLine().MinWidth(0).FontSize(10).TextColor(col)
@@ -31,10 +32,10 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		if w.snapshot.SlowMode {
 			color = p.blue
 		}
-		limit := ui.Row(c).Gap(5).Focusable().Label(tr("transfer.speedLimit"))
+		limit := ui.Row(c).Gap(5).Focusable().Label(locales.TransferSpeedLimit())
 		limit.Children(func() {
 			glyph(c, "gauge", 13, color)
-			ui.Text(c, tr("transfer.speedLimit")).FontSize(10).TextColor(color)
+			ui.Text(c, locales.TransferSpeedLimit()).FontSize(10).TextColor(color)
 		})
 		if limit.Clicked() && w.app != nil {
 			w.app.slowMode()
@@ -43,10 +44,10 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		for _, task := range w.snapshot.Tasks {
 			peers += task.Peers
 		}
-		network := tr("tracker.waiting")
+		network := locales.TrackerWaiting()
 		dot := p.muted
 		if peers > 0 {
-			network = tr("transfer.peersConnected")
+			network = locales.TransferPeersConnected()
 			dot = p.green
 		}
 		ui.Row(c).Gap(5).Children(func() {

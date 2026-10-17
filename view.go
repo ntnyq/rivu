@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (w *mainWindow) view(c *ui.Context) {
@@ -22,10 +22,10 @@ func (w *mainWindow) view(c *ui.Context) {
 				ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {
 					ui.Column(c).Grow(1).MinWidth(0).Children(func() {
 						ui.Row(c).Height(38).Shrink(0).Padding(0, 19).BorderWidth(0, 0, 1, 0).BorderColor(p.line).Children(func() {
-							ui.Text(c, tr("transfer.nameAndProgress")).FontSize(10).TextColor(p.muted)
+							ui.Text(c, locales.TransferNameAndProgress()).FontSize(10).TextColor(p.muted)
 							ui.Spacer(c)
-							labels := []string{tr("transfer.dateAdded"), tr("transfer.name"), tr("transfer.progressLabel"), tr("transfer.status")}
-							menuControl(c, tr("transfer.sort"), fmt.Sprintf(tr("transfer.sortLabel"), labels[w.sort])).Menu(func(m *ui.Menu) {
+							labels := []string{locales.TransferDateAdded(), locales.TransferName(), locales.TransferProgressLabel(), locales.TransferStatus()}
+							menuControl(c, locales.TransferSort(), locales.TransferSortLabel(labels[w.sort])).Menu(func(m *ui.Menu) {
 								for i, label := range labels {
 									if m.Item(label).Checked(w.sort == i).Chosen() {
 										w.sort = i
@@ -46,7 +46,7 @@ func (w *mainWindow) view(c *ui.Context) {
 							}
 							ui.Row(c).Height(64).Shrink(0).Justify(ui.Center).Gap(4).Children(func() {
 								glyph(c, "plus", 13, p.muted)
-								ui.Text(c, tr("transfer.dropHint")).FontSize(10).TextColor(p.muted)
+								ui.Text(c, locales.TransferDropHint()).FontSize(10).TextColor(p.muted)
 							})
 						}
 					})
@@ -67,7 +67,7 @@ func (w *mainWindow) view(c *ui.Context) {
 		ui.DialogBase(c, &open, func(_, panel ui.Element) {
 			panel.Width(310).Height(550).Children(func() {
 				w.inspectorView(c)
-				if actionButton(c, "x", tr("transfer.closeDetails"), false).Clicked() {
+				if actionButton(c, "x", locales.TransferCloseDetails(), false).Clicked() {
 					w.inspector = false
 				}
 			})
@@ -82,13 +82,13 @@ func (w *mainWindow) emptyDownloads(c *ui.Context, p palette) {
 	ui.Column(c).Key("empty-downloads").Grow(1).MinHeight(0).FillWidth().Padding(24).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
 		ui.Column(c).FillWidth().Gap(14).AlignItems(ui.Center).Children(func() {
 			glyph(c, "download", 44, p.blue)
-			detail := tr("transfer.emptyHint")
+			detail := locales.TransferEmptyHint()
 			if len(w.snapshot.Tasks) > 0 {
-				ui.Text(c, tr("transfer.noMatches")).FontSize(17).Bold().TextAlign(ui.Center)
-				detail = tr("transfer.noMatchesHint")
+				ui.Text(c, locales.TransferNoMatches()).FontSize(17).Bold().TextAlign(ui.Center)
+				detail = locales.TransferNoMatchesHint()
 			}
 			ui.Text(c, detail).FontSize(12).TextColor(p.muted).TextAlign(ui.Center)
-			if actionButton(c, "plus", tr("transfer.add"), true).Clicked() && w.app != nil {
+			if actionButton(c, "plus", locales.TransferAdd(), true).Clicked() && w.app != nil {
 				w.app.openAdd(nil)
 			}
 		})

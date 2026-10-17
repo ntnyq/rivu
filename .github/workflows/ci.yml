@@ -21,6 +21,11 @@ jobs:
         run: test -z "$(gofmt -l .)"
       - name: Test with race detector
         run: go test -race ./...
+      - name: Verify translations and generated accessors
+        run: |
+          make i18n
+          make generate
+          git diff --exit-code -- locales/catalog_gen.go
       - name: Local swarm integration
         run: make integration
       - name: Vet Go and native UI

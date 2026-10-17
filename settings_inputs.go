@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type bandwidthInput struct {
@@ -46,7 +47,7 @@ func bandwidthField(c *ui.Context, label string, value *bandwidthInput, line boo
 		if value.unit == 1000000 {
 			unit = "MB/s"
 		}
-		menuControl(c, label+" "+tr("settings.bandwidthUnit"), unit).Width(75).Menu(func(m *ui.Menu) {
+		menuControl(c, label+" "+locales.SettingsBandwidthUnit(), unit).Width(75).Menu(func(m *ui.Menu) {
 			for _, choice := range []struct {
 				label string
 				scale int64
@@ -62,11 +63,11 @@ func bandwidthField(c *ui.Context, label string, value *bandwidthInput, line boo
 	})
 }
 func seedingControl(c *ui.Context, mode *int) {
-	labels := []string{tr("seeding.stopOnCompletion"), tr("seeding.untilRatio"), tr("seeding.forever")}
+	labels := []string{locales.SeedingStopOnCompletion(), locales.SeedingUntilRatio(), locales.SeedingForever()}
 	ui.Row(c).Padding(12, 0).Children(func() {
-		ui.Text(c, tr("settings.seedingPolicy")).FontSize(12)
+		ui.Text(c, locales.SettingsSeedingPolicy()).FontSize(12)
 		ui.Spacer(c)
-		menuControl(c, tr("settings.seedingPolicy"), labels[*mode]).Width(145).Menu(func(m *ui.Menu) {
+		menuControl(c, locales.SettingsSeedingPolicy(), labels[*mode]).Width(145).Menu(func(m *ui.Menu) {
 			for i, label := range labels {
 				if m.Item(label).Checked(*mode == i).Chosen() {
 					*mode = i
@@ -77,14 +78,14 @@ func seedingControl(c *ui.Context, mode *int) {
 }
 func (w *settingsWindow) automationView(c *ui.Context) {
 	settingGroup(c, func() {
-		switchRow(c, tr("settings.schedule"), tr("settings.scheduleHint"), &w.settings.ScheduleEnabled, false, true)
-		settingField(c, tr("settings.scheduleStart"), &w.scheduleStart, true)
-		settingField(c, tr("settings.scheduleEnd"), &w.scheduleEnd, true)
+		switchRow(c, locales.SettingsSchedule(), locales.SettingsScheduleHint(), &w.settings.ScheduleEnabled, false, true)
+		settingField(c, locales.SettingsScheduleStart(), &w.scheduleStart, true)
+		settingField(c, locales.SettingsScheduleEnd(), &w.scheduleEnd, true)
 	})
 	settingGroup(c, func() {
-		switchRow(c, tr("settings.watchFolder"), tr("settings.watchFolderHint"), &w.settings.WatchEnabled, false, true)
-		settingField(c, tr("settings.watchFolderPath"), &w.settings.WatchFolder, true)
-		settingField(c, tr("settings.watchTag"), &w.settings.WatchTag, true)
+		switchRow(c, locales.SettingsWatchFolder(), locales.SettingsWatchFolderHint(), &w.settings.WatchEnabled, false, true)
+		settingField(c, locales.SettingsWatchFolderPath(), &w.settings.WatchFolder, true)
+		settingField(c, locales.SettingsWatchTag(), &w.settings.WatchTag, true)
 	})
-	ui.Text(c, tr("settings.automationHint")).FontSize(11)
+	ui.Text(c, locales.SettingsAutomationHint()).FontSize(11)
 }

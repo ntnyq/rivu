@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"github.com/ntnyq/rivu/internal/problem"
 	"math"
 	"os"
 	"path/filepath"
@@ -14,7 +13,9 @@ import (
 	"time"
 
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/storage"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func names(fs []File) []string {
@@ -34,7 +35,7 @@ func validateSelection(fs []File) error {
 		selected = selected || f.Priority > 0
 	}
 	if !selected {
-		return problem.Message(problem.Engine, "files.selectionRequired")
+		return problem.Message(problem.Engine, locales.Messages.FilesSelectionRequired, nil)
 	}
 	return nil
 }
@@ -52,7 +53,7 @@ func (m *Manager) checkDestination(s Source, dir string, except string, adopt bo
 				left := strings.ToLower(filepath.Join(r.Destination, filepath.FromSlash(a.Path)))
 				right := strings.ToLower(filepath.Join(dir, filepath.FromSlash(b.Path)))
 				if left == right || strings.HasPrefix(left, right+string(filepath.Separator)) || strings.HasPrefix(right, left+string(filepath.Separator)) {
-					return problem.Message(problem.Engine, "files.destinationConflict")
+					return problem.Message(problem.Engine, locales.Messages.FilesDestinationConflict, nil)
 				}
 			}
 		}
@@ -107,7 +108,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 		return "", err
 	}
 	if m.closed || m.barrier {
-		return "", problem.Message(problem.Engine, "session.savingRetry")
+		return "", problem.Message(problem.Engine, locales.Messages.SessionSavingRetry, nil)
 	}
 	if m.loadErr != nil {
 		return "", m.loadErr
@@ -121,7 +122,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 	in.Source.Trackers = slices.Clone(in.Source.Trackers)
 	in.Source.Meta = slices.Clone(in.Source.Meta)
 	if in.Source.Identity == (Identity{}) {
-		return "", problem.Message(problem.Engine, "import.invalidSource")
+		return "", problem.Message(problem.Engine, locales.Messages.ImportInvalidSource, nil)
 	}
 	if len(in.Source.Files) > 0 {
 		if err := validateSelection(in.Source.Files); err != nil {

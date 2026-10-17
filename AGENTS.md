@@ -4,6 +4,8 @@
 
 Rivu is a native Go/MyGo BitTorrent client targeting macOS. Root Go files handle startup, CLI, windows, views, menus, and tray integration. Keep business logic in `internal/`: `session` owns transfer state, `torrent` adapts the engine, `config` stores preferences, and `files`, `storage`, `desktop`, and `tasks` provide supporting services. Tests live beside implementations as `*_test.go`. Assets belong in `resources/`; `tools/genicon/` generates icons. `docs/` describes architecture and releases; `docs/design/` is the visual reference. Generated packages and captures go in `build/` and `snapshots/`.
 
+`locales/` contains MyGo ARB catalogs and generated typed Go accessors. Update all five languages together, use flat lower camel case keys and ICU named placeholders, then run `make generate` and `make i18n`. Commit `locales/catalog_gen.go`; do not edit generated accessors by hand. `make check` includes translation validation. Structured errors defer rendering through `locales.Messages` and preserve English diagnostics and wrapped causes. Tests that replace the global locale provider must remain serial and must not persist native locale preferences.
+
 ## Build, Test, and Development Commands
 
 Use Go 1.27.2+ and the MyGo tool pinned in `go.mod`. Run shell commands through RTK:

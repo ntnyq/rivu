@@ -9,8 +9,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
-
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type Session interface {
@@ -61,7 +60,7 @@ func (s *Service) Check(ctx context.Context) error {
 	if !mygo.Updater.Enabled() {
 		s.mu.Lock()
 		s.snapshot.State = "unavailable"
-		s.snapshot.Error = i18n.T("updates.sourceUnavailable")
+		s.snapshot.Error = locales.UpdatesSourceUnavailable()
 		s.mu.Unlock()
 		return nil
 	}
@@ -102,7 +101,7 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 	s.mu.Lock()
 	if s.busy || s.update == nil {
 		s.mu.Unlock()
-		return fmt.Errorf("%s", i18n.T("updates.nothingToInstall"))
+		return fmt.Errorf("%s", locales.UpdatesNothingToInstall())
 	}
 	s.busy = true
 	up := s.update

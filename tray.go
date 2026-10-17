@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"runtime"
+
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/session"
-	"runtime"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (a *application) configureTray() {
@@ -117,13 +119,13 @@ func (a *application) trayView(c *ui.Context) {
 		ui.Row(c).Height(17).Shrink(0).Children(func() {
 			ui.Text(c, "Rivu").FontSize(14).FontWeight(600)
 			ui.Spacer(c)
-			ui.Text(c, fmt.Sprintf(tr("tray.activeCount"), preview.active)).FontSize(10).TextColor(p.muted)
+			ui.Text(c, locales.TrayActiveCount(preview.active)).FontSize(10).TextColor(p.muted)
 		})
 		ui.Row(c).Height(94).Shrink(0).Padding(22, 0, 19, 0).Gap(20).Children(func() {
 			for i, v := range []struct {
 				label, icon string
 				value       float64
-			}{{tr("transfer.download"), "arrow-down", a.snapshot.DownRate}, {tr("transfer.upload"), "arrow-up", a.snapshot.UpRate}} {
+			}{{locales.TransferDownload(), "arrow-down", a.snapshot.DownRate}, {locales.TransferUpload(), "arrow-up", a.snapshot.UpRate}} {
 				col := ui.Column(c).Width(154).Shrink(0).Gap(7)
 				if i == 1 {
 					col.Padding(0, 0, 0, 19).BorderWidth(0, 0, 0, 1).BorderColor(p.line)
@@ -168,25 +170,25 @@ func (a *application) trayView(c *ui.Context) {
 						if t.Run {
 							kind, icon = session.CommandPause, "pause"
 						}
-						if compactIconButton(c, icon, fmt.Sprintf(tr("tray.control"), t.ID), 23, 15, p.muted) {
+						if compactIconButton(c, icon, locales.TrayControl(t.ID), 23, 15, p.muted) {
 							a.execute(session.Command{Kind: kind, IDs: []string{t.ID}})
 						}
 					})
 				}
 				if len(preview.tasks) == 0 {
-					message := tr("tray.empty")
+					message := locales.TrayEmpty()
 					if len(a.snapshot.Tasks) > 0 {
-						message = tr("tray.noActive")
+						message = locales.TrayNoActive()
 					}
 					ui.Row(c).Height(trayEmptyHeight).Shrink(0).Justify(ui.Center).Children(func() {
 						ui.Text(c, message).FontSize(12).TextColor(p.muted).TextAlign(ui.Center)
 					})
 				}
 				if preview.attention > 0 {
-					row := ui.Row(c).Height(trayAttentionHeight).Shrink(0).Padding(12, 0, 5, 0).Gap(5).Focusable().Label(tr("tray.viewAttention"))
+					row := ui.Row(c).Height(trayAttentionHeight).Shrink(0).Padding(12, 0, 5, 0).Gap(5).Focusable().Label(locales.TrayViewAttention())
 					row.Children(func() {
 						glyph(c, "alert", 13, p.orange)
-						ui.Text(c, fmt.Sprintf(tr("tray.attentionCount"), preview.attention)).FontSize(10).TextColor(p.orange)
+						ui.Text(c, locales.TrayAttentionCount(preview.attention)).FontSize(10).TextColor(p.orange)
 					})
 					if row.Clicked() {
 						a.closePanel()
@@ -197,14 +199,14 @@ func (a *application) trayView(c *ui.Context) {
 			})
 		})
 		ui.Row(c).Height(58).Shrink(0).Gap(8).Padding(15, 0, 13, 0).Children(func() {
-			label, kind, icon := tr("transfer.pauseAll"), session.CommandPauseAll, "pause"
+			label, kind, icon := locales.TransferPauseAll(), session.CommandPauseAll, "pause"
 			if preview.hasBatch {
-				label, kind, icon = tr("transfer.resumeBatch"), session.CommandResumeBatch, "play"
+				label, kind, icon = locales.TransferResumeBatch(), session.CommandResumeBatch, "play"
 			}
 			if actionButton(c, icon, label, false).FontSize(10).Height(30).Grow(1).Disabled(preview.active == 0 && !preview.hasBatch).Clicked() {
 				a.execute(session.Command{Kind: kind})
 			}
-			limit := actionButton(c, "gauge", tr("transfer.speedLimit"), false).FontSize(10).Height(30).Grow(1)
+			limit := actionButton(c, "gauge", locales.TransferSpeedLimit(), false).FontSize(10).Height(30).Grow(1)
 			if a.snapshot.SlowMode {
 				limit.TextColor(p.blue).Background(p.soft)
 			}
@@ -213,20 +215,20 @@ func (a *application) trayView(c *ui.Context) {
 			}
 		})
 		ui.Row(c).Height(34).Shrink(0).Gap(7).Padding(10, 0, 0, 0).BorderWidth(1, 0, 0, 0).BorderColor(p.line).Children(func() {
-			open := ui.Row(c).Grow(1).Gap(4).Focusable().Label(tr("tray.openWindow"))
+			open := ui.Row(c).Grow(1).Gap(4).Focusable().Label(locales.TrayOpenWindow())
 			open.Children(func() {
-				ui.Text(c, tr("tray.openWindow")).FontSize(11).TextColor(p.blue)
+				ui.Text(c, locales.TrayOpenWindow()).FontSize(11).TextColor(p.blue)
 				ui.Text(c, "⌘ 1").FontSize(10).TextColor(p.muted)
 			})
 			if open.Clicked() {
 				a.closePanel()
 				a.openWindow()
 			}
-			if compactIconButton(c, "plus", tr("transfer.add"), 25, 15, p.muted) {
+			if compactIconButton(c, "plus", locales.TransferAdd(), 25, 15, p.muted) {
 				a.closePanel()
 				a.openAdd(nil)
 			}
-			if compactIconButton(c, "settings", tr("settings.label"), 25, 15, p.muted) {
+			if compactIconButton(c, "settings", locales.SettingsLabel(), 25, 15, p.muted) {
 				a.closePanel()
 				a.openSettings()
 			}

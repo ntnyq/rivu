@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/egoist/mygo/ui"
 	"strings"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (w *mainWindow) palette(c *ui.Context) {
@@ -11,8 +13,8 @@ func (w *mainWindow) palette(c *ui.Context) {
 	}
 	ui.DialogBase(c, &w.paletteOpen, func(_, p ui.Element) {
 		p.Width(460).Padding(22).Gap(12).Children(func() {
-			ui.Text(c, tr("palette.title")).FontSize(20).Bold()
-			ui.TextInput(c, &w.query).Label(tr("palette.search")).Placeholder(tr("palette.searchPlaceholder"))
+			ui.Text(c, locales.PaletteTitle()).FontSize(20).Bold()
+			ui.TextInput(c, &w.query).Label(locales.PaletteSearch()).Placeholder(locales.PaletteSearchPlaceholder())
 			count := 0
 			if w.app != nil {
 				for _, cmd := range w.app.commands() {
@@ -27,9 +29,9 @@ func (w *mainWindow) palette(c *ui.Context) {
 				}
 			}
 			if count == 0 {
-				ui.Text(c, tr("palette.noMatches"))
+				ui.Text(c, locales.PaletteNoMatches())
 			}
-			if actionButton(c, "x", tr("palette.close"), false).Clicked() {
+			if actionButton(c, "x", locales.PaletteClose(), false).Clicked() {
 				w.paletteOpen = false
 			}
 		})

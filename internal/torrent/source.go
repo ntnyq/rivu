@@ -4,7 +4,6 @@ package torrent
 import (
 	"bytes"
 	"fmt"
-	"github.com/ntnyq/rivu/internal/problem"
 	"io"
 	"net/url"
 	"os"
@@ -13,9 +12,9 @@ import (
 	bt "github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
-
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
 const maxMetadata = 16 << 20
@@ -25,25 +24,25 @@ type Parser struct{}
 func (Parser) Parse(raw string) (session.Source, error) {
 	raw = strings.TrimSpace(raw)
 	if len(raw) > 65536 {
-		return session.Source{}, problem.Message(problem.Metadata, "torrent.sourceTooLong")
+		return session.Source{}, problem.Message(problem.Metadata, locales.Messages.TorrentSourceTooLong, nil)
 	}
 	if strings.HasPrefix(strings.ToLower(raw), "magnet:") {
 		spec, err := bt.TorrentSpecFromMagnetUri(raw)
 		if err != nil {
-			return session.Source{}, problem.Message(problem.Metadata, "torrent.invalidMagnet")
+			return session.Source{}, problem.Message(problem.Metadata, locales.Messages.TorrentInvalidMagnet, nil)
 		}
 		s := session.Source{Raw: raw, Name: spec.DisplayName, Identity: identity(spec)}
 		if s.Identity.V1 == "" && s.Identity.V2 == "" {
-			return s, problem.Message(problem.Metadata, "torrent.missingInfohash")
+			return s, problem.Message(problem.Metadata, locales.Messages.TorrentMissingInfohash, nil)
 		}
 		if s.Name == "" {
-			s.Name = i18n.T("torrent.waitingMetadata")
+			s.Name = locales.TorrentWaitingMetadata()
 		}
 		for _, tier := range spec.Trackers {
 			s.Trackers = append(s.Trackers, tier...)
 		}
 		if len(s.Trackers) == 0 && len(spec.PeerAddrs) == 0 {
-			return s, problem.Message(problem.Metadata, "torrent.bootstrapRequired")
+			return s, problem.Message(problem.Metadata, locales.Messages.TorrentBootstrapRequired, nil)
 		}
 		return s, nil
 	}
@@ -57,7 +56,7 @@ func (Parser) Parse(raw string) (session.Source, error) {
 		return session.Source{}, err
 	}
 	if len(data) > maxMetadata {
-		return session.Source{}, problem.Message(problem.Metadata, "torrent.metadataTooLarge")
+		return session.Source{}, problem.Message(problem.Metadata, locales.Messages.TorrentMetadataTooLarge, nil)
 	}
 	return (Parser{}).ParseBytes(raw, data)
 }
@@ -84,7 +83,7 @@ func identity(spec *bt.TorrentSpec) session.Identity {
 func parseMeta(data []byte) (session.Source, error) {
 	mi, err := metainfo.Load(bytes.NewReader(data))
 	if err != nil {
-		return session.Source{}, problem.Message(problem.Metadata, "torrent.readFailed", err)
+		return session.Source{}, problem.Message(problem.Metadata, func(m locales.Messages) string { return m.TorrentReadFailed(err) }, err)
 	}
 	info, err := mi.UnmarshalInfo()
 	if err != nil {
@@ -105,12 +104,12 @@ func parseMeta(data []byte) (session.Source, error) {
 		parts := append([]string{info.BestName()}, f.BestPath()...)
 		for _, part := range parts {
 			if strings.ContainsAny(part, "/\\") || part == "" || part == "." || part == ".." {
-				return s, problem.Message(problem.Metadata, "torrent.unsafeFilename")
+				return s, problem.Message(problem.Metadata, locales.Messages.TorrentUnsafeFilename, nil)
 			}
 		}
 		name := strings.Join(parts, "/")
 		if f.Length < 0 || f.Length > (1<<50)-total {
-			return s, problem.Message(problem.Metadata, "torrent.invalidFileSize")
+			return s, problem.Message(problem.Metadata, locales.Messages.TorrentInvalidFileSize, nil)
 		}
 		total += f.Length
 		names = append(names, name)
@@ -127,14 +126,14 @@ func parseMeta(data []byte) (session.Source, error) {
 func RedactTracker(raw string) string {
 	u, err := url.Parse(raw)
 	if err != nil {
-		return i18n.T("torrent.invalidTracker")
+		return locales.TorrentInvalidTracker()
 	}
 	return u.Scheme + "://" + u.Hostname()
 }
 
 func validateInfo(info *metainfo.Info) error {
 	if info.PieceLength <= 0 || info.PieceLength > 64<<20 || len(info.Pieces)%20 != 0 {
-		return problem.Message(problem.Metadata, "torrent.unsupportedStructure")
+		return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedStructure, nil)
 	}
 	if info.MetaVersion == 2 {
 		valid := info.PieceLength >= 16384 && info.PieceLength&(info.PieceLength-1) == 0
@@ -145,17 +144,17 @@ func validateInfo(info *metainfo.Info) error {
 			}
 		})
 		if !valid {
-			return problem.Message(problem.Metadata, "torrent.invalidFileTree")
+			return problem.Message(problem.Metadata, locales.Messages.TorrentInvalidFileTree, nil)
 		}
 	}
 	members := info.UpvertedFiles()
 	if len(members) == 0 || len(members) > 100000 {
-		return problem.Message(problem.Metadata, "torrent.unsupportedFileCount")
+		return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedFileCount, nil)
 	}
 	var total int64
 	for _, f := range members {
 		if f.Length < 0 || f.Length > (1<<50)-total {
-			return problem.Message(problem.Metadata, "torrent.invalidFileSize")
+			return problem.Message(problem.Metadata, locales.Messages.TorrentInvalidFileSize, nil)
 		}
 		total += f.Length
 	}
@@ -167,7 +166,7 @@ func validateInfo(info *metainfo.Info) error {
 			pieces = int64(info.NumPieces())
 		}
 		if int64(len(info.Pieces)/20) != pieces {
-			return problem.Message(problem.Metadata, "torrent.unsupportedStructure")
+			return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedStructure, nil)
 		}
 	}
 	return nil

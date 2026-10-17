@@ -1,35 +1,43 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/egoist/mygo"
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/egoist/mygo/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
-func tr(key string) string { return i18n.T(key) }
+// messageError keeps the original error available to errors.Is/As while its
+// display text is formatted by a typed catalog accessor.
+type messageError struct {
+	message string
+	cause   error
+}
+
+func (e messageError) Error() string { return e.message }
+func (e messageError) Unwrap() error { return e.cause }
 
 // Autonyms remain recognizable even if the user selects an unfamiliar language.
 func languageName(code string) string {
-	switch code {
-	case "zh-Hans":
-		return "简体中文"
-	case "zh-Hant":
-		return "繁體中文"
-	case "en":
-		return "English"
-	case "ja":
-		return "日本語"
-	case "ko":
-		return "한국어"
-	default:
-		return tr("common.followSystem")
+	if code == "system" {
+		return locales.CommonFollowSystem()
 	}
+	return i18n.Autonym(code)
 }
 
 // applyLanguage runs on the main thread, after preferences have been persisted.
 func (a *application) applyLanguage() {
-	i18n.SetLanguage(a.store.Snapshot().Language, mygo.App.Locale())
+	mygo.App.SetLocale(localePreference(a.store.Snapshot().Language))
+}
+
+func localePreference(preference string) string {
+	if preference == "system" {
+		return ""
+	}
+	return preference
+}
+
+// refreshLanguage also handles changes to the system's preferred languages.
+func (a *application) refreshLanguage() {
 	mygo.App.SetMenu(a.menu())
 	if w := a.window; w != nil && !w.closed {
 		w.dispatch(func() {
@@ -39,13 +47,17 @@ func (a *application) applyLanguage() {
 		})
 	}
 	if w := a.settingsWindow; w != nil && !w.closed {
-		w.win.SetTitle(tr("settings.title"))
+		if w.win != nil {
+			w.win.SetTitle(locales.SettingsTitle())
+		}
 		w.dispatch(func() {
-			w.loginStatus = fmt.Sprintf(tr("settings.login.statusDetails"), mygo.App.OpenAtLogin())
+			w.loginStatus = locales.SettingsLoginStatusDetails(mygo.App.OpenAtLogin())
 		})
 	}
 	if d := a.add; d != nil && !d.closed {
-		d.win.SetTitle(tr("transfer.add"))
+		if d.win != nil {
+			d.win.SetTitle(locales.TransferAdd())
+		}
 		d.dispatch(func() {})
 	}
 	// A tray menu is captured by its native right-click handler. Recreate it so

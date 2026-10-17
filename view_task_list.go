@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"github.com/egoist/mygo/ui"
-	"github.com/ntnyq/rivu/internal/session"
 	"path/filepath"
 	"strings"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func fileKind(t session.Task) string {
@@ -53,7 +54,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 			ui.Row(c).Gap(10).Children(func() {
 				text := bytes(t.Done) + " / " + bytes(t.Size)
 				if t.Metadata == "" {
-					text = tr("transfer.waitingFileList")
+					text = locales.TransferWaitingFileList()
 				}
 				ui.Text(c, text).FontSize(10).TextColor(p.muted)
 				ui.Spacer(c)
@@ -71,17 +72,17 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 				color := p.blue
 				switch t.Phase {
 				case "paused":
-					left, right, color = tr("transfer.paused"), tr("transfer.waitingResume"), p.muted
+					left, right, color = locales.TransferPaused(), locales.TransferWaitingResume(), p.muted
 				case "completed":
-					left, right, color = tr("transfer.filesReady"), tr("seeding.goalReached"), p.muted
+					left, right, color = locales.TransferFilesReady(), locales.SeedingGoalReached(), p.muted
 				case "seeding":
 					left = "↑ " + rate(t.UpRate)
-					right = fmt.Sprintf(tr("seeding.ratioProgress"), float64(t.Uploaded)/float64(max(1, t.TotalSize)), t.SeedRatio)
+					right = locales.SeedingRatioProgress(float64(t.Uploaded)/float64(max(1, t.TotalSize)), t.SeedRatio)
 					color = p.muted
 				case "error":
-					left, right, color = taskError(t), tr("transfer.retryHint"), p.muted
+					left, right, color = taskError(t), locales.TransferRetryHint(), p.muted
 				case "metadata":
-					left, right, color = tr("transfer.fetchingMetadata"), "", p.muted
+					left, right, color = locales.TransferFetchingMetadata(), "", p.muted
 				}
 				ui.Text(c, left).FontSize(10).TextColor(color).SingleLine().Grow(1).MinWidth(0)
 				ui.Text(c, right).FontSize(10).TextColor(p.muted)
@@ -97,7 +98,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 		if t.Error != "" {
 			icon = "alert"
 		}
-		if compactIconButton(c, icon, fmt.Sprintf(tr("transfer.actions"), t.ID), 23, 15, p.muted) && w.app != nil {
+		if compactIconButton(c, icon, locales.TransferActions(t.ID), 23, 15, p.muted) && w.app != nil {
 			if t.Phase == "completed" {
 				w.reveal(t.Destination)
 			} else {
@@ -141,27 +142,27 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 		w.toggleSelected()
 	}
 	row.ContextMenu(func(m *ui.Menu) {
-		kind, label := session.CommandResume, tr("transfer.resume")
+		kind, label := session.CommandResume, locales.TransferResume()
 		if t.Run {
-			kind, label = session.CommandPause, tr("transfer.pause")
+			kind, label = session.CommandPause, locales.TransferPause()
 		}
 		if m.Item(label).Chosen() {
 			w.app.execute(session.Command{Kind: kind, IDs: []string{t.ID}})
 		}
-		if m.Item(tr("files.showInFinder")).Chosen() {
+		if m.Item(locales.FilesShowInFinder()).Chosen() {
 			w.reveal(t.Destination)
 		}
-		if m.Item(tr("transfer.copyMagnet")).Chosen() {
+		if m.Item(locales.TransferCopyMagnet()).Chosen() {
 			w.copy(magnet(t))
 		}
-		if m.Item(tr("transfer.verify")).Chosen() {
+		if m.Item(locales.TransferVerify()).Chosen() {
 			w.app.execute(session.Command{Kind: session.CommandVerify, IDs: []string{t.ID}})
 		}
-		if m.Item(tr("transfer.startFirst")).Chosen() {
+		if m.Item(locales.TransferStartFirst()).Chosen() {
 			w.app.execute(session.Command{Kind: session.CommandFirst, IDs: []string{t.ID}})
 		}
 		m.Separator()
-		if m.Item(tr("transfer.removeMenu")).Chosen() {
+		if m.Item(locales.TransferRemoveMenu()).Chosen() {
 			w.selectOnly(t.ID)
 			w.remove()
 		}
@@ -170,7 +171,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 
 func compactPath(path string) string {
 	if path == "" {
-		return tr("transfer.notSelected")
+		return locales.TransferNotSelected()
 	}
 	parts := strings.Split(filepath.ToSlash(path), "/")
 	if len(parts) > 3 && parts[1] == "Users" {

@@ -2,14 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/egoist/mygo/ui"
-	"github.com/ntnyq/rivu/internal/config"
-	"github.com/ntnyq/rivu/internal/session"
 	"image/png"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/egoist/mygo/ui"
+	"github.com/ntnyq/rivu/internal/config"
+	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func fixtureSnapshot() session.Snapshot {
@@ -72,10 +74,10 @@ func TestDetailsRequireSelection(t *testing.T) {
 		w := newWindow(store)
 		tt := ui.NewTester(w.view, width, 760)
 		tt.Frame()
-		if w.inspector || tt.HasText(tr("transfer.selectHint")) {
+		if w.inspector || tt.HasText(locales.TransferSelectHint()) {
 			t.Fatal("details opened without a selection")
 		}
-		if err := tt.Click(tr("transfer.toggleDetails")); err != nil {
+		if err := tt.Click(locales.TransferToggleDetails()); err != nil {
 			t.Fatal(err)
 		}
 		tt.Frame()
@@ -85,19 +87,19 @@ func TestDetailsRequireSelection(t *testing.T) {
 		w.snapshot = fixtureSnapshot()
 		w.selectOnly("1")
 		tt.Frame()
-		if tt.HasText(tr("transfer.overview")) {
+		if tt.HasText(locales.TransferOverview()) {
 			t.Fatal("selection opened details before they were requested")
 		}
-		if err := tt.Click(tr("transfer.toggleDetails")); err != nil {
+		if err := tt.Click(locales.TransferToggleDetails()); err != nil {
 			t.Fatal(err)
 		}
 		tt.Frame()
-		if !tt.HasText(tr("transfer.overview")) {
+		if !tt.HasText(locales.TransferOverview()) {
 			t.Fatal("selected task details did not open")
 		}
 		w.snapshot = session.Snapshot{}
 		tt.Frame()
-		if tt.HasText(tr("transfer.overview")) || tt.HasText(tr("transfer.selectHint")) {
+		if tt.HasText(locales.TransferOverview()) || tt.HasText(locales.TransferSelectHint()) {
 			t.Fatal("details remained visible after the selected task was removed")
 		}
 	}

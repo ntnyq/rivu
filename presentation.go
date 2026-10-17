@@ -8,34 +8,35 @@ import (
 	"strings"
 
 	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func filterLabels() []string {
-	return []string{tr("filter.all"), tr("phase.downloading"), tr("phase.seeding"), tr("phase.completed"), tr("phase.paused"), tr("phase.error")}
+	return []string{locales.FilterAll(), locales.PhaseDownloading(), locales.PhaseSeeding(), locales.PhaseCompleted(), locales.PhasePaused(), locales.PhaseError()}
 }
 
 func phaseLabel(phase session.Phase) string {
 	switch phase {
 	case session.PhaseQueued:
-		return tr("phase.queued")
+		return locales.PhaseQueued()
 	case session.PhaseMetadata:
-		return tr("phase.metadata")
+		return locales.PhaseMetadata()
 	case session.PhaseVerifying:
-		return tr("phase.verifying")
+		return locales.PhaseVerifying()
 	case session.PhaseWaiting:
-		return tr("phase.waiting")
+		return locales.PhaseWaiting()
 	case session.PhaseDownloading:
-		return tr("phase.downloading")
+		return locales.PhaseDownloading()
 	case session.PhaseSeeding:
-		return tr("phase.seeding")
+		return locales.PhaseSeeding()
 	case session.PhaseCompleted:
-		return tr("phase.completed")
+		return locales.PhaseCompleted()
 	case session.PhasePaused:
-		return tr("phase.paused")
+		return locales.PhasePaused()
 	case session.PhaseError:
-		return tr("phase.error")
+		return locales.PhaseError()
 	case session.PhaseRemoving:
-		return tr("phase.removing")
+		return locales.PhaseRemoving()
 	default:
 		return "—"
 	}
@@ -106,12 +107,12 @@ func eta(t session.Task) string {
 	}
 	seconds := max(1, int(float64(t.Size-t.Done)/t.DownRate))
 	if seconds < 60 {
-		return fmt.Sprintf(tr("transfer.eta.seconds"), seconds)
+		return locales.TransferEtaSeconds(seconds)
 	}
 	if seconds < 3600 {
-		return fmt.Sprintf(tr("transfer.eta.minutes"), (seconds+30)/60)
+		return locales.TransferEtaMinutes((seconds + 30) / 60)
 	}
-	return fmt.Sprintf(tr("transfer.eta.hours"), seconds/3600, seconds%3600/60)
+	return locales.TransferEtaHours(seconds/3600, seconds%3600/60)
 }
 func magnet(t session.Task) string {
 	v := url.Values{}
@@ -139,15 +140,15 @@ func taskPercent(t session.Task) string {
 }
 
 func seedingSummary(ratio float64, seconds int64) string {
-	summary := tr("seeding.forever")
+	summary := locales.SeedingForever()
 	if ratio == 0 {
-		return tr("seeding.stopAfterDownload")
+		return locales.SeedingStopAfterDownload()
 	}
 	if ratio > 0 {
-		summary = fmt.Sprintf(tr("seeding.ratioGoal"), ratio)
+		summary = locales.SeedingRatioGoal(ratio)
 	}
 	if seconds > 0 {
-		summary += " · " + fmt.Sprintf(tr("seeding.durationLimit"), float64(seconds)/3600)
+		summary += " · " + locales.SeedingDurationLimit(float64(seconds)/3600)
 	}
 	return summary
 }

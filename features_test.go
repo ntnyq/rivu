@@ -6,18 +6,19 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/config"
-	"github.com/ntnyq/rivu/internal/i18n"
 	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func TestStructuredErrorUsesCurrentLanguage(t *testing.T) {
 	useTestLanguage(t, "zh-Hans")
-	issue := problem.Message(problem.Conflict, "files.ownershipChanged", "payload")
+	issue := problem.Message(problem.Conflict, func(m locales.Messages) string { return m.FilesOwnershipChanged("payload") }, nil)
 	before := problemText(issue, "")
-	i18n.SetLanguage("en", "")
+	i18n.SetLocaleFunc(func() string { return "en" })
 	after := problemText(issue, "")
 	if before == after || !strings.Contains(after, "payload") || strings.Contains(after, "文件归属") {
 		t.Fatal("error retained previous language", after)

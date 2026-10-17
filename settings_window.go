@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/config"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type settingsWindow struct {
@@ -35,17 +35,17 @@ func (a *application) openSettings() {
 	}
 	w := newSettingsWindow(a.store)
 	w.app = a
-	w.loginStatus = fmt.Sprintf(tr("settings.login.statusDetails"), mygo.App.OpenAtLogin())
-	w.win = mygo.NewWindow(mygo.WindowOptions{Title: tr("settings.title"), TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
+	w.loginStatus = locales.SettingsLoginStatusDetails(mygo.App.OpenAtLogin())
+	w.win = mygo.NewWindow(mygo.WindowOptions{Title: locales.SettingsTitle(), TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
 	w.desktop.Parent = w.win
 	w.win.OnClosed(w.close)
 	a.settingsWindow = w
 }
 func (w *settingsWindow) pickFolder() {
 	var folder string
-	w.run(tr("files.chooseDownloadFolder"), func(context.Context) (string, error) {
+	w.run(locales.FilesChooseDownloadFolder(), func(context.Context) (string, error) {
 		var err error
 		folder, err = w.desktop.PickFolder()
-		return tr("files.folderSelected"), err
+		return locales.FilesFolderSelected(), err
 	}, func() { w.destination = filepath.Clean(folder) })
 }

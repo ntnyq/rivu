@@ -1,0 +1,687 @@
+{
+  "@@locale": "en",
+  "aboutVersion": "Version {version} · Made for your Mac",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "commonBrowserOpened": "Browser opened",
+  "commonCancel": "Cancel",
+  "commonCanceled": "Canceled",
+  "commonChoose": "Choose…",
+  "commonConnections": "Connections",
+  "commonCopied": "Copied",
+  "commonCopy": "Copy",
+  "commonFollowSystem": "Follow System",
+  "commonOpenWebsite": "Open Website",
+  "commonOperationFailed": "Operation failed",
+  "commonReady": "Ready",
+  "commonReload": "Reload",
+  "commonReloaded": "Reloaded",
+  "commonRemove": "Remove",
+  "commonSaved": "Saved",
+  "commonWebsite": "Website",
+  "configAbsoluteDestination": "Download destination must be an absolute path",
+  "configAutoInstallRequiresCheck": "Automatic installation requires automatic checks",
+  "configBandwidth": "Invalid bandwidth limit",
+  "configConcurrency": "Concurrent downloads must be between 1 and 32",
+  "configListenPort": "Invalid listening port",
+  "configSeedRatio": "Invalid share ratio",
+  "configUnknownLanguage": "Unknown language {language}",
+  "@configUnknownLanguage": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "configUnknownTheme": "Unknown theme {theme}",
+  "@configUnknownTheme": {
+    "placeholders": {
+      "theme": {
+        "type": "String"
+      }
+    }
+  },
+  "configUnsupportedVersion": "Unsupported settings version {version, number, ::group-off}",
+  "@configUnsupportedVersion": {
+    "placeholders": {
+      "version": {
+        "type": "int"
+      }
+    }
+  },
+  "filesAbsolutePathRequired": "Choose an absolute download folder path",
+  "filesBoundaryHint": "Pieces spanning multiple files may use some space in unselected files.",
+  "filesChooseDownloadFolder": "Choose Download Folder",
+  "filesDestinationConflict": "Another transfer is using the destination path",
+  "filesFolderSelected": "Folder selected",
+  "filesNextPage": "Next page",
+  "filesNotFolder": "Download path is not a folder",
+  "filesOwnershipChanged": "File ownership changed; preserved: {path}",
+  "@filesOwnershipChanged": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "filesPendingMetadata": "Waiting for metadata. File list is not available yet.",
+  "filesPreviousPage": "Previous page",
+  "filesPriorityHigh": "High",
+  "filesPriorityLabel": "Priority",
+  "filesPriorityMixed": "Mixed selection",
+  "filesPriorityNormal": "Normal",
+  "filesPrioritySkip": "Skip",
+  "filesRegularOwnedOnly": "Only regular files owned by the transfer can be removed",
+  "filesReplaced": "File replaced or not owned by this transfer: {path}",
+  "@filesReplaced": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "filesReveal": "Show in File Manager",
+  "filesRevealed": "Files revealed",
+  "filesSaveLocation": "Save location",
+  "filesSearch": "Search files",
+  "filesSelectionRequired": "Select at least one file",
+  "filesShared": "Files are shared by other transfers and cannot be moved to Trash",
+  "filesShowInFinder": "Show in Finder",
+  "filesSymlinkFolder": "Choose a real folder, not a symbolic link",
+  "filesSymlinkReplaced": "File has been replaced with a symbolic link",
+  "filesTitle": "Files",
+  "filesTrashUnavailable": "System Trash is unavailable",
+  "filesUnsafeDestination": "Destination exists or is unsafe. Choose another folder: {path}",
+  "@filesUnsafeDestination": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "filterAll": "All Transfers",
+  "importAdded": "Added",
+  "importAdoptExisting": "Adopt and verify existing files (never trash them)",
+  "importAvailableSpace": "{space} available · Checked again on submit",
+  "@importAvailableSpace": {
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "importCancelPreview": "Cancel Preview",
+  "importChooseFiles": "Choose Torrent Files",
+  "importChooseFilesMenu": "Choose Torrent Files…",
+  "importClose": "Close Add Download",
+  "importFileCount": "Files: {count, number, ::group-off}",
+  "@importFileCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importFilesSelected": "Torrent files selected. Read and review them.",
+  "importInvalidSource": "Invalid download source",
+  "importLocalFilesHint": "You can also choose local .torrent files.",
+  "importMagnet": "Magnet link",
+  "importMetadataHint": "Metadata is pending. Starting downloads all files; turn off immediate start to add a paused transfer first.",
+  "importPaste": "Paste Link",
+  "importPasteMagnet": "Paste Magnet Link",
+  "importPasted": "Pasted. Read and review the sources.",
+  "importProcessed": "Import processed. Fix failed items and read them again.",
+  "importReadAgain": "Read the modified sources again",
+  "importReadSources": "Read Download Sources",
+  "importReview": "Read & Review",
+  "importReviewHint": "Review the save location and file selection",
+  "importSaveTo": "Save to",
+  "importSourceRequired": "Add a torrent file or magnet link",
+  "importSources": "Magnet links or torrent paths",
+  "importSourcesChanged": "Sources changed",
+  "importSourcesLabel": "Download sources, one per line",
+  "importSourcesPlaceholder": "magnet:?xt=urn:btih:… One source per line",
+  "importStartImmediately": "Start downloading immediately",
+  "importSubtitle": "Bring something new to your Mac.",
+  "menuAbout": "About Rivu",
+  "menuAdd": "Add Download…",
+  "menuBringToFront": "Bring All to Front",
+  "menuCloseWindow": "Close Window",
+  "menuCommandPalette": "Command Palette…",
+  "menuCut": "Cut",
+  "menuEdit": "Edit",
+  "menuFile": "File",
+  "menuFullScreen": "Toggle Full Screen",
+  "menuHide": "Hide Rivu",
+  "menuHideOthers": "Hide Others",
+  "menuMinimize": "Minimize",
+  "menuOpen": "Open Rivu",
+  "menuOpenTorrent": "Open Torrent File…",
+  "menuPaste": "Paste",
+  "menuPauseAll": "Pause All",
+  "menuQuit": "Quit Rivu",
+  "menuRedo": "Redo",
+  "menuReloadAfterRepair": "Reload Session and Settings After Repair",
+  "menuSelectAll": "Select All",
+  "menuServices": "Services",
+  "menuSettings": "Settings…",
+  "menuShowAll": "Show All",
+  "menuToggleSpeedLimit": "Toggle Speed Limit",
+  "menuTransfers": "Transfers",
+  "menuUndo": "Undo",
+  "menuView": "View",
+  "menuWindow": "Window",
+  "menuZoom": "Zoom",
+  "notificationAttention": "Download needs attention",
+  "notificationComplete": "Download complete",
+  "notificationDeliveryFailed": "Notification could not be delivered: {error}",
+  "@notificationDeliveryFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "paletteClose": "Close Command Palette",
+  "paletteNoMatches": "No matching commands",
+  "paletteSearch": "Search Commands",
+  "paletteSearchPlaceholder": "Search actions…",
+  "paletteTitle": "Command Palette",
+  "phaseCompleted": "Completed",
+  "phaseDownloading": "Downloading",
+  "phaseError": "Needs Attention",
+  "phaseMetadata": "Fetching Metadata",
+  "phasePaused": "Paused",
+  "phaseQueued": "Queued",
+  "phaseRemoving": "Removing",
+  "phaseSeeding": "Seeding",
+  "phaseVerifying": "Verifying",
+  "phaseWaiting": "Waiting for Peers",
+  "quitDontAsk": "Don't ask again when quitting",
+  "quitHint": "Downloads and seeding will stop and resume on next launch according to your settings. Close the main window to keep downloading in the background.",
+  "quitKeepDownloading": "Keep Downloading",
+  "quitSaveAndQuit": "Save and Quit",
+  "quitSaveFailed": "Could not save session; quit canceled: {error}",
+  "@quitSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "quitTitle": "Quit Rivu?",
+  "recoveryDestination": "Destination unavailable. Connect the disk or choose another location.",
+  "recoveryDiskFull": "Disk full. Free space or choose another location.",
+  "recoveryEngine": "Transfer failed. Check files and connectivity, then retry.",
+  "recoveryMetadata": "Metadata failed. Check the source and retry.",
+  "recoveryPersistence": "Save failed. Fix permissions or disk space, then reload.",
+  "recoveryRestoreDisabled": "Restore is off. Resume manually.",
+  "relocationConfirm": "Confirm Location Change",
+  "relocationHint": "Files in the original folder stay in place. Existing data in the new folder is verified and never trashed. Missing or damaged data downloads when the task runs.",
+  "removalHint": "Downloaded files are kept by default. Only files owned by these transfers will be moved to Trash.",
+  "removalTitle": "Remove {count, number, ::group-off} transfers?",
+  "@removalTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "removalTrashFiles": "Also move downloaded files to Trash",
+  "seedingDuration": "Seeding duration",
+  "seedingDurationLimit": "Up to {hours, number, ::.0 group-off} hours",
+  "@seedingDurationLimit": {
+    "placeholders": {
+      "hours": {
+        "type": "double"
+      }
+    }
+  },
+  "seedingElapsed": "Seeded {hours, number, ::.0 group-off} hours",
+  "@seedingElapsed": {
+    "placeholders": {
+      "hours": {
+        "type": "double"
+      }
+    }
+  },
+  "seedingForever": "Seed forever",
+  "seedingGoalReached": "Seeding goal reached",
+  "seedingKeep": "Keep seeding after download",
+  "seedingPolicy": "Seeding Policy",
+  "seedingRatioGoal": "Stop automatically at a share ratio of {ratio, number, ::.0 group-off}",
+  "@seedingRatioGoal": {
+    "placeholders": {
+      "ratio": {
+        "type": "double"
+      }
+    }
+  },
+  "seedingRatioProgress": "Ratio {ratio, number, ::.00 group-off} / {goal, number, ::.0 group-off}",
+  "@seedingRatioProgress": {
+    "placeholders": {
+      "ratio": {
+        "type": "double"
+      },
+      "goal": {
+        "type": "double"
+      }
+    }
+  },
+  "seedingRatioTwo": "Share ratio 2.0",
+  "seedingStopAfterDownload": "Stop seeding after download",
+  "seedingStopOnCompletion": "Stop on completion",
+  "seedingUnlimitedDuration": "Unlimited duration",
+  "seedingUntilRatio": "Until ratio reached",
+  "sessionSaving": "Session is being saved",
+  "sessionSavingRetry": "Saving session. Please try again shortly.",
+  "settingsAppearance": "Appearance",
+  "settingsAutomation": "Automation",
+  "settingsAutomationHint": "Automatic policies respect manual pauses. Seeding time counts only active seeding.",
+  "settingsBackgroundHint": "Downloads continue after you close the main window.\nChoose “Quit Rivu” from the Rivu menu to exit.",
+  "settingsBandwidthHint": "Normal limits of 0 mean unlimited; temporary limits must be positive.",
+  "settingsBandwidthUnit": "Unit",
+  "settingsConcurrency": "Concurrent downloads",
+  "settingsConfirmQuit": "Confirm before quitting",
+  "settingsConfirmQuitHint": "Avoid interrupting downloads and seeding by accident",
+  "settingsConnectionsHint": "Connection changes apply on next launch. Unknown magnets use only specified trackers or peers to fetch metadata.",
+  "settingsDestination": "Default download location",
+  "settingsDestinationLabel": "Default Download Folder",
+  "settingsDht": "Enable DHT",
+  "settingsDownloadLimit": "Download limit",
+  "settingsDownloads": "Downloads & Seeding",
+  "settingsGeneral": "General",
+  "settingsInvalid": "Invalid settings",
+  "settingsInvalidConcurrency": "Invalid concurrency",
+  "settingsInvalidPort": "Invalid port",
+  "settingsInvalidSeedRatio": "Invalid share ratio",
+  "settingsInvalidSpeedLimit": "Invalid speed limit",
+  "settingsLabel": "Settings",
+  "settingsLanguage": "Language",
+  "settingsLanguageHint": "Language changes apply when you save settings.",
+  "settingsLanguageLabel": "Interface Language",
+  "settingsListenPort": "Listening port (0 for automatic)",
+  "settingsLoginBackground": "Start in the background only",
+  "settingsLoginBackgroundHint": "Continue downloads at login without opening a window",
+  "settingsLoginEnable": "Open Rivu at login",
+  "settingsLoginRegistrationFailed": "Login item registration failed: {error}",
+  "@settingsLoginRegistrationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsLoginStatus": "Enabled in system: {enabled}",
+  "@settingsLoginStatus": {
+    "placeholders": {
+      "enabled": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsLoginStatusDetails": "Enabled in system: {enabled} (see System Settings for authorization details)",
+  "@settingsLoginStatusDetails": {
+    "placeholders": {
+      "enabled": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsNotifications": "Notifications",
+  "settingsNotificationsHint": "Manage Rivu in System Settings → Notifications. Delivery depends on permission and Focus settings.",
+  "settingsNotifyComplete": "Notify when downloads finish",
+  "settingsNotifyCompleteHint": "A gentle reminder when a download is ready",
+  "settingsNotifyError": "Notify when transfers need attention",
+  "settingsNotifyErrorHint": "Let you know when action is needed",
+  "settingsPex": "Enable peer exchange (PEX)",
+  "settingsPublicOnly": "Public torrents only",
+  "settingsReadFailed": "Could not read settings; original file preserved: {error}",
+  "@settingsReadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsRestore": "Restore previous transfers",
+  "settingsRestoreHint": "Manually paused transfers stay paused",
+  "settingsSave": "Save Settings",
+  "settingsSaveQuitPreference": "Save Quit Preference",
+  "settingsSaved": "Settings saved; connection changes apply on next launch",
+  "settingsSchedule": "Scheduled limits",
+  "settingsScheduleEnd": "End HH:MM",
+  "settingsScheduleHint": "Apply temporary limits daily in local time, including overnight.",
+  "settingsScheduleStart": "Start HH:MM",
+  "settingsSeedHours": "Seeding hours (0 unlimited)",
+  "settingsSeedRatio": "Default share ratio",
+  "settingsSeedingPolicy": "Seeding policy",
+  "settingsTemporaryDownloadLimit": "Temporary download limit",
+  "settingsTemporaryUploadLimit": "Temporary upload limit",
+  "settingsThemeDark": "Dark",
+  "settingsThemeLight": "Light",
+  "settingsTitle": "Rivu Settings",
+  "settingsTray": "Show Rivu in the menu bar",
+  "settingsTrayHint": "Check download progress anytime",
+  "settingsUpdates": "Updates & About",
+  "settingsUploadLimit": "Upload limit",
+  "settingsWatchFolder": "Watch folder",
+  "settingsWatchFolderHint": "Stable torrent files import to the default destination; source files are kept.",
+  "settingsWatchFolderPath": "Torrent folder absolute path",
+  "settingsWatchTag": "Automatic tag",
+  "sidebarAvailableSpace": "{space} available",
+  "@sidebarAvailableSpace": {
+    "placeholders": {
+      "space": {
+        "type": "String"
+      }
+    }
+  },
+  "sidebarCollapse": "Collapse Sidebar",
+  "sidebarDownloadLocation": "Download location",
+  "sidebarExpand": "Expand Sidebar",
+  "sidebarLibrary": "Library",
+  "torrentAlreadyRunning": "This download is already running in the engine",
+  "torrentBootstrapRequired": "Unresolved magnets need a tracker or explicit peer address; DHT/PEX is disabled until metadata is fetched",
+  "torrentIdentityMismatch": "Metadata identity does not match",
+  "torrentInvalidFileSize": "Invalid file size",
+  "torrentInvalidFileTree": "Invalid v2 file tree",
+  "torrentInvalidIdentity": "Invalid download identity",
+  "torrentInvalidMagnet": "Invalid magnet link",
+  "torrentInvalidTracker": "Invalid tracker",
+  "torrentMetadataTooLarge": "Torrent metadata exceeds 16 MB",
+  "torrentMissingInfohash": "Magnet link has no valid infohash",
+  "torrentNotAdded": "Download has not been added to the engine",
+  "torrentReadFailed": "Cannot read torrent metadata: {error}",
+  "@torrentReadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "torrentSelectionMismatch": "File selection does not match metadata",
+  "torrentSourceTooLong": "Download source is too long",
+  "torrentUnsafeFilename": "Unsafe torrent filename",
+  "torrentUnsupportedFileCount": "Unsupported file count",
+  "torrentUnsupportedStructure": "Unsupported torrent structure",
+  "torrentWaitingMetadata": "Waiting for metadata",
+  "trackerAnnouncing": "Announcing",
+  "trackerDnsFailed": "DNS lookup failed",
+  "trackerError": "Tracker returned an error",
+  "trackerFailed": "Announce failed",
+  "trackerNextAnnounce": "Next announce: {time}",
+  "@trackerNextAnnounce": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "trackerNoObservations": "No tracker observations yet",
+  "trackerPrivacyHint": "Tracker credentials are hidden; diagnostics refresh every 5 seconds.",
+  "trackerRefused": "Connection refused",
+  "trackerSucceeded": "Announce succeeded",
+  "trackerTimeout": "Connection timed out",
+  "trackerUnauthorized": "Tracker authorization failed",
+  "trackerWaiting": "Waiting for connections",
+  "trackerWaitingHint": "Waiting for peers. Check the network and trackers, or retry later.",
+  "transferActions": "Actions for {name}",
+  "@transferActions": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "transferAdd": "Add Download",
+  "transferAllTags": "All tags",
+  "transferChangeLocation": "Change Location…",
+  "transferCloseDetails": "Close Details",
+  "transferConnectedPeers": "Connected peers",
+  "transferCopyMagnet": "Copy Magnet Link",
+  "transferCount": "Transfers: {count, number, ::group-off}",
+  "@transferCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferDateAdded": "Date added",
+  "transferDetails": "Transfer Details",
+  "transferDownload": "Download",
+  "transferDownloadSpeed": "↓ Download speed",
+  "transferDropHint": "Drop torrent files here, or paste a magnet link",
+  "transferEmptyHint": "Drop a torrent file or paste a magnet link. Rivu keeps downloading in the background.",
+  "transferEtaHours": "About {hours, number, ::group-off} hr {minutes, number, ::group-off} min",
+  "@transferEtaHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "transferEtaMinutes": "About {minutes, number, ::group-off} min",
+  "@transferEtaMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "transferEtaSeconds": "About {seconds, number, ::group-off} sec",
+  "@transferEtaSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "transferFetchingMetadata": "Fetching metadata",
+  "transferFileSummary": "Files · {size}",
+  "@transferFileSummary": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "transferFilesReady": "Files are ready",
+  "transferFilterTag": "Filter by tag",
+  "transferName": "Name",
+  "transferNameAndProgress": "Name & progress",
+  "transferNoMatches": "No matching transfers",
+  "transferNoMatchesHint": "Try another category or clear your search.",
+  "transferNotSelected": "Not selected",
+  "transferOverview": "Overview",
+  "transferPause": "Pause",
+  "transferPauseAll": "Pause All",
+  "transferPaused": "Transfer paused",
+  "transferPeerCount": "Connected peers: {count, number, ::group-off}",
+  "@transferPeerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transferPeersConnected": "Peers connected",
+  "transferProgress": "Download progress",
+  "transferProgressLabel": "Progress",
+  "transferRemoveMenu": "Remove…",
+  "transferRemoveSelected": "Remove Selected",
+  "transferResume": "Resume",
+  "transferResumeBatch": "Resume Paused Batch",
+  "transferRetry": "Retry Transfer",
+  "transferRetryHint": "Resolve the issue and retry",
+  "transferSaveTags": "Save Tags",
+  "transferSearch": "Search transfers",
+  "transferSelectHint": "Select a transfer to see its details.",
+  "transferShareRatio": "Share ratio",
+  "transferSort": "Sort Transfers",
+  "transferSortLabel": "Sort: {sort}",
+  "@transferSortLabel": {
+    "placeholders": {
+      "sort": {
+        "type": "String"
+      }
+    }
+  },
+  "transferSpeedLimit": "Speed Limit",
+  "transferStartFirst": "Start First",
+  "transferStatus": "Status",
+  "transferTags": "Tags (comma separated)",
+  "transferTimeRemaining": "Time remaining",
+  "transferToggleDetails": "Toggle Transfer Details",
+  "transferToggleSelected": "Pause or Resume Selected",
+  "transferUpload": "Upload",
+  "transferUploadSpeed": "↑ Upload speed",
+  "transferUploaded": "Uploaded",
+  "transferVerify": "Verify Data",
+  "transferWaitingFileList": "Waiting for file list and size",
+  "transferWaitingMetadata": "Waiting for metadata",
+  "transferWaitingResume": "Waiting to resume",
+  "trayActiveCount": "Active transfers: {count, number, ::group-off}",
+  "@trayActiveCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayAttentionCount": "Transfers needing attention: {count, number, ::group-off}",
+  "@trayAttentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayControl": "Control {name}",
+  "@trayControl": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trayEmpty": "No downloads yet. Add a torrent to begin.",
+  "trayNoActive": "No active downloads.",
+  "trayOpenWindow": "Open Main Window",
+  "trayViewAttention": "View Transfers Needing Attention",
+  "updatesAutoCheck": "Check for updates automatically",
+  "updatesAutoCheckHint": "Check daily with your permission",
+  "updatesAutoInstall": "Install automatically when idle",
+  "updatesAutoInstallHint": "Install when no downloads, checks, or seeding are active",
+  "updatesCheck": "Check for Updates",
+  "updatesCheckComplete": "Check complete",
+  "updatesCheckFailed": "Check failed",
+  "updatesCheckHint": "Check for a new version to keep Rivu up to date.",
+  "updatesChecking": "Checking for updates…",
+  "updatesDownloadAndInstall": "Download and Install Update…",
+  "updatesInstall": "Install Update",
+  "updatesInstallFailed": "Installation failed",
+  "updatesInstallHint": "Automatic installation is off by default. Your session is saved before installing; you choose when to restart.",
+  "updatesInstalled": "Installed. Please restart.",
+  "updatesInstalling": "Downloading and installing…",
+  "updatesLastChecked": "Last checked: {time}",
+  "@updatesLastChecked": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "updatesNotChecked": "Not checked yet",
+  "updatesNothingToInstall": "No update is available to install",
+  "updatesRestartRequired": "Update installed; restart required",
+  "updatesSaveAndRestart": "Save and Restart",
+  "updatesSourceUnavailable": "No signed update source is configured, or the installation is not writable. Check releases on GitHub.",
+  "updatesUnavailable": "Updates unavailable",
+  "updatesUpToDate": "You're up to date",
+  "updatesVersionAvailable": "Rivu {version} is available",
+  "@updatesVersionAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "mygo.undo": "Undo",
+  "mygo.cut": "Cut",
+  "mygo.copy": "Copy",
+  "mygo.paste": "Paste",
+  "mygo.delete": "Delete",
+  "mygo.selectAll": "Select All",
+  "mygo.close": "Close",
+  "mygo.more": "More",
+  "mygo.menuUndo": "Undo",
+  "mygo.menuRedo": "Redo",
+  "mygo.menuCut": "Cut",
+  "mygo.menuCopy": "Copy",
+  "mygo.menuPaste": "Paste",
+  "mygo.menuPasteAndMatchStyle": "Paste and Match Style",
+  "mygo.menuDelete": "Delete",
+  "mygo.menuSelectAll": "Select All",
+  "mygo.menuReload": "Reload",
+  "mygo.menuForceReload": "Force Reload",
+  "mygo.menuToggleDevTools": "Toggle Developer Tools",
+  "mygo.menuActualSize": "Actual Size",
+  "mygo.menuZoomIn": "Zoom In",
+  "mygo.menuZoomOut": "Zoom Out",
+  "mygo.menuToggleFullScreen": "Toggle Full Screen",
+  "mygo.menuMinimize": "Minimize",
+  "mygo.menuZoom": "Zoom",
+  "mygo.menuBringAllToFront": "Bring All to Front",
+  "mygo.menuClose": "Close",
+  "mygo.menuCloseWindow": "Close Window",
+  "mygo.menuNew": "New",
+  "mygo.menuOpen": "Open…",
+  "mygo.menuOpenRecent": "Open Recent",
+  "mygo.menuSave": "Save",
+  "mygo.menuSaveAs": "Save As…",
+  "mygo.menuDuplicate": "Duplicate",
+  "mygo.menuRename": "Rename…",
+  "mygo.menuMoveTo": "Move To…",
+  "mygo.menuRevert": "Revert",
+  "mygo.menuRevertToSaved": "Revert to Saved",
+  "mygo.menuQuitApp": "Quit {app}",
+  "mygo.menuAbout": "About {app}",
+  "mygo.menuHide": "Hide {app}",
+  "mygo.menuQuit": "Quit",
+  "mygo.menuExit": "Exit",
+  "mygo.menuHideOthers": "Hide Others",
+  "mygo.menuShowAll": "Show All",
+  "mygo.menuServices": "Services",
+  "mygo.menuStartSpeaking": "Start Speaking",
+  "mygo.menuStopSpeaking": "Stop Speaking",
+  "mygo.menuFile": "File",
+  "mygo.menuEdit": "Edit",
+  "mygo.menuView": "View",
+  "mygo.menuFormat": "Format",
+  "mygo.menuWindow": "Window",
+  "mygo.menuHelp": "Help",
+  "mygo.menuBold": "Bold",
+  "mygo.menuItalic": "Italic",
+  "mygo.menuUnderline": "Underline",
+  "mygo.menuStrikethrough": "Strikethrough",
+  "mygo.menuAlignLeft": "Align Left",
+  "mygo.menuCenter": "Center",
+  "mygo.menuAlignRight": "Align Right",
+  "mygo.menuSpeech": "Speech",
+  "mygo.menuClearRecent": "Clear Menu",
+  "mygo.cancel": "Cancel",
+  "mygo.save": "Save",
+  "mygo.ok": "OK",
+  "mygo.open": "Open",
+  "mygo.selectFolder": "Select Folder"
+}

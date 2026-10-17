@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
+	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func problemText(issue *problem.Error, fallback string) string {
@@ -15,17 +15,17 @@ func problemText(issue *problem.Error, fallback string) string {
 		return fallback
 	}
 	labels := map[problem.Code]string{
-		problem.DiskFull:        tr("recovery.diskFull"),
-		problem.Destination:     tr("recovery.destination"),
-		problem.Metadata:        tr("recovery.metadata"),
-		problem.Persistence:     tr("recovery.persistence"),
-		problem.RestoreDisabled: tr("recovery.restoreDisabled"),
-		problem.Conflict:        tr("files.destinationConflict"),
-		problem.Engine:          tr("recovery.engine"),
+		problem.DiskFull:        locales.RecoveryDiskFull(),
+		problem.Destination:     locales.RecoveryDestination(),
+		problem.Metadata:        locales.RecoveryMetadata(),
+		problem.Persistence:     locales.RecoveryPersistence(),
+		problem.RestoreDisabled: locales.RecoveryRestoreDisabled(),
+		problem.Conflict:        locales.FilesDestinationConflict(),
+		problem.Engine:          locales.RecoveryEngine(),
 	}
 	text := labels[issue.Code]
-	if issue.Key != "" {
-		return text + "\n" + fmt.Sprintf(strings.ReplaceAll(tr(issue.Key), "%w", "%v"), issue.Args...)
+	if issue.Message != nil {
+		return text + "\n" + issue.Message(locales.In(i18n.Locale()))
 	}
 	if issue.Context != "" {
 		text += "\n" + issue.Context
@@ -39,10 +39,10 @@ func taskError(task session.Task) string { return problemText(task.Issue, task.E
 
 func (w *mainWindow) chooseRelocation(id string) {
 	var destination string
-	w.run(tr("files.chooseDownloadFolder"), func(context.Context) (string, error) {
+	w.run(locales.FilesChooseDownloadFolder(), func(context.Context) (string, error) {
 		var err error
 		destination, err = w.desktop.PickFolder()
-		return tr("files.folderSelected"), err
+		return locales.FilesFolderSelected(), err
 	}, func() {
 		w.relocateID, w.relocatePath, w.relocateOpen = id, destination, true
 	})
@@ -53,13 +53,13 @@ func (w *mainWindow) relocationConfirmation(c *ui.Context) {
 	}
 	ui.DialogBase(c, &w.relocateOpen, func(_, panel ui.Element) {
 		panel.Width(460).Padding(24).Gap(12).Children(func() {
-			ui.Text(c, tr("relocation.confirm")).Bold()
+			ui.Text(c, locales.RelocationConfirm()).Bold()
 			ui.Text(c, w.relocatePath).MaxLines(3)
-			ui.Text(c, tr("relocation.hint"))
-			if ui.Button(c, tr("common.cancel")).Clicked() {
+			ui.Text(c, locales.RelocationHint())
+			if ui.Button(c, locales.CommonCancel()).Clicked() {
 				w.relocateOpen = false
 			}
-			if ui.Button(c, tr("relocation.confirm")).Clicked() {
+			if ui.Button(c, locales.RelocationConfirm()).Clicked() {
 				w.app.execute(session.Command{Kind: session.CommandRelocate, IDs: []string{w.relocateID}, Destination: w.relocatePath})
 				w.relocateOpen = false
 			}

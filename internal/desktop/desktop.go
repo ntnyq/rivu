@@ -11,8 +11,7 @@ import (
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/transfer"
-
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
 var ErrCanceled = errors.New("dialog canceled")
@@ -20,7 +19,7 @@ var ErrCanceled = errors.New("dialog canceled")
 type Service struct{ Parent *mygo.Window }
 
 func (s Service) PickFolder() (string, error) {
-	paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: s.Parent, Title: i18n.T("files.chooseDownloadFolder"), Directory: true})
+	paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Parent: s.Parent, Title: locales.FilesChooseDownloadFolder(), Directory: true})
 	if err != nil {
 		return "", err
 	}

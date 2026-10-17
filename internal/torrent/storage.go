@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/ntnyq/rivu/internal/problem"
 	"io"
 	"maps"
 	"os"
@@ -18,8 +17,10 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	btstorage "github.com/anacrolix/torrent/storage"
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
 	"github.com/ntnyq/rivu/internal/storage"
+	"github.com/ntnyq/rivu/locales"
 )
 
 // Rooted storage resolves every payload open relative to an OS directory
@@ -241,7 +242,7 @@ func (s *rootedStorage) openWrite(name string) (*os.File, error) {
 	}
 	if !stat.Mode().IsRegular() || (s.owners[name] != id && s.adopted[name] != id) {
 		f.Close()
-		return nil, problem.Message(problem.Conflict, "files.replaced", name)
+		return nil, problem.Message(problem.Conflict, func(m locales.Messages) string { return m.FilesReplaced(name) }, nil)
 	}
 	return f, nil
 }

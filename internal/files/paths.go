@@ -2,12 +2,14 @@ package files
 
 import (
 	"fmt"
-	"github.com/ntnyq/rivu/internal/problem"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/ntnyq/rivu/internal/problem"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func ValidateMembers(names []string) error {
@@ -41,21 +43,21 @@ func ValidateMembers(names []string) error {
 // explicitly create a default directory or pick an existing one before import.
 func ValidateDestination(dir string) error {
 	if !filepath.IsAbs(dir) {
-		return problem.Message(problem.Destination, "files.absolutePathRequired")
+		return problem.Message(problem.Destination, locales.Messages.FilesAbsolutePathRequired, nil)
 	}
 	stat, err := os.Stat(dir)
 	if err != nil {
 		return problem.New(problem.Destination, dir, err)
 	}
 	if !stat.IsDir() {
-		return problem.Message(problem.Destination, "files.notFolder")
+		return problem.Message(problem.Destination, locales.Messages.FilesNotFolder, nil)
 	}
 	entry, err := os.Lstat(dir)
 	if err != nil {
 		return err
 	}
 	if entry.Mode()&os.ModeSymlink != 0 {
-		return problem.Message(problem.Destination, "files.symlinkFolder")
+		return problem.Message(problem.Destination, locales.Messages.FilesSymlinkFolder, nil)
 	}
 	return nil
 }
@@ -92,7 +94,7 @@ func InspectExisting(dir string, names []string, allowExisting bool) (map[string
 				return nil, e
 			}
 			if st.Mode()&os.ModeSymlink != 0 || (i == len(parts)-1 && (!allowExisting || !st.Mode().IsRegular())) || (i < len(parts)-1 && !st.IsDir()) {
-				return nil, problem.Message(problem.Destination, "files.unsafeDestination", rel)
+				return nil, problem.Message(problem.Destination, func(m locales.Messages) string { return m.FilesUnsafeDestination(rel) }, nil)
 			}
 			if i == len(parts)-1 {
 				id, err := FileIdentity(st)

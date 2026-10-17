@@ -6,8 +6,9 @@ import (
 	"strconv"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/i18n"
 	"github.com/ntnyq/rivu/internal/config"
-	"github.com/ntnyq/rivu/internal/i18n"
+	"github.com/ntnyq/rivu/locales"
 )
 
 func (w *settingsWindow) saveSettings() {
@@ -16,7 +17,7 @@ func (w *settingsWindow) saveSettings() {
 	var err error
 	s.Concurrent, err = strconv.Atoi(w.concurrent)
 	if err != nil {
-		w.report(tr("settings.invalidConcurrency"), err)
+		w.report(locales.SettingsInvalidConcurrency(), err)
 		return
 	}
 	s.SeedRatio = 0
@@ -30,12 +31,12 @@ func (w *settingsWindow) saveSettings() {
 		}
 	}
 	if err != nil {
-		w.report(tr("settings.invalidSeedRatio"), err)
+		w.report(locales.SettingsInvalidSeedRatio(), err)
 		return
 	}
 	s.ListenPort, err = strconv.Atoi(w.listenPort)
 	if err != nil {
-		w.report(tr("settings.invalidPort"), err)
+		w.report(locales.SettingsInvalidPort(), err)
 		return
 	}
 	for _, v := range []struct {
@@ -44,31 +45,36 @@ func (w *settingsWindow) saveSettings() {
 	}{{w.downloadLimit, &s.DownloadLimit}, {w.uploadLimit, &s.UploadLimit}, {w.slowDownload, &s.SlowDownload}, {w.slowUpload, &s.SlowUpload}} {
 		*v.value, err = v.input.bytes()
 		if err != nil {
-			w.report(tr("settings.invalidSpeedLimit"), err)
+			w.report(locales.SettingsInvalidSpeedLimit(), err)
 			return
 		}
 	}
 	s.SeedLimitSeconds, err = parseScaled(w.seedHours, 3600)
 	if err != nil {
-		w.report(tr("settings.invalid"), err)
+		w.report(locales.SettingsInvalid(), err)
 		return
 	}
 	s.ScheduleStart, err = clockMinute(w.scheduleStart)
 	if err != nil {
-		w.report(tr("settings.invalid"), err)
+		w.report(locales.SettingsInvalid(), err)
 		return
 	}
 	s.ScheduleEnd, err = clockMinute(w.scheduleEnd)
 	if err != nil {
-		w.report(tr("settings.invalid"), err)
+		w.report(locales.SettingsInvalid(), err)
 		return
 	}
 	if err = s.Validate(); err != nil {
-		w.report(tr("settings.invalid"), err)
+		w.report(locales.SettingsInvalid(), err)
 		return
 	}
-	language := i18n.Resolve(s.Language, mygo.App.Locale())
-	w.run(tr("settings.save"), func(context.Context) (string, error) {
+	// Resolve against the user's languages, rather than the currently selected
+	// app language, so switching back to the system works from any override.
+	language := localePreference(s.Language)
+	if language == "" {
+		language = i18n.Match(mygo.App.PreferredLanguages(), locales.Catalog.Languages())
+	}
+	w.run(locales.SettingsSave(), func(context.Context) (string, error) {
 		if w.app != nil {
 			w.app.settingsMu.Lock()
 			defer w.app.settingsMu.Unlock()
@@ -76,7 +82,7 @@ func (w *settingsWindow) saveSettings() {
 		old := w.store.Snapshot()
 		if old.Login != s.Login {
 			if err := mygo.App.SetOpenAtLogin(s.Login); err != nil {
-				return "", fmt.Errorf(tr("settings.login.registrationFailed"), err)
+				return "", messageError{locales.SettingsLoginRegistrationFailed(err), err}
 			}
 		}
 		if err := w.store.SavePreferences(s); err != nil {
@@ -90,7 +96,7 @@ func (w *settingsWindow) saveSettings() {
 				return "", err
 			}
 		}
-		return i18n.Translate(language, "settings.saved"), nil
+		return locales.In(language).SettingsSaved(), nil
 	}, func() {
 		w.settings = w.store.Snapshot()
 		applyTheme(w.settings.Theme)
@@ -102,11 +108,11 @@ func (w *settingsWindow) saveSettings() {
 				main.dispatch(func() { main.settings = w.settings; main.refreshDisk() })
 			}
 		}
-		w.loginStatus = fmt.Sprintf(tr("settings.login.status"), mygo.App.OpenAtLogin())
+		w.loginStatus = locales.SettingsLoginStatus(mygo.App.OpenAtLogin())
 	})
 }
 func (w *mainWindow) saveQuitPreference() {
-	w.run(tr("settings.saveQuitPreference"), func(context.Context) (string, error) {
-		return tr("common.saved"), w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
+	w.run(locales.SettingsSaveQuitPreference(), func(context.Context) (string, error) {
+		return locales.CommonSaved(), w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
 	}, w.app.shutdown)
 }

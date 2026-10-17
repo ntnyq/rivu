@@ -10,6 +10,7 @@ import (
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/session"
 	"github.com/ntnyq/rivu/internal/updater"
+	"github.com/ntnyq/rivu/locales"
 )
 
 type application struct {
@@ -32,7 +33,7 @@ type application struct {
 
 func (a *application) report(err error) {
 	if err != nil {
-		a.openWindow().report(tr("common.operationFailed"), err)
+		a.openWindow().report(locales.CommonOperationFailed(), err)
 	}
 }
 func (a *application) receive(sources []string) {
@@ -105,10 +106,10 @@ func (a *application) notifications(s session.Snapshot) {
 			a.notifying[t.ID] = true
 			go func() {
 				if settings.NotifyComplete {
-					n := mygo.NewNotification(mygo.NotificationOptions{ID: fmt.Sprintf("rivu-%s-%d", t.ID, t.Epoch), Title: tr("notification.complete"), Body: t.Source.Name})
+					n := mygo.NewNotification(mygo.NotificationOptions{ID: fmt.Sprintf("rivu-%s-%d", t.ID, t.Epoch), Title: locales.NotificationComplete(), Body: t.Source.Name})
 					n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.selectOnly(t.ID) }) })
 					if err := n.Show(); err != nil {
-						mygo.RunOnMain(func() { a.report(fmt.Errorf(tr("notification.deliveryFailed"), err)) })
+						mygo.RunOnMain(func() { a.report(messageError{locales.NotificationDeliveryFailed(err), err}) })
 					}
 				}
 				err := a.session.Execute(context.Background(), session.Command{Kind: session.CommandNotified, IDs: []string{t.ID}})
@@ -123,7 +124,7 @@ func (a *application) notifications(s session.Snapshot) {
 		if settings.NotifyError && t.Error != "" && a.errorsSeen[t.ID] != t.Error {
 			a.errorsSeen[t.ID] = t.Error
 			go func() {
-				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: tr("notification.attention"), Body: t.Source.Name + "：" + taskError(t)})
+				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: locales.NotificationAttention(), Body: t.Source.Name + "：" + taskError(t)})
 				n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.filter = 5; w.selectOnly(t.ID) }) })
 				_ = n.Show()
 			}()
@@ -158,7 +159,7 @@ func (a *application) shutdown() {
 		mygo.RunOnMain(func() {
 			a.quitting = false
 			if err != nil {
-				a.report(fmt.Errorf(tr("quit.saveFailed"), err))
+				a.report(messageError{locales.QuitSaveFailed(err), err})
 				return
 			}
 			a.shutdownReady = true
