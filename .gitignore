@@ -12,3 +12,4 @@ dist/
 *.test
 *.prof
 coverage.out
+mygo-update.key

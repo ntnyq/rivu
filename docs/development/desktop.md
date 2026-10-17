@@ -31,7 +31,7 @@ On the development macOS arm64 host, the app bundle builds with ad-hoc signing, 
 
 MyGo v0.4.8 exposes boolean login observation and notification support, not every OS authorization state. Rivu reports observed values and original errors without inferring richer permission states. The detailed native status adapters proposed in the plan remain a release gap.
 
-Windows and Linux compilation do not establish desktop support. Safe file ownership currently has a macOS/Linux adapter; unsupported platforms refuse payload writes. Do not publish Windows packages as functional download clients until that adapter and native testing exist.
+Release packages target macOS, Windows, and Linux. Validate installation, startup, file associations, tray behavior, transfers, and clean exit on each OS before publishing the draft; cross-compilation alone does not cover these checks. The recorded native checks below were performed on macOS. Known Windows limitation: safe payload ownership and free-space adapters are still unavailable, so new downloads can be refused. Track this limitation in release review; producing an installer does not verify transfer behavior.
 
 ## Visual parity checks
 

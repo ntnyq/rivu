@@ -24,7 +24,7 @@ The October 13 refactor adds isolated magnetic-link preview, structured recovery
 
 This is not a claim that every milestone's hardware acceptance gate has passed. The original plan remains the acceptance reference.
 
-- Production Developer ID signing, notarization, update hosting and verification keys are not available. The updater coordinator exists, but a full signed replacement/restart has not been exercised.
+- GitHub Releases update feeds and the embedded verification key are configured. Release builds require the matching Actions signing secret and verify signed archives before tagging. A local macOS universal build passed a disposable-bundle test: a bad signature retained the old app, and a valid update replaced it and launched the new executable. Public-release delivery, the complete settings/session/restart flow, and native Windows/Linux updates still require acceptance testing. Production Developer ID signing and notarization remain unavailable.
 - Detailed macOS login/notification authorization adapters, multi-monitor flyout behavior, VoiceOver and permission-denial/revocation flows need packaged native acceptance.
 - Forced-termination injection across every persistence/Trash boundary remains to be expanded. Large-list profiling and regression benchmarks are recorded in [the refactor report](refactor-validation.md).
 - Upload totals can lag up to one checkpoint interval after a crash. Session error holds are runtime observations; durable user pauses survive restart, while environmental failures are detected again on admission.

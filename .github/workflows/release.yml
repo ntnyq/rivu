@@ -9,14 +9,14 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
-  release:
+  prepare:
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: macos-latest
     timeout-minutes: 45
@@ -26,8 +26,6 @@ jobs:
     env:
       RELEASE_VERSION: ${{ inputs.version }}
       RELEASE_BRANCH: ${{ github.event.repository.default_branch }}
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,6 +34,14 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Require update signing key
+        env:
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
+        run: |
+          if [ -z "$MYGO_UPDATER_PRIVATE_KEY" ]; then
+            echo 'Missing repository secret MYGO_UPDATER_PRIVATE_KEY; refusing an unsigned release.' >&2
+            exit 1
+          fi
       - name: Prepare version and changelog
         run: |
           python3 <<'PY'
@@ -73,11 +79,20 @@ jobs:
           previous = next((value for value in tags if re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", value)), None)
           if previous and tuple(map(int, version.split("."))) <= tuple(map(int, previous[1:].split("."))):
               raise SystemExit("The release version must be newer than the previous tag.")
-          commits = git("log", "--reverse", "--format=- %s (%h)", f"{previous}..HEAD" if previous else "HEAD")
+          commits = git("log", "--reverse", "--no-merges", "--format=%h%x09%s", f"{previous}..HEAD" if previous else "HEAD")
           if not commits:
               raise SystemExit("There are no commits to release.")
+          visible = re.compile(r"^(feat|fix|refactor)(\([^()\n]+\))?!?:\s+\S")
+          changes = []
+          for commit in commits.splitlines():
+              sha, _, subject = commit.partition("\t")
+              if visible.match(subject):
+                  changes.append(f"- {subject} ({sha})")
+          changes = "\n".join(changes)
+          if not changes:
+              changes = "No user-facing changes in this release."
           date = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
-          notes = f"## {version} ({date})\n\n{commits}\n"
+          notes = f"## {version} ({date})\n\n{changes}\n"
           if previous:
               url = f'{os.environ["GITHUB_SERVER_URL"]}/{os.environ["GITHUB_REPOSITORY"]}'
               notes += f"\n[Full Changelog]({url}/compare/{previous}...{tag})\n"
@@ -91,25 +106,114 @@ jobs:
           source_path.write_text(source)
           history = changelog.removeprefix("# Changelog\n").lstrip()
           changelog_path.write_text("# Changelog\n\n" + notes + ("\n" + history if history else ""))
-          pathlib.Path(os.environ["RUNNER_TEMP"], "release-notes.md").write_text(notes)
+          pathlib.Path("RELEASE_NOTES.md").write_text(notes)
           PY
       - name: Verify formatting
         run: test -z "$(gofmt -l .)"
       - name: Test with race detector
         run: go test -race ./...
+      - name: Verify translations and generated accessors
+        run: |
+          make i18n
+          make generate
+          git diff --exit-code -- locales/catalog_gen.go
+      - name: Local swarm integration
+        run: make integration
       - name: Vet Go and native UI
         run: |
           go vet ./...
           go tool mygo vet
-      - name: Build release packages
-        run: go tool mygo build -platform darwin/universal
-      - name: Collect release assets
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-source
+          path: |
+            internal/app/run.go
+            mygo.json
+            CHANGELOG.md
+            RELEASE_NOTES.md
+          if-no-files-found: error
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin/universal
+            target: darwin-universal
+          - os: windows-latest
+            platform: windows/amd64
+            target: windows-amd64
+          - os: ubuntu-24.04
+            platform: linux/amd64
+            target: linux-amd64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-source
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build release package
+        env:
+          BUILD_PLATFORM: ${{ matrix.platform }}
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
+        run: go tool mygo build -platform "$BUILD_PLATFORM"
+      - name: Verify and collect signed release assets
+        env:
+          BUILD_TARGET: ${{ matrix.target }}
+        run: go run ./tools/releaseassets -target "$BUILD_TARGET"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-package-${{ matrix.target }}
+          path: build/release/
+          if-no-files-found: error
+
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_BRANCH: ${{ github.event.repository.default_branch }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-source
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: release-package-*
+          path: build/release
+          merge-multiple: true
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Verify combined update assets before tagging
         run: |
-          mkdir -p build/release
-          cp build/darwin-universal/*.dmg build/release/
-          cp "$RUNNER_TEMP/release-notes.md" build/release/RELEASE_NOTES.md
+          for target in darwin-universal windows-amd64 linux-amd64; do
+            go run ./tools/releaseassets -target "$target" -source build/release
+          done
+      - name: Prepare release notes and checksums
+        run: |
+          cp RELEASE_NOTES.md build/release/
           cd build/release
-          shasum -a 256 ./*.dmg ./RELEASE_NOTES.md > SHA256SUMS
+          sha256sum ./* > SHA256SUMS
       - uses: actions/upload-artifact@v7
         with:
           name: release-v${{ inputs.version }}
@@ -128,4 +232,4 @@ jobs:
           gh release create "v${RELEASE_VERSION}" build/release/* \
             --verify-tag --draft \
             --title "v${RELEASE_VERSION}" \
-            --notes-file "$RUNNER_TEMP/release-notes.md"
+            --notes-file RELEASE_NOTES.md
