@@ -1,6 +1,6 @@
 # 认识 Rivu
 
-Rivu 是为 macOS 打造的原生 BitTorrent 应用。添加种子或磁力链接，选择需要的文件，通过主窗口或菜单栏查看传输进度。
+Rivu 是支持 macOS、Windows 和 Linux 的原生 BitTorrent 应用。添加种子或磁力链接，选择需要的文件，通过主窗口、菜单栏或系统托盘查看传输进度。
 
 ## 从你的需求开始
 
@@ -22,6 +22,6 @@ Rivu 是为 macOS 打造的原生 BitTorrent 应用。添加种子或磁力链�
 
 ## 当前可用性
 
-Rivu 面向 **macOS 12 及以上版本**，目前正在开发中，可通过[源码构建](getting-started.md)体验。正式签名分发和可信自动更新源仍在准备中。应用支持英语、简体中文、繁体中文、日语和韩语；文档提供英语和简体中文版本。
+Rivu 支持 **macOS 12 及以上版本、Windows 10 / 11 和 Linux**，目前正在开发中。GitHub 下载、安装、被 macOS 拦截时的打开方法与源码构建说明见[快速开始](getting-started.md)。当前 macOS 下载包尚未使用 Apple Developer ID 签名，也未经过 Apple 公证，新版发行构建支持从 GitHub Releases 获取签名更新。应用支持英语、简体中文、繁体中文、日语和韩语；文档提供英语和简体中文版本。
 
 源码、测试与打包说明见[开发者文档](../development/index.md)。

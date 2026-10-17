@@ -1,6 +1,12 @@
 # 故障排查
 
-先查看任务错误提示与 **连接** 页，修复原因后再重试。
+如果 Rivu 能正常打开，但传输出现问题，请先查看任务错误提示与 **连接** 页，修复原因后再重试。
+
+## macOS 阻止打开 Rivu
+
+当前 macOS 下载包尚未使用 Apple Developer ID 签名，也未经过 Apple 公证。如果 macOS 提示无法验证开发者或无法检查应用是否包含恶意软件，请先确认下载来源，再按[被 macOS 拦截时打开 Rivu](getting-started.md#被-macos-拦截时打开-rivu)操作。指南包含 macOS 13 及以上版本的**仍要打开**步骤，以及 macOS 12 对应的设置入口。
+
+如果验证弹窗只提供**移到废纸篓**和**完成**，请点击**完成**保留 Rivu。然后进入 **系统设置 → 隐私与安全性**，向下滚动到**安全性**，在 Rivu 被阻止的提示旁点击**仍要打开**，按要求验证身份后，在确认框中点击**打开**。
 
 ## 磁力链接被拒绝或无法解析
 
@@ -41,11 +47,7 @@
 
 ## 备份或修复会话
 
-应用数据默认位于：
-
-```text
-~/Library/Application Support/Rivu
-```
+应用数据默认位置因系统而异：macOS 为 `~/Library/Application Support/Rivu`，Windows 为 `%AppData%\Rivu`，Linux 为 `$XDG_CONFIG_HOME/Rivu`（未设置时为 `~/.config/Rivu`）。详见[数据保存位置](settings.md#数据保存位置)。
 
 其中包含 `settings.json`、`session.json`、不可变种子元数据和文件归属日志。文件夹监视账本位于配置文件旁边；下载内容独立保存在各任务的目标目录。
 
@@ -57,8 +59,8 @@
 
 ## 更新检查不可用
 
-源码中尚未提供可信发布配置。更新检查不可用不代表当前构建已是最新版本，获取方式见[当前可用性](faq.md#在哪里下载)。
+请使用安装在可写位置的发行构建。开发模式、未配置更新源的旧版本和只读安装无法自行更新。macOS 请将 Rivu 从 DMG 复制到“应用程序”；Linux DEB 安装请通过包管理器更新。未配置更新源的旧版本需要先手动安装一次支持更新的发行版。显示不可用不代表已经是最新版，详见[更新设置](settings.md#更新)。
 
 ## 仍然需要帮助？
 
-搜索已有 [GitHub Issues](https://github.com/ntnyq/rivu/issues)，再提交 macOS 版本、Rivu 版本、复现步骤与完整错误。截图或日志中请去除私有路径与 Tracker 凭据。
+搜索已有 [GitHub Issues](https://github.com/ntnyq/rivu/issues)，再提交 操作系统与版本、Rivu 版本、复现步骤与完整错误。截图或日志中请去除私有路径与 Tracker 凭据。

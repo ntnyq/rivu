@@ -18,9 +18,15 @@ See [managing transfers](managing-transfers.md) for limits and seeding behavior,
 
 ## Updates
 
-The updater interface exists, but release signing and a trusted update feed are still being prepared. An **unavailable** result means Rivu cannot check a trusted feed; it does not establish that your build is up to date.
+In **Updates & About**, choose **Check for Updates** to check the latest published stable GitHub Release. New release builds verify downloaded update archives with an embedded public key before replacing the app. Draft releases are not offered.
+
+Automatic checking and automatic installation are both off by default. Enable automatic checking and save to check approximately once a day. Automatic installation is a separate opt-in and waits until the transfer session is idle, including no active seeding. After installation, choose **Save and Restart**; Rivu does not automatically restart during transfers.
+
+Use an installed app in a writable location: on macOS, copy Rivu to Applications rather than running it from the DMG. Linux DEB installations should be updated with the package manager; the per-user `install.sh` installation supports in-app updates when writable. Development mode and older builds without update configuration report **unavailable**, which does not mean the build is current. Install an update-enabled release manually once to migrate an older build.
 
 ## Keyboard shortcuts
+
+The shortcuts below use macOS notation. On Windows and Linux, use **Ctrl** in place of **⌘**.
 
 | Shortcut | Action                   |
 | -------- | ------------------------ |
@@ -35,6 +41,14 @@ The command palette provides another way to find application commands. Pause-all
 
 ## Where your data lives
 
-By default, preferences and session data are stored in `~/Library/Application Support/Rivu`. Downloaded files live in the destination selected for each task.
+Preferences and session data use the system configuration directory:
+
+| System  | Default location                                      |
+| ------- | ----------------------------------------------------- |
+| macOS   | `~/Library/Application Support/Rivu`                  |
+| Windows | `%AppData%\Rivu`                                      |
+| Linux   | `$XDG_CONFIG_HOME/Rivu`, or `~/.config/Rivu` if unset |
+
+Downloaded files live in the destination selected for each task.
 
 For backups and recovery, see [troubleshooting](troubleshooting.md#back-up-or-repair-a-session). Developers can override storage locations with [launch options](../development/index.md#launch-options).

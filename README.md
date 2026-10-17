@@ -5,7 +5,7 @@
 <h1 align="center">Rivu</h1>
 
 <p align="center"><strong>Let your downloads flow quietly.</strong></p>
-<p align="center">A native BitTorrent app for macOS. Choose your files, manage your queue, and keep downloading in the background.</p>
+<p align="center">A native BitTorrent app for macOS, Windows, and Linux. Choose your files, manage your queue, and keep downloading in the background.</p>
 
 <p align="center">
   <a href="https://rivu.ntnyq.dev">Website</a> ·
@@ -16,6 +16,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/macOS-12%2B-111827?logo=apple" alt="macOS 12 or later">
+  <img src="https://img.shields.io/badge/Windows-10%2F11-0078D4" alt="Windows 10 / 11">
+  <img src="https://img.shields.io/badge/Linux-GTK%203-FCC624?logo=linux" alt="Linux with GTK 3">
   <img src="https://img.shields.io/badge/status-in%20development-2563eb" alt="In development">
 </p>
 
@@ -28,7 +30,7 @@
 
 ## Why Rivu?
 
-- **Made for macOS.** Native windows, light and dark appearances, keyboard shortcuts, and a command palette. Built with Go and MyGo.
+- **Native on macOS, Windows, and Linux.** Native windows, light and dark appearances, keyboard shortcuts, and a command palette. Built with Go and MyGo.
 - **Download only what you need.** Add torrent files or magnet links, preview their contents, and choose files and priorities. Supports v1, v2, and hybrid torrents.
 - **Keep your queue in order.** Search, sort, and tag transfers. Set bandwidth and concurrent-download limits, pause a batch, and preserve individual pauses.
 - **Pick up where you left off.** Restore tasks after restarting and verify existing data before continuing. Reuse downloads or point a task to a different location.
@@ -39,7 +41,7 @@ Removing a task keeps its files by default. Moving downloaded files to Trash is 
 
 ## Close the window. Keep downloading.
 
-Rivu stays available in the menu bar while transfers run in the background. Check progress, pause the queue, switch speed limits, or add a download without reopening the main window.
+Rivu stays available in the menu bar or system tray while transfers run in the background. Check progress, pause the queue, switch speed limits, or add a download without reopening the main window.
 
 <p align="center">
   <img src="docs/images/menu-bar.png" alt="Rivu menu bar panel with active transfers and quick controls" width="360">
@@ -55,20 +57,28 @@ Rivu stays available in the menu bar while transfers run in the background. Chec
 
 ## Get started
 
-Rivu targets **macOS 12 or later** and is in active development. The current way to try it is to build from source. Signed distribution and automatic updates are still being prepared.
+Rivu supports **macOS, Windows, and Linux** and is in active development. Download the package for your system from [GitHub Releases](https://github.com/ntnyq/rivu/releases):
+
+| System          | Release package                            | Installation                                                                                      |
+| --------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| macOS 12+       | Universal `.dmg` (Apple Silicon and Intel) | Open it and drag **Rivu.app** to **Applications**.                                                |
+| Windows 10 / 11 | x64 `Setup .exe`                           | Run the installer.                                                                                |
+| Linux           | x64 `.deb` or `.tar.gz` with `install.sh`  | Install the DEB, or download the archive and script into the same folder and run `sh install.sh`. |
+
+Current macOS downloads do not have Apple Developer ID signing or Apple notarization. If macOS blocks the first launch, follow [Open Rivu when macOS blocks it](https://rivu.ntnyq.dev/guide/getting-started.html#open-rivu-when-macos-blocks-it). New release builds support signed updates from GitHub Releases; see [update settings](https://rivu.ntnyq.dev/guide/settings.html#updates).
 
 The current application version is **0.0.1**. The project pins **MyGo v0.5.5** and its CLI tool in `go.mod`; no separate MyGo installation is needed.
 
-With Go 1.27.2 or later installed on your Mac:
+To build from source, install Go 1.27.2 or later on your system and run:
 
 ```sh
 git clone https://github.com/ntnyq/rivu.git
 cd rivu
 go mod download
-make run
+go run .
 ```
 
-To package a local app bundle, run `go tool mygo build -skip-dmg`. See the [getting started guide](https://rivu.ntnyq.dev/guide/getting-started.html) for your first download and the [development guide](https://rivu.ntnyq.dev/development/) for build details.
+To package the app for your system, run `go tool mygo build`. On macOS, add `-skip-dmg` to create only the app bundle. See the [getting started guide](https://rivu.ntnyq.dev/guide/getting-started.html) for your first download and the [development guide](https://rivu.ntnyq.dev/development/) for build details.
 
 ## Speaks your language
 
@@ -81,7 +91,7 @@ Rivu follows your system language. You can choose another language in **Settings
 - [User guide](https://rivu.ntnyq.dev/guide/) — adding downloads, managing transfers, automation, and settings.
 - [Troubleshooting](https://rivu.ntnyq.dev/guide/troubleshooting.html) — magnet links, connection issues, and recovering a session.
 - [Development](https://rivu.ntnyq.dev/development/) — building, testing, architecture, and release preparation.
-- [GitHub Issues](https://github.com/ntnyq/rivu/issues) — report a bug or suggest a feature. Include your macOS version, Rivu version, and steps to reproduce.
+- [GitHub Issues](https://github.com/ntnyq/rivu/issues) — report a bug or suggest a feature. Include your operating system and version, Rivu version, and steps to reproduce.
 
 To work on the documentation locally, run `pnpm install` and `pnpm docs:dev`. Use `pnpm docs:build` to validate the site. Keep English and Chinese pages aligned.
 

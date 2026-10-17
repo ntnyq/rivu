@@ -1,6 +1,12 @@
 # Troubleshooting
 
-Start with the task's error message and the **Connections** tab. Fix the underlying condition before retrying.
+If Rivu opens but a transfer fails, start with the task's error message and the **Connections** tab. Fix the underlying condition before retrying.
+
+## macOS blocks Rivu from opening
+
+Current macOS downloads do not have Apple Developer ID signing or Apple notarization. If macOS cannot verify the developer or check the app for malicious software, follow [Open Rivu when macOS blocks it](getting-started.md#open-rivu-when-macos-blocks-it) after confirming the download's source. The guide covers **Open Anyway** on macOS 13 or later and the corresponding macOS 12 settings.
+
+If the verification alert offers only **Move to Trash** and **Done**, click **Done** to keep Rivu. Then go to **System Settings → Privacy & Security**, scroll to **Security**, and click **Open Anyway** beside the message about Rivu. Authenticate if prompted, then click **Open** in the confirmation dialog.
 
 ## A magnet link is rejected or cannot resolve
 
@@ -41,11 +47,7 @@ Check that the destination disk is available and writable, then follow the repor
 
 ## Back up or repair a session
 
-The default application-data directory is:
-
-```text
-~/Library/Application Support/Rivu
-```
+The default application-data directory depends on your system: `~/Library/Application Support/Rivu` on macOS, `%AppData%\Rivu` on Windows, and `$XDG_CONFIG_HOME/Rivu` (or `~/.config/Rivu`) on Linux. See [data locations](settings.md#where-your-data-lives).
 
 It contains `settings.json`, `session.json`, immutable torrent metadata, and file-ownership journals. The watch-folder ledger is stored beside the configured settings file. Download payload lives separately in each task's destination.
 
@@ -57,8 +59,8 @@ Restored transfers recheck actual data. Upload totals and cumulative seeding tim
 
 ## Update checks are unavailable
 
-A trusted release configuration is not yet supplied in the source tree. An unavailable update check does not mean the installed build is current. See [current availability](faq.md#where-can-i-download-rivu).
+Use a release build installed in a writable location. Development mode, older builds without update configuration, and read-only installations cannot update themselves. On macOS, copy Rivu out of the DMG into Applications. On Linux, update a DEB installation through the package manager. Install an update-enabled release manually once if your older build has no update configuration. An unavailable result does not mean the build is current; see [update settings](settings.md#updates).
 
 ## Still need help?
 
-Search [GitHub Issues](https://github.com/ntnyq/rivu/issues), then report your macOS version, Rivu version, steps to reproduce, and the exact error. Remove private paths and tracker credentials from screenshots or logs.
+Search [GitHub Issues](https://github.com/ntnyq/rivu/issues), then report your operating system and version, Rivu version, steps to reproduce, and the exact error. Remove private paths and tracker credentials from screenshots or logs.

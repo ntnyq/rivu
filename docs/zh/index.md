@@ -2,12 +2,12 @@
 layout: home
 title: 让下载安静流动
 titleTemplate: Rivu
-description: 为 macOS 打造的原生 BitTorrent 应用。选择文件、管理队列，让下载在后台继续。
+description: 支持 macOS、Windows 和 Linux 的原生 BitTorrent 应用。选择文件、管理队列，让下载在后台继续。
 
 hero:
   name: Rivu
   text: 让下载安静流动。
-  tagline: 为 macOS 打造的原生 BitTorrent 应用。选择需要的文件，整理下载队列，让传输在后台继续。
+  tagline: 支持 macOS、Windows 和 Linux 的原生 BitTorrent 应用。选择需要的文件，整理下载队列，让传输在后台继续。
   image:
     src: /icon.png
     alt: Rivu 应用图标
@@ -23,7 +23,7 @@ hero:
       link: https://github.com/ntnyq/rivu
 
 features:
-  - title: 融入你的 Mac
+  - title: 融入你的桌面
     details: 原生窗口、浅色与深色外观、键盘快捷键和菜单栏面板。
     link: /zh/guide/settings
   - title: 只下载所需文件
@@ -69,7 +69,7 @@ features:
 [阅读快速开始 →](guide/getting-started.md)
 
 ::: info 当前版本
-Rivu 面向 macOS 12 及以上版本，正在开发中，目前可通过源码构建体验。正式签名分发和自动更新仍在准备中。
+Rivu 支持 macOS 12 及以上版本、Windows 10 / 11 和 Linux。从 [GitHub Releases](https://github.com/ntnyq/rivu/releases) 下载对应系统的安装包，也可从源码构建。安装方法与 Linux 依赖见[快速开始](guide/getting-started.md)。新版发行构建支持从 GitHub Releases 获取签名更新；Apple Developer ID 签名与公证仍在准备中。
 :::
 
 ## 使用你熟悉的语言

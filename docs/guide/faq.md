@@ -2,11 +2,11 @@
 
 ## Which platforms are supported?
 
-Rivu targets **macOS 12 or later**. Windows and Linux builds are currently compilation checks, rather than supported releases.
+Rivu supports **macOS 12 or later, Windows 10 / 11, and Linux**. Releases include a universal macOS DMG, a Windows x64 installer, and Linux x64 DEB and archive packages. Linux needs GTK 3, plus AppIndicator for the tray. See [installation](getting-started.md#get-rivu) for details.
 
 ## Where can I download Rivu?
 
-The current way to try Rivu is a [local source build](getting-started.md). Signed distribution and automatic updates are still being prepared. The documentation site is [rivu.ntnyq.dev](https://rivu.ntnyq.dev).
+Download Rivu from the project's [GitHub Releases](https://github.com/ntnyq/rivu/releases), or [build it from source](getting-started.md#build-from-source). Current macOS downloads do not have Apple Developer ID signing or Apple notarization; see [how to open Rivu if macOS blocks it](getting-started.md#open-rivu-when-macos-blocks-it). New release builds support signed updates from GitHub Releases; see [update settings](settings.md#updates). The documentation site is [rivu.ntnyq.dev](https://rivu.ntnyq.dev).
 
 ## What can Rivu download?
 
@@ -34,4 +34,4 @@ The app supports English, Simplified Chinese, Traditional Chinese, Japanese, and
 
 ## How do I report a problem?
 
-Check [troubleshooting](troubleshooting.md) and existing [GitHub Issues](https://github.com/ntnyq/rivu/issues), then open an issue with your macOS version, Rivu version, expected behavior, and steps to reproduce. Remove tracker credentials and private paths from attached diagnostics.
+Check [troubleshooting](troubleshooting.md) and existing [GitHub Issues](https://github.com/ntnyq/rivu/issues), then open an issue with your operating system and version, Rivu version, expected behavior, and steps to reproduce. Remove tracker credentials and private paths from attached diagnostics.

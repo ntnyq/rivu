@@ -127,7 +127,7 @@ const zhDevelopmentSidebar: DefaultTheme.SidebarItem[] = [
 export default defineConfig({
   title: 'Rivu',
   description:
-    'A native BitTorrent app for macOS. Choose your files, manage your queue, and keep downloading in the background.',
+    'A native BitTorrent app for macOS, Windows, and Linux. Choose your files, manage your queue, and keep downloading in the background.',
   lastUpdated: true,
   sitemap: { hostname: 'https://rivu.ntnyq.dev' },
   transformHead({ pageData }) {
@@ -244,14 +244,14 @@ export default defineConfig({
           text: 'Edit this page on GitHub',
         },
         footer: {
-          message: 'A native BitTorrent app for macOS.',
+          message: 'A native BitTorrent app for macOS, Windows, and Linux.',
         },
       },
     },
     zh: {
       label: '简体中文',
       lang: 'zh-Hans',
-      description: '为 macOS 打造的原生 BitTorrent 下载器。',
+      description: '支持 macOS、Windows 和 Linux 的原生 BitTorrent 下载器。',
       markdown: {
         container: {
           tipLabel: '提示',
@@ -359,7 +359,9 @@ export default defineConfig({
           linkLabel: '返回首页',
           linkText: '返回首页',
         },
-        footer: { message: '为 macOS 打造的原生 BitTorrent 应用。' },
+        footer: {
+          message: '支持 macOS、Windows 和 Linux 的原生 BitTorrent 应用。',
+        },
       },
     },
   },

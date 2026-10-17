@@ -2,12 +2,12 @@
 layout: home
 title: Let your downloads flow quietly
 titleTemplate: Rivu
-description: A native BitTorrent app for macOS. Choose your files, manage your queue, and keep downloading in the background.
+description: A native BitTorrent app for macOS, Windows, and Linux. Choose your files, manage your queue, and keep downloading in the background.
 
 hero:
   name: Rivu
   text: Let your downloads flow quietly.
-  tagline: A native BitTorrent app for macOS. Choose your files, manage your queue, and keep downloading in the background.
+  tagline: A native BitTorrent app for macOS, Windows, and Linux. Choose your files, manage your queue, and keep downloading in the background.
   image:
     src: /icon.png
     alt: Rivu app icon
@@ -23,7 +23,7 @@ hero:
       link: https://github.com/ntnyq/rivu
 
 features:
-  - title: At home on your Mac
+  - title: At home on your desktop
     details: Native windows, light and dark appearances, keyboard shortcuts, and a menu bar panel.
     link: /guide/settings
   - title: Choose what to download
@@ -69,7 +69,7 @@ Leave transfers in the background and check speeds and progress from the menu ba
 [Read the getting started guide →](guide/getting-started.md)
 
 ::: info Current availability
-Rivu is in active development for macOS 12 or later. You can currently try it by building from source. Signed distribution and automatic updates are still being prepared.
+Rivu supports macOS 12 or later, Windows 10 / 11, and Linux. Download the package for your system from [GitHub Releases](https://github.com/ntnyq/rivu/releases), or build from source. See [Get started](guide/getting-started.md) for installation and Linux dependencies. New release builds support signed updates from GitHub Releases. Apple Developer ID signing and notarization are still being prepared.
 :::
 
 ## Speaks your language

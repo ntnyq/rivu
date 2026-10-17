@@ -2,11 +2,11 @@
 
 ## 支持哪些平台？
 
-Rivu 面向 **macOS 12 及以上版本**。Windows 与 Linux 构建目前用于编译检查，尚未提供受支持的发布版本。
+Rivu 支持 **macOS 12 及以上版本、Windows 10 / 11 和 Linux**。发布产物包括 macOS 通用 DMG、Windows x64 安装程序，以及 Linux x64 DEB 和压缩包。Linux 需要 GTK 3，托盘还需要 AppIndicator。详见[安装说明](getting-started.md#获取-rivu)。
 
 ## 在哪里下载？
 
-目前可以通过[本地源码构建](getting-started.md)体验。正式签名分发和自动更新仍在准备中。文档站地址为 [rivu.ntnyq.dev](https://rivu.ntnyq.dev/zh/)。
+从项目的 [GitHub Releases](https://github.com/ntnyq/rivu/releases) 下载，也可以[从源码构建](getting-started.md#从源码构建)。当前 macOS 下载包尚未使用 Apple Developer ID 签名，也未经过 Apple 公证；首次打开被拦截时，请参考[被 macOS 拦截时打开 Rivu](getting-started.md#被-macos-拦截时打开-rivu)。新版发行构建支持从 GitHub Releases 获取签名更新，使用方式见[更新设置](settings.md#更新)。文档站地址为 [rivu.ntnyq.dev](https://rivu.ntnyq.dev/zh/)。
 
 ## 可以下载哪些内容？
 
@@ -34,4 +34,4 @@ Rivu 会先校验实际数据再继续。保存的百分比无法证明文件完
 
 ## 如何反馈问题？
 
-先阅读[故障排查](troubleshooting.md)并搜索已有 [GitHub Issues](https://github.com/ntnyq/rivu/issues)，再附上 macOS 版本、Rivu 版本、预期行为与复现步骤。提交诊断信息前，请去除 Tracker 凭据与私有路径。
+先阅读[故障排查](troubleshooting.md)并搜索已有 [GitHub Issues](https://github.com/ntnyq/rivu/issues)，再附上 操作系统与版本、Rivu 版本、预期行为与复现步骤。提交诊断信息前，请去除 Tracker 凭据与私有路径。

@@ -1,6 +1,6 @@
 # Meet Rivu
 
-Rivu is a native BitTorrent app for macOS. Add a torrent or magnet link, choose what to download, and follow your transfers from the main window or menu bar.
+Rivu is a native BitTorrent app for macOS, Windows, and Linux. Add a torrent or magnet link, choose what to download, and follow your transfers from the main window, menu bar, or system tray.
 
 ## What you can do
 
@@ -22,6 +22,6 @@ Closing the window keeps transfers running while Rivu remains open. Quitting sav
 
 ## Current availability
 
-Rivu is in active development for **macOS 12 or later**. You can [build it from source](getting-started.md); signed distribution and a trusted automatic-update feed are still being prepared. The app supports English, Simplified Chinese, Traditional Chinese, Japanese, and Korean. This documentation is available in English and Simplified Chinese.
+Rivu is in active development for **macOS 12 or later, Windows 10 / 11, and Linux**. See [Get started](getting-started.md) for GitHub downloads, installation, opening Rivu when macOS blocks it, and source builds. Current macOS downloads do not have Apple Developer ID signing or Apple notarization, and new release builds support signed updates from GitHub Releases. The app supports English, Simplified Chinese, Traditional Chinese, Japanese, and Korean. This documentation is available in English and Simplified Chinese.
 
 For source code, tests, and packaging, see the [developer documentation](../development/index.md).
