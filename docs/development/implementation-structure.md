@@ -25,6 +25,14 @@ rivu/
 ├── locales/
 ├── tools/genicon/
 └── docs/
+    ├── guide/
+    ├── development/
+    ├── history/
+    ├── design/
+    ├── images/
+    ├── public/
+    ├── zh/
+    └── .vitepress/
 ```
 
 Application filenames below are relative to `internal/app/`; session and torrent filenames are relative to their respective packages.
@@ -47,4 +55,4 @@ Tests remain beside implementations, including application tests in `internal/ap
 
 `go run .` and MyGo dev/build commands still use the root entry. `make snapshots` targets `internal/app`; the release workflow updates the version in `internal/app/run.go`.
 
-See [architecture](architecture.md) for ownership and persistence contracts, [validation report](refactor-validation.md) for feature behavior, and [desktop acceptance](desktop.md) before release. The [October 12 proposed tree](history/implementation-structure-2026-10-12.md) is retained as historical design, not current implementation documentation.
+See [architecture](architecture.md) for ownership and persistence contracts, [validation report](refactor-validation.md) for feature behavior, and [desktop acceptance](desktop.md) before release. The [October 12 proposed tree](../history/implementation-structure-2026-10-12.md) is retained as historical design, not current implementation documentation.

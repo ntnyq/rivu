@@ -1,6 +1,10 @@
+---
+search: false
+---
+
 # Rivu 界面原型
 
-此原型仅用于评审，配合[产品设计](../product-design.md)阅读。应用继续使用 Go + MyGo 原生 UI；这里的 HTML、CSS 和 JavaScript 不代表应用迁移到 Web 前端。
+此原型仅用于评审，配合[产品设计](../history/product-design.md)阅读。应用继续使用 Go + MyGo 原生 UI；这里的 HTML、CSS 和 JavaScript 不代表应用迁移到 Web 前端。
 
 原型界面文案为中文。站点文档提供中英文版本。
 

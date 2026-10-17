@@ -1,9 +1,159 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig, type DefaultTheme } from 'vitepress'
+
+const developmentSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: 'Developer documentation',
+    items: [
+      {
+        text: 'Build and run',
+        link: '/development/',
+      },
+      {
+        text: 'Architecture',
+        link: '/development/architecture',
+      },
+      {
+        text: 'Source structure',
+        link: '/development/implementation-structure',
+      },
+      {
+        text: 'Feature validation',
+        link: '/development/refactor-validation',
+      },
+      {
+        text: 'Desktop acceptance',
+        link: '/development/desktop',
+      },
+      {
+        text: 'Release readiness',
+        link: '/development/implementation-status',
+      },
+      {
+        text: 'Packaging and releases',
+        link: '/development/releasing',
+      },
+    ],
+  },
+  {
+    text: 'Historical design',
+    collapsed: true,
+    items: [
+      {
+        text: 'About the archive',
+        link: '/history/',
+      },
+      {
+        text: 'Product specification',
+        link: '/history/product-design',
+      },
+      {
+        text: 'Implementation plan',
+        link: '/history/implementation-plan',
+      },
+      {
+        text: 'Proposed source tree',
+        link: '/history/implementation-structure-2026-10-12',
+      },
+      {
+        text: 'Visual prototype',
+        link: '/design/README',
+      },
+    ],
+  },
+]
+
+const zhDevelopmentSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: '开发者文档',
+    items: [
+      {
+        text: '构建与运行',
+        link: '/zh/development/',
+      },
+      {
+        text: '架构与状态归属',
+        link: '/zh/development/architecture',
+      },
+      {
+        text: '源码结构',
+        link: '/zh/development/implementation-structure',
+      },
+      {
+        text: '功能验证',
+        link: '/zh/development/refactor-validation',
+      },
+      {
+        text: '桌面验收',
+        link: '/zh/development/desktop',
+      },
+      {
+        text: '发布状态',
+        link: '/zh/development/implementation-status',
+      },
+      {
+        text: '构建与发布',
+        link: '/zh/development/releasing',
+      },
+    ],
+  },
+  {
+    text: '历史设计',
+    collapsed: true,
+    items: [
+      {
+        text: '归档说明',
+        link: '/zh/history/',
+      },
+      {
+        text: '产品设计',
+        link: '/zh/history/product-design',
+      },
+      {
+        text: '实施计划',
+        link: '/zh/history/implementation-plan',
+      },
+      {
+        text: '早期目录规划',
+        link: '/zh/history/implementation-structure-2026-10-12',
+      },
+      {
+        text: '视觉原型',
+        link: '/zh/design/README',
+      },
+    ],
+  },
+]
 
 export default defineConfig({
   title: 'Rivu',
-  description: 'A native BitTorrent downloader for macOS.',
+  description:
+    'A native BitTorrent app for macOS. Choose your files, manage your queue, and keep downloading in the background.',
   lastUpdated: true,
+  sitemap: { hostname: 'https://rivu.ntnyq.dev' },
+  transformHead({ pageData }) {
+    const pagePath = pageData.relativePath
+      .replace(/index\.md$/, '')
+      .replace(/\.md$/, '.html')
+    const url = new URL(pagePath, 'https://rivu.ntnyq.dev/').href
+
+    return [
+      ['link', { rel: 'canonical', href: url }],
+      ['meta', { property: 'og:url', content: url }],
+      ['meta', { property: 'og:type', content: 'website' }],
+      [
+        'meta',
+        {
+          property: 'og:title',
+          content: pageData.title ? `${pageData.title} | Rivu` : 'Rivu',
+        },
+      ],
+      ['meta', { property: 'og:description', content: pageData.description }],
+      [
+        'meta',
+        { property: 'og:image', content: 'https://rivu.ntnyq.dev/icon.png' },
+      ],
+    ]
+  },
   head: [
     [
       'link',
@@ -20,50 +170,81 @@ export default defineConfig({
       lang: 'en',
       themeConfig: {
         nav: [
-          { text: 'Guide', link: '/usage' },
-          { text: 'Development', link: '/development' },
-          { text: 'Release status', link: '/implementation-status' },
-        ],
-        sidebar: [
           {
-            text: 'Get started',
-            items: [
-              { text: 'Using Rivu', link: '/usage' },
-              { text: 'Build and run', link: '/development' },
-            ],
+            text: 'Guide',
+            link: '/guide/',
+            activeMatch: '^/guide/(?!faq)',
           },
           {
-            text: 'Engineering',
-            items: [
-              { text: 'Architecture', link: '/architecture' },
-              { text: 'Source structure', link: '/implementation-structure' },
-              { text: 'Feature validation', link: '/refactor-validation' },
-              { text: 'Desktop acceptance', link: '/desktop' },
-              { text: 'Implementation status', link: '/implementation-status' },
-              { text: 'Releasing', link: '/releasing' },
-            ],
+            text: 'FAQ',
+            link: '/guide/faq',
           },
           {
-            text: 'Historical design',
-            collapsed: true,
-            items: [
-              { text: 'Product specification', link: '/product-design' },
-              { text: 'Implementation plan', link: '/implementation-plan' },
-              {
-                text: 'Proposed source tree',
-                link: '/history/implementation-structure-2026-10-12',
-              },
-              { text: 'Visual prototype', link: '/design/README' },
-            ],
+            text: 'Developers',
+            link: '/development/',
+            activeMatch: '/(development|history|design)/',
           },
         ],
+        sidebar: {
+          '/guide/': [
+            {
+              text: 'Get started',
+              items: [
+                {
+                  text: 'Meet Rivu',
+                  link: '/guide/',
+                },
+                {
+                  text: 'Your first download',
+                  link: '/guide/getting-started',
+                },
+              ],
+            },
+            {
+              text: 'Using Rivu',
+              items: [
+                {
+                  text: 'Add downloads',
+                  link: '/guide/adding-downloads',
+                },
+                {
+                  text: 'Manage transfers',
+                  link: '/guide/managing-transfers',
+                },
+                {
+                  text: 'Automation',
+                  link: '/guide/automation',
+                },
+                {
+                  text: 'Settings & shortcuts',
+                  link: '/guide/settings',
+                },
+              ],
+            },
+            {
+              text: 'Help',
+              items: [
+                {
+                  text: 'FAQ',
+                  link: '/guide/faq',
+                },
+                {
+                  text: 'Troubleshooting',
+                  link: '/guide/troubleshooting',
+                },
+              ],
+            },
+          ],
+          '/development/': developmentSidebar,
+          '/history/': developmentSidebar,
+          '/design/': developmentSidebar,
+        },
         editLink: {
           pattern: 'https://github.com/ntnyq/rivu/edit/main/docs/:path',
           text: 'Edit this page on GitHub',
         },
         footer: {
-          message:
-            'Built with Go and MyGo. Documentation powered by VitePress.',
+          message: 'A native BitTorrent app for macOS.',
         },
       },
     },
@@ -83,43 +264,75 @@ export default defineConfig({
       },
       themeConfig: {
         nav: [
-          { text: '使用指南', link: '/zh/usage' },
-          { text: '开发指南', link: '/zh/development' },
-          { text: '发布状态', link: '/zh/implementation-status' },
-        ],
-        sidebar: [
           {
-            text: '开始使用',
-            items: [
-              { text: '使用 Rivu', link: '/zh/usage' },
-              { text: '构建与运行', link: '/zh/development' },
-            ],
+            text: '使用指南',
+            link: '/zh/guide/',
+            activeMatch: '^/zh/guide/(?!faq)',
           },
           {
-            text: '工程文档',
-            items: [
-              { text: '架构与状态归属', link: '/zh/architecture' },
-              { text: '源码结构', link: '/zh/implementation-structure' },
-              { text: '功能与验证报告', link: '/zh/refactor-validation' },
-              { text: '桌面行为与验收', link: '/zh/desktop' },
-              { text: '实现状态', link: '/zh/implementation-status' },
-              { text: '构建与发布', link: '/zh/releasing' },
-            ],
+            text: '常见问题',
+            link: '/zh/guide/faq',
           },
           {
-            text: '历史设计',
-            collapsed: true,
-            items: [
-              { text: '产品设计', link: '/zh/product-design' },
-              { text: '实施计划', link: '/zh/implementation-plan' },
-              {
-                text: '早期目录规划',
-                link: '/zh/history/implementation-structure-2026-10-12',
-              },
-              { text: '视觉原型', link: '/zh/design/README' },
-            ],
+            text: '开发者',
+            link: '/zh/development/',
+            activeMatch: '/zh/(development|history|design)/',
           },
         ],
+        sidebar: {
+          '/zh/guide/': [
+            {
+              text: '开始使用',
+              items: [
+                {
+                  text: '认识 Rivu',
+                  link: '/zh/guide/',
+                },
+                {
+                  text: '快速开始',
+                  link: '/zh/guide/getting-started',
+                },
+              ],
+            },
+            {
+              text: '使用 Rivu',
+              items: [
+                {
+                  text: '添加下载',
+                  link: '/zh/guide/adding-downloads',
+                },
+                {
+                  text: '管理传输',
+                  link: '/zh/guide/managing-transfers',
+                },
+                {
+                  text: '自动化',
+                  link: '/zh/guide/automation',
+                },
+                {
+                  text: '设置与快捷键',
+                  link: '/zh/guide/settings',
+                },
+              ],
+            },
+            {
+              text: '帮助',
+              items: [
+                {
+                  text: '常见问题',
+                  link: '/zh/guide/faq',
+                },
+                {
+                  text: '故障排查',
+                  link: '/zh/guide/troubleshooting',
+                },
+              ],
+            },
+          ],
+          '/zh/development/': zhDevelopmentSidebar,
+          '/zh/history/': zhDevelopmentSidebar,
+          '/zh/design/': zhDevelopmentSidebar,
+        },
         editLink: {
           pattern: 'https://github.com/ntnyq/rivu/edit/main/docs/:path',
           text: '在 GitHub 上编辑此页',
@@ -146,7 +359,7 @@ export default defineConfig({
           linkLabel: '返回首页',
           linkText: '返回首页',
         },
-        footer: { message: '使用 Go 和 MyGo 构建，文档由 VitePress 驱动。' },
+        footer: { message: '为 macOS 打造的原生 BitTorrent 应用。' },
       },
     },
   },

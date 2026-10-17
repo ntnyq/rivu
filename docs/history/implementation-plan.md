@@ -1,10 +1,14 @@
+---
+search: false
+---
+
 # Rivu Code Implementation Plan
 
-> Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](architecture.md), [source structure](implementation-structure.md), and [implementation status](implementation-status.md).
+> Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](../development/architecture.md), [source structure](../development/implementation-structure.md), and [implementation status](../development/implementation-status.md).
 
 Date: October 12, 2026. Status: implementation design; native transfer features are not implemented by this document.
 
-Implement the [product requirements](product-design.md) and [screen prototype](design/README.md) as a Go and MyGo macOS application. Use [the proposed file structure](implementation-structure.md) as the file ownership guide. Preserve the existing native stack, introduce one application-owned transfer session, and make the main window and menu bar panel projections of that session.
+Implement the [product requirements](product-design.md) and [screen prototype](../design/README.md) as a Go and MyGo macOS application. Use [the proposed file structure](implementation-structure-2026-10-12.md) as the file ownership guide. Preserve the existing native stack, introduce one application-owned transfer session, and make the main window and menu bar panel projections of that session.
 
 The design baseline comes from the chat [设计 macOS 种子下载器](codex://threads/01a12e83-53af-7360-9b8f-475021c5c0ac). Its P0 scope includes real torrent/magnet imports, file selection, queueing, seeding, recovery, desktop integration, and updates. RSS, remote control, streaming playback, accounts, and proxy routing remain outside this implementation.
 

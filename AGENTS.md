@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Rivu is a native Go/MyGo BitTorrent client targeting macOS. The root `main.go` delegates to `internal/app.Run`; `internal/app` owns startup, CLI, windows, views, menus, and tray integration as one package. Keep business logic in `internal/`: `session` owns transfer state, `torrent` adapts the engine, `config` stores preferences, and `files`, `storage`, `desktop`, and `windowtask` provide supporting services. `windowtask` manages cancellable window jobs, not transfers. Tests live beside implementations as `*_test.go`. Assets and their framework-independent embedding API belong in `resources/`; SVG parsing and UI controls stay in `internal/app/`; `tools/genicon/` generates icons. `docs/` describes architecture and releases; `docs/design/` is the visual reference. Generated packages and captures go in `build/` and `snapshots/`.
+Rivu is a native Go/MyGo BitTorrent client targeting macOS. The root `main.go` delegates to `internal/app.Run`; `internal/app` owns startup, CLI, windows, views, menus, and tray integration as one package. Keep business logic in `internal/`: `session` owns transfer state, `torrent` adapts the engine, `config` stores preferences, and `files`, `storage`, `desktop`, and `windowtask` provide supporting services. `windowtask` manages cancellable window jobs, not transfers. Tests live beside implementations as `*_test.go`. Assets and their framework-independent embedding API belong in `resources/`; SVG parsing and UI controls stay in `internal/app/`; `tools/genicon/` generates icons. `docs/guide/` contains product documentation, `docs/development/` covers engineering and releases, and `docs/history/` preserves earlier plans; `docs/design/` is the visual reference. Generated packages and captures go in `build/` and `snapshots/`.
 
 `locales/` contains MyGo ARB catalogs and generated typed Go accessors. Update all five languages together, use flat lower camel case keys and ICU named placeholders, then run `make generate` and `make i18n`. Commit `locales/catalog_gen.go`; do not edit generated accessors by hand. `make check` includes translation validation. Structured errors defer rendering through `locales.Messages` and preserve English diagnostics and wrapped causes. Tests that replace the global locale provider must remain serial and must not persist native locale preferences.
 
@@ -28,7 +28,7 @@ Follow `.editorconfig`: UTF-8, LF, final newlines, tabs for Go/Makefiles, and tw
 
 ## Testing Guidelines
 
-Use Go’s `testing` package, `TestXxx` names, and `t.TempDir()` fixtures. UI tests use MyGo’s `ui.NewTester`; swarm tests require the `integration` build tag and avoid public torrents. No numeric coverage threshold is configured. Test persistence failures, recovery, and changed transfer behavior. Before submission, run checks, race tests, integration tests, and MyGo vet. For native changes, follow `docs/desktop.md`; snapshots and cross-compilation cannot validate platform behavior.
+Use Go’s `testing` package, `TestXxx` names, and `t.TempDir()` fixtures. UI tests use MyGo’s `ui.NewTester`; swarm tests require the `integration` build tag and avoid public torrents. No numeric coverage threshold is configured. Test persistence failures, recovery, and changed transfer behavior. Before submission, run checks, race tests, integration tests, and MyGo vet. For native changes, follow `docs/development/desktop.md`; snapshots and cross-compilation cannot validate platform behavior.
 
 ## Commit & Pull Request Guidelines
 

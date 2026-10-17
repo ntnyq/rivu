@@ -1,6 +1,6 @@
 # Developing Rivu
 
-[Documentation home](index.md) · [User guide](usage.md) · [Release guide](releasing.md)
+[Documentation home](../index.md) · [User guide](../guide/index.md) · [Release guide](releasing.md)
 
 ## Requirements and dependencies
 
@@ -75,14 +75,26 @@ The development server supports live editing. The production build checks intern
 
 English content lives in `docs/` and matching Simplified Chinese pages in `docs/zh/`. Keep file names and directory structure aligned so language switching reaches the corresponding page. Both homepages use `layout: home`, `hero`, and `features`. Navigation, sidebars, local search and translated theme labels live in `docs/.vitepress/config.ts`.
 
-The default base path is `/`. For subpath hosting, use the same `DOCS_BASE` for build and preview, with both a leading and trailing slash:
+The production site is **https://rivu.ntnyq.dev**, served from `/`. Deploy `docs/.vitepress/dist` to the static host for that domain. The site uses default `.html` routes, so no extensionless URL rewrites are required. Canonical URLs and the sitemap use the production domain.
 
-```sh
-DOCS_BASE=/rivu/ pnpm docs:build
-DOCS_BASE=/rivu/ pnpm docs:preview
+For Vercel, set the project's **Root Directory** to `docs` and enable **Include source files outside of the Root Directory in the Build Step** so the root pnpm workspace, lockfile, and package manager declaration are available. Select Node.js 24.x and set `ENABLE_EXPERIMENTAL_COREPACK=1` in the project's environment variables to use the pnpm version pinned in the root `package.json`. The checked-in `docs/vercel.json` selects VitePress, installs with `pnpm install --frozen-lockfile`, runs `pnpm run build` from `docs`, and publishes `.vitepress/dist` while preserving `.html` URLs. Connect `rivu.ntnyq.dev` in the project's domain settings. See [Vercel configuration](https://vercel.com/docs/project-configuration/vercel-json) for the supported settings.
+
+The documentation is organized by audience:
+
+```text
+docs/
+├── index.md          # Product homepage
+├── guide/            # Getting started, features, settings, and help
+├── development/      # Build, architecture, verification, and releases
+├── history/          # Archived design and implementation plans
+├── design/           # Review-only visual prototype
+├── images/           # Product screenshots
+├── public/           # Static assets
+├── zh/               # Matching Simplified Chinese pages
+└── .vitepress/       # Site configuration and theme
 ```
 
-Deploy `docs/.vitepress/dist` to a static HTML host. The site uses default `.html` routes and does not require extensionless URL rewrites. Building documentation does not configure DNS, publish the app, or enable app updates.
+User-guide sidebars and developer sidebars are separate. Historical plans and the visual prototype are excluded from local search with `search: false`. When moving a page, update links, navigation, and its translated counterpart. Building the site does not deploy it or enable app updates.
 
 The site icon, `docs/public/icon.png`, is copied from `resources/icons/rivu-256.png`; refresh it when the app icon changes.
 
@@ -146,4 +158,4 @@ Native capture also accepts `RIVU_CAPTURE_SURFACE=settings-downloads` or `settin
 - [Implementation status](implementation-status.md): implemented behavior and remaining release gates.
 - [Desktop verification](desktop.md): native behavior and acceptance checks.
 - [Release guide](releasing.md): packaging, signing, updates, and licenses.
-- [Design reference](design/README.md): the review-only HTML prototype.
+- [Design reference](../design/README.md): the review-only HTML prototype.

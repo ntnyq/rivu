@@ -1,6 +1,10 @@
+---
+search: false
+---
+
 # Rivu Interface Prototype
 
-This review-only prototype accompanies the [Rivu product specification](../product-design.md). The application continues to use Go + MyGo native UI. These HTML, CSS, and JavaScript files are not an application frontend migration.
+This review-only prototype accompanies the [Rivu product specification](../history/product-design.md). The application continues to use Go + MyGo native UI. These HTML, CSS, and JavaScript files are not an application frontend migration.
 
 Documentation is in English. Interface copy remains Chinese for this design review.
 

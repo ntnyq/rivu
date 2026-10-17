@@ -1,10 +1,14 @@
+---
+search: false
+---
+
 # Rivu Implementation File Structure
 
 Date: October 12, 2026. Status: proposed implementation structure.
 
-Rivu will keep the existing Go 1.27.2 and MyGo v0.4.3 native stack. The root package composes application lifecycle, windows, views, and commands; `internal` owns transfer behavior, persistence, and native integration. The target below translates [the product design](../product-design.md) and [interactive prototype](../design/README.md) into implementation files. It is a plan, not a description of files already implemented.
+Rivu will keep the existing Go 1.27.2 and MyGo v0.4.3 native stack. The root package composes application lifecycle, windows, views, and commands; `internal` owns transfer behavior, persistence, and native integration. The target below translates [the product design](product-design.md) and [interactive prototype](../design/README.md) into implementation files. It is a plan, not a description of files already implemented.
 
-Read [the implementation plan](../implementation-plan.md) for contracts, state transitions, sequencing, and acceptance criteria. Keep the browser prototype under `docs/design` as a review reference; production views are Go code.
+Read [the implementation plan](implementation-plan.md) for contracts, state transitions, sequencing, and acceptance criteria. Keep the browser prototype under `docs/design` as a review reference; production views are Go code.
 
 ## Target source tree
 
@@ -135,17 +139,17 @@ rivu/
 
 ## Ownership and import rules
 
-| Module | Owns | Must not own |
-| --- | --- | --- |
+| Module      | Owns                                                             | Must not own                                         |
+| ----------- | ---------------------------------------------------------------- | ---------------------------------------------------- |
 | Root `main` | MyGo lifecycle, windows, tray handles, commands and presentation | Torrent internals or a second copy of transfer state |
-| `session` | Intent, queue, stable task records, orchestration and snapshots | MyGo objects or anacrolix objects |
-| `torrent` | Protocol execution, source parsing and engine storage adapter | Window lifetime or product pause/queue policy |
-| `config` | Preferences, validation and schema migration | Transfer counters and active engine state |
-| `desktop` | Native calls, capability/status observations | Scheduling or independent transfer control |
-| `files` | Destination safety, free space and ownership rules | UI state or protocol execution |
-| `updater` | Update lifecycle and policy | Direct task mutation or unconditional process exit |
-| `storage` | Atomic file primitives | Product schemas |
-| `tasks` | Short UI operations and stale callback suppression | Long-lived torrent sessions |
+| `session`   | Intent, queue, stable task records, orchestration and snapshots  | MyGo objects or anacrolix objects                    |
+| `torrent`   | Protocol execution, source parsing and engine storage adapter    | Window lifetime or product pause/queue policy        |
+| `config`    | Preferences, validation and schema migration                     | Transfer counters and active engine state            |
+| `desktop`   | Native calls, capability/status observations                     | Scheduling or independent transfer control           |
+| `files`     | Destination safety, free space and ownership rules               | UI state or protocol execution                       |
+| `updater`   | Update lifecycle and policy                                      | Direct task mutation or unconditional process exit   |
+| `storage`   | Atomic file primitives                                           | Product schemas                                      |
+| `tasks`     | Short UI operations and stale callback suppression               | Long-lived torrent sessions                          |
 
 `session` defines the engine contracts it consumes. `torrent` imports those ordinary Go types and implements the contracts; `session` never imports `torrent`. `main` constructs the implementations and passes them into `session`. A deterministic in-memory engine in session tests is the second adapter at this seam. Avoid a generic event bus, a dependency injection framework, and packages that only forward calls.
 
@@ -153,30 +157,30 @@ rivu/
 
 ## Mapping screens to files
 
-| Product surface | View and controller | Main behavior owner |
-| --- | --- | --- |
-| Main window | `window.go`, `view*.go`, `presentation.go` | `session.Manager` |
-| Overview, files and connections | `view_inspector.go` | Session snapshots plus selected-task detail observation |
-| Menu bar panel | `tray.go`, `tray_view.go` | Same session and shared command registry |
-| Add Download | `add_window.go`, `add_view.go` | `session/import.go`, `torrent/source.go`, `files` |
-| Remove confirmation | `remove_window.go` | `session/remove.go`, `files/ownership.go`, `desktop/trash.go` |
-| Settings | `settings_*.go` | `config`, session policy, desktop status and updater |
-| Update and restart | `settings_updates.go`, `lifecycle.go` | `updater` and application shutdown coordinator |
+| Product surface                 | View and controller                        | Main behavior owner                                           |
+| ------------------------------- | ------------------------------------------ | ------------------------------------------------------------- |
+| Main window                     | `window.go`, `view*.go`, `presentation.go` | `session.Manager`                                             |
+| Overview, files and connections | `view_inspector.go`                        | Session snapshots plus selected-task detail observation       |
+| Menu bar panel                  | `tray.go`, `tray_view.go`                  | Same session and shared command registry                      |
+| Add Download                    | `add_window.go`, `add_view.go`             | `session/import.go`, `torrent/source.go`, `files`             |
+| Remove confirmation             | `remove_window.go`                         | `session/remove.go`, `files/ownership.go`, `desktop/trash.go` |
+| Settings                        | `settings_*.go`                            | `config`, session policy, desktop status and updater          |
+| Update and restart              | `settings_updates.go`, `lifecycle.go`      | `updater` and application shutdown coordinator                |
 
 ## Migration from the starter
 
-| Existing file or behavior | Implementation change |
-| --- | --- |
-| `main.go` | Keep startup and event registration; move application ownership into `application.go`; route file/URL opens to import review |
-| `window.go` | Move application, tray and global shortcut ownership out; replace document/checksum state with local task selection and snapshots |
-| `view.go` | Replace five demo pages with the task layout; split substantial screen sections into the listed root files |
-| `menu.go` | Replace index-based action lookup with stable IDs in `commands()`; menus, palette and tray use the same handlers |
-| `internal/files/files.go` | Remove text-preview/checksum examples after their views and tests are replaced; add destination/ownership behavior |
-| `internal/tasks/task.go` | Retain for dialogs and draft work; do not expand it into a multi-transfer engine |
-| `internal/config/store.go` | Preserve corrupt-file protection and atomic publication; migrate theme and introduce typed Rivu preferences |
-| `internal/storage/atomic.go` | Retain and document durability limitations; add durability changes only where recovery requirements need them |
-| `mygo.json`, imports, capture variables | Adopt Rivu identity together; proposed module `github.com/ntnyq/rivu`, bundle ID `com.ntnyq.rivu`, environment prefix `RIVU_` |
-| `docs/architecture.md`, `docs/desktop.md` | Keep accurate for current code until each implementation change lands; do not describe this target as already working |
+| Existing file or behavior                 | Implementation change                                                                                                             |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `main.go`                                 | Keep startup and event registration; move application ownership into `application.go`; route file/URL opens to import review      |
+| `window.go`                               | Move application, tray and global shortcut ownership out; replace document/checksum state with local task selection and snapshots |
+| `view.go`                                 | Replace five demo pages with the task layout; split substantial screen sections into the listed root files                        |
+| `menu.go`                                 | Replace index-based action lookup with stable IDs in `commands()`; menus, palette and tray use the same handlers                  |
+| `internal/files/files.go`                 | Remove text-preview/checksum examples after their views and tests are replaced; add destination/ownership behavior                |
+| `internal/tasks/task.go`                  | Retain for dialogs and draft work; do not expand it into a multi-transfer engine                                                  |
+| `internal/config/store.go`                | Preserve corrupt-file protection and atomic publication; migrate theme and introduce typed Rivu preferences                       |
+| `internal/storage/atomic.go`              | Retain and document durability limitations; add durability changes only where recovery requirements need them                     |
+| `mygo.json`, imports, capture variables   | Adopt Rivu identity together; proposed module `github.com/ntnyq/rivu`, bundle ID `com.ntnyq.rivu`, environment prefix `RIVU_`     |
+| `docs/architecture.md`, `docs/desktop.md` | Keep accurate for current code until each implementation change lands; do not describe this target as already working             |
 
 ## Runtime data tree
 

@@ -1,0 +1,60 @@
+:root {
+  --vp-c-brand-1: #245bd6;
+  --vp-c-brand-2: #326de6;
+  --vp-c-brand-3: #245bd6;
+  --vp-c-brand-soft: #245bd614;
+  --vp-font-family-base:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+}
+
+.dark {
+  --vp-c-brand-1: #8eb5ff;
+  --vp-c-brand-2: #a7c6ff;
+  --vp-c-brand-3: #326de6;
+  --vp-c-brand-soft: #8eb5ff1a;
+}
+
+.VPHome .vp-doc {
+  max-width: 960px;
+  margin-inline: auto;
+  padding: 32px 24px 80px;
+}
+
+.VPHome .vp-doc h2 {
+  margin-top: 56px;
+}
+
+.VPHome .vp-doc > p {
+  max-width: 72ch;
+}
+
+.VPHome .vp-doc picture {
+  display: block;
+  margin-block: 24px 12px;
+}
+
+.VPHome .vp-doc picture img {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+}
+
+.VPHome .vp-doc small {
+  color: var(--vp-c-text-2);
+}
+
+@media (min-width: 960px) {
+  .VPHome .vp-doc {
+    padding-inline: 32px;
+  }
+}
+
+.VPHome .vp-doc .product-dark,
+.dark .VPHome .vp-doc .product-light {
+  display: none;
+}
+
+.dark .VPHome .vp-doc .product-dark {
+  display: block;
+}

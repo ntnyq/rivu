@@ -1,6 +1,10 @@
+---
+search: false
+---
+
 # Rivu Product and Interface Design
 
-> Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](architecture.md), [source structure](implementation-structure.md), and [implementation status](implementation-status.md).
+> Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](../development/architecture.md), [source structure](../development/implementation-structure.md), and [implementation status](../development/implementation-status.md).
 
 Date: October 12, 2026. Status: proposed product specification and interactive design prototype. The download engine and operating system integrations described here are not implemented by this deliverable.
 
@@ -8,7 +12,7 @@ Date: October 12, 2026. Status: proposed product specification and interactive d
 
 Rivu is a lightweight, macOS-first BitTorrent client. Use the menu bar for quick checks and controls, and the main window for managing tasks and inspecting details.
 
-Keep the existing Go 1.27.2 + MyGo v0.4.3 native application stack. The review prototype in [interactive prototype](design/README.md) is a standalone design aid, not the application's runtime architecture. It introduces no web frontend dependency into the Go application.
+Keep the existing Go 1.27.2 + MyGo v0.4.3 native application stack. The review prototype in [interactive prototype](../design/README.md) is a standalone design aid, not the application's runtime architecture. It introduces no web frontend dependency into the Go application.
 
 The initial interface uses Chinese copy, with room for English localization. Keep transfer logic and persistence platform-independent; prioritize macOS integration before other desktop platforms.
 
@@ -271,7 +275,7 @@ Required acceptance cases:
 - Automatic updates never force a restart during transfers. Failed checks do not become “up to date.” Invalid signatures leave the current app runnable.
 - During native implementation, run `make check`, `make race`, `go tool mygo vet`, and `make snapshots`. Separately test packaged macOS tray behavior, login items, associations, notifications, and updates. Cross-compilation does not validate these integrations.
 
-See [the prototype guide](design/README.md) for supported review interactions and limitations.
+See [the prototype guide](../design/README.md) for supported review interactions and limitations.
 
 ## References
 

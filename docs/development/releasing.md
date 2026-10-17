@@ -6,7 +6,7 @@
 - Bundle ID: `com.ntnyq.rivu`
 - Repository: `https://github.com/ntnyq/rivu`
 - Website: `https://rivu.ntnyq.dev`
-- Initial version: `0.1.0`
+- Initial version: `0.0.1`
 - macOS minimum: 12.0
 
 These values are configured locally. DNS, website hosting and a GitHub release are separate deployment steps.

@@ -25,6 +25,14 @@ rivu/
 ├── locales/
 ├── tools/genicon/
 └── docs/
+    ├── guide/
+    ├── development/
+    ├── history/
+    ├── design/
+    ├── images/
+    ├── public/
+    ├── zh/
+    └── .vitepress/
 ```
 
 下表应用文件名相对于 `internal/app/`，会话与种子适配器文件名相对于各自包目录。
@@ -47,4 +55,4 @@ rivu/
 
 `go run .` 和 MyGo 开发、构建命令继续使用根入口。`make snapshots` 针对 `internal/app` 运行，发布工作流更新 `internal/app/run.go` 中的版本号。
 
-状态归属与持久化契约见[架构](architecture.md)，功能行为见[验证报告](refactor-validation.md)，发布前阅读[桌面验收](desktop.md)。[10 月 12 日目录规划](history/implementation-structure-2026-10-12.md)保留为历史设计，不代表当前文件布局。
+状态归属与持久化契约见[架构](architecture.md)，功能行为见[验证报告](refactor-validation.md)，发布前阅读[桌面验收](desktop.md)。[10 月 12 日目录规划](../history/implementation-structure-2026-10-12.md)保留为历史设计，不代表当前文件布局。

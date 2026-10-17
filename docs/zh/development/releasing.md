@@ -6,7 +6,7 @@
 - Bundle ID：`com.ntnyq.rivu`
 - 仓库：`https://github.com/ntnyq/rivu`
 - 网站：`https://rivu.ntnyq.dev`
-- 初始版本：`0.1.0`
+- 初始版本：`0.0.1`
 - 最低 macOS 版本：12.0
 
 这些值已在本地配置。DNS、网站托管和 GitHub 发布是独立部署步骤。

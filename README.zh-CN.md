@@ -1,87 +1,90 @@
 <p align="center">
-  <img src="resources/icons/rivu-128.png" alt="Rivu 图标" width="80" height="80">
+  <img src="resources/icons/rivu-128.png" alt="Rivu 图标" width="96" height="96">
 </p>
 
 <h1 align="center">Rivu</h1>
 
-<p align="center"><a href="README.md">English</a> · 简体中文</p>
-
 <p align="center"><strong>让下载安静流动。</strong></p>
+<p align="center">为 macOS 打造的原生 BitTorrent 应用。选择需要的文件，整理下载队列，让传输在后台继续。</p>
 
 <p align="center">
-  为 macOS 打造的原生 BitTorrent 下载器。<br>
-  选择需要的文件，整理下载队列，把传输交给 Rivu。
+  <a href="https://rivu.ntnyq.dev/zh/">产品主页</a> ·
+  <a href="https://rivu.ntnyq.dev/zh/guide/getting-started.html">开始使用</a> ·
+  <a href="https://rivu.ntnyq.dev/zh/guide/">使用文档</a> ·
+  <a href="https://github.com/ntnyq/rivu/issues">问题反馈</a>
 </p>
 
 <p align="center">
-  <a href="#开始使用">开始使用</a> ·
-  <a href="docs/zh/usage.md">使用指南</a> ·
-  <a href="https://github.com/ntnyq/rivu/issues">反馈问题</a>
+  <img src="https://img.shields.io/badge/macOS-12%2B-111827?logo=apple" alt="macOS 12 及以上版本">
+  <img src="https://img.shields.io/badge/status-in%20development-2563eb" alt="开发中">
 </p>
+
+<p align="center"><a href="README.md">English</a> · 简体中文</p>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/main-dark.png">
-  <img src="docs/images/main-light.png" alt="Rivu 下载队列，展示传输进度、速度和所选任务的详细信息">
+  <img src="docs/images/main-light.png" alt="Rivu 下载队列，展示传输进度、速度与文件详情">
 </picture>
 
-## 下载状态，一目了然
+## 为什么选择 Rivu？
 
-查看正在下载、做种、已完成或需要处理的任务。搜索与排序传输列表，打开详情面板查看进度、文件与连接信息。
+- **为 Mac 而生。** 原生窗口、浅色与深色外观、键盘快捷键和命令面板，使用 Go 与 MyGo 构建。
+- **只下载需要的文件。** 添加种子或磁力链接，预览内容，选择文件并设置优先级。支持 v1、v2 和混合种子。
+- **让队列井然有序。** 搜索、排序和标记任务，限制带宽与并发下载数；批量暂停后恢复，保留单独暂停的任务。
+- **接着上次继续。** 重启后恢复任务，校验已有数据再继续下载；也可复用已有文件或修改任务位置。
+- **做种由你决定。** 完成后停止、达到目标分享率后停止，或限制做种时长；也可不限分享率持续做种。
+- **省去重复操作。** 按每日时段限速，监视文件夹并自动导入新种子。
 
-- **自由添加。** 打开 `.torrent` 文件、粘贴磁力链接，或将种子拖入窗口。支持 v1、v2 和混合种子。
-- **只下载所需文件。** 开始前选择文件、设置优先级与保存位置。磁力链接通过可取消的预览解析元数据。
-- **按自己的节奏传输。** 限制带宽与并发下载数，暂停单个任务或整个队列。恢复批量暂停时，保留之前单独暂停的任务。
-- **继续上次的进度。** 重启后保留任务与暂停意图，恢复传输时重新校验已下载数据。
-- **自主设定做种策略。** 下载完成后停止、达到目标分享率后停止，或不限分享率持续做种；也可设置累计做种时长。
-- **让整理更省心。** 按每日时段限速，使用标签管理任务，或监视文件夹自动导入新种子。
-- **复用已有数据。** 明确接管现有下载，或修改任务位置；Rivu 校验数据，并保留已有文件的删除权限边界。
-- **保留下载文件。** 移除任务默认保留文件；移到废纸篓是单独的选项。
+移除任务默认保留文件；将下载文件移到废纸篓需要单独选择。
 
 ## 关闭窗口，继续下载
 
-Rivu 在后台运行时会继续传输。通过菜单栏面板快速查看速度与活动任务，暂停传输、切换限速或添加下载。
+传输在后台运行时，Rivu 仍驻留菜单栏。无需重新打开主窗口，就能查看进度、暂停队列、切换限速或添加下载。
 
 <p align="center">
-  <img src="docs/images/menu-bar.png" alt="Rivu 菜单栏面板，包含传输进度、暂停控制与限速开关" width="360">
+  <img src="docs/images/menu-bar.png" alt="Rivu 菜单栏面板，展示活动任务与快捷操作" width="360">
 </p>
-
-## 融入你的 Mac
-
-Rivu 提供原生界面、浅色与深色外观、熟悉的菜单、键盘快捷键和命令面板。应用使用 Go 与 MyGo 构建，运行时无需 WebView 或 JavaScript。
-
-支持 **English、简体中文、繁體中文、日本語和 한국어**。默认跟随系统语言，也可在 **设置 → 通用 → 语言** 中修改。
 
 <details>
   <summary>查看深色外观</summary>
 
-  <img src="docs/images/main-dark.png" alt="深色外观下的 Rivu 下载队列和传输详情">
+  <img src="docs/images/main-dark.png" alt="深色外观下的 Rivu 主窗口">
 </details>
 
-<sub>截图由应用界面渲染器生成，展示简体中文界面与演示传输数据。</sub>
+<sub>截图由应用界面渲染器生成，使用简体中文界面与演示传输数据。</sub>
 
 ## 开始使用
 
-Rivu 正在积极开发，目标平台为 **macOS 12 及以上版本**。请按照[构建与运行指南](docs/zh/development.md)体验当前应用。正式签名分发与自动更新仍在准备中；Windows 和 Linux 暂不提供受支持的发布版本。
+Rivu 面向 **macOS 12 及以上版本**，目前正在开发中，可通过源码构建体验。正式签名分发和自动更新仍在准备中。
 
-启动 Rivu 后：
+当前应用版本为 **0.0.1**。项目在 `go.mod` 中固定 **MyGo v0.5.5** 及其 CLI 工具，无需单独安装 MyGo。
 
-1. 选择 **添加下载**，打开 `.torrent` 文件或粘贴磁力链接。
-2. 检查下载信息、选择保存位置，并在元数据就绪后选择文件。
-3. 开始传输，通过主窗口或菜单栏查看进度。
-
-磁力链接要求、目录处理与恢复流程见[使用指南](docs/zh/usage.md)。欢迎通过 [GitHub Issues](https://github.com/ntnyq/rivu/issues)报告问题或提出建议。
-
-## 了解项目
-
-[中文文档首页](docs/zh/index.md) · [English documentation](docs/index.md) · [开发指南](docs/zh/development.md) · [架构](docs/zh/architecture.md) · [实现状态](docs/zh/implementation-status.md) · [构建与发布](docs/zh/releasing.md) · [第三方声明](THIRD_PARTY_NOTICES.md)
-
-## 文档站点
-
-中英文文档站点基于 VitePress。安装 Node.js 22.12 或更高版本，以及 `package.json` 声明的 pnpm 版本后，在仓库根目录运行：
+在 Mac 上安装 Go 1.27.2 或更高版本后运行：
 
 ```sh
-pnpm install
-pnpm docs:dev
+git clone https://github.com/ntnyq/rivu.git
+cd rivu
+go mod download
+make run
 ```
 
-运行 `pnpm docs:build` 生成 `docs/.vitepress/dist`，使用 `pnpm docs:preview` 预览构建结果。英文文档位于 `docs/`，简体中文文档位于 `docs/zh/`。子路径部署方式见[文档开发流程](docs/zh/development.md#文档站点)。原生应用独立使用 Go 工具链构建。
+运行 `go tool mygo build -skip-dmg` 可打包本地应用。首次下载见[快速开始](https://rivu.ntnyq.dev/zh/guide/getting-started.html)，构建细节见[开发指南](https://rivu.ntnyq.dev/zh/development/)。
+
+## 使用你熟悉的语言
+
+**English · 简体中文 · 繁體中文 · 日本語 · 한국어**
+
+Rivu 默认跟随系统语言，也可在 **设置 → 通用 → 语言** 中修改。文档提供[简体中文](https://rivu.ntnyq.dev/zh/)和 [English](https://rivu.ntnyq.dev) 两个版本。
+
+## 文档与反馈
+
+- [使用指南](https://rivu.ntnyq.dev/zh/guide/)：添加下载、管理传输、自动化与设置。
+- [故障排查](https://rivu.ntnyq.dev/zh/guide/troubleshooting.html)：磁力链接、连接问题与会话恢复。
+- [开发指南](https://rivu.ntnyq.dev/zh/development/)：构建、测试、架构与发布准备。
+- [GitHub Issues](https://github.com/ntnyq/rivu/issues)：报告问题或提出建议，请附上 macOS 版本、Rivu 版本与复现步骤。
+
+本地编辑文档可运行 `pnpm install` 和 `pnpm docs:dev`，使用 `pnpm docs:build` 验证构建。修改时请保持中英文页面一致。
+
+## 致谢与许可
+
+Rivu 基于 [MyGo](https://github.com/egoist/mygo) 和 [anacrolix/torrent](https://github.com/anacrolix/torrent) 构建。依赖许可见[第三方声明](THIRD_PARTY_NOTICES.md)。Rivu 自身代码的许可证尚未选定。

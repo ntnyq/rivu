@@ -1,6 +1,6 @@
 # 开发 Rivu
 
-[文档首页](index.md) · [使用指南](usage.md) · [发布指南](releasing.md)
+[文档首页](../index.md) · [使用指南](../guide/index.md) · [发布指南](releasing.md)
 
 ## 环境与依赖
 
@@ -75,14 +75,26 @@ pnpm docs:preview
 
 英文内容位于 `docs/`，中文对应页面位于 `docs/zh/`，两种语言保持相同文件名与目录结构。两个 `index.md` 使用 `layout: home`、`hero` 与 `features`。导航、侧边栏、搜索与界面翻译在 `docs/.vitepress/config.ts` 中配置。新增页面时同步补充中文页面与导航，确认语言切换能到达对应页面。
 
-默认部署到域名根路径。部署到子路径时，构建和预览使用相同的 `DOCS_BASE`，路径必须以 `/` 开始和结束：
+正式站点为 **https://rivu.ntnyq.dev**，部署在根路径 `/`。将 `docs/.vitepress/dist` 部署到对应域名的静态托管服务。站点使用默认 `.html` 路由，无需配置无扩展名 URL 重写；canonical 链接与 sitemap 使用正式域名。
 
-```sh
-DOCS_BASE=/rivu/ pnpm docs:build
-DOCS_BASE=/rivu/ pnpm docs:preview
+在 Vercel 中，将项目的 **Root Directory** 设为 `docs`，并启用 **Include source files outside of the Root Directory in the Build Step**，以便构建时读取根目录的 pnpm workspace、锁文件和包管理器声明。Node.js 选择 24.x，并在项目环境变量中设置 `ENABLE_EXPERIMENTAL_COREPACK=1`，使用根目录 `package.json` 固定的 pnpm 版本。仓库中的 `docs/vercel.json` 指定 VitePress，使用 `pnpm install --frozen-lockfile` 安装依赖，在 `docs` 中执行 `pnpm run build`，发布 `.vitepress/dist`，并保留 `.html` URL。在项目域名设置中绑定 `rivu.ntnyq.dev`。支持的配置项见 [Vercel 配置文档](https://vercel.com/docs/project-configuration/vercel-json)。
+
+文档按读者需求组织：
+
+```text
+docs/
+├── index.md          # 产品首页
+├── guide/            # 快速开始、功能、设置与帮助
+├── development/      # 构建、架构、验证与发布
+├── history/          # 早期设计与实施计划归档
+├── design/           # 仅供评审的视觉原型
+├── images/           # 产品截图
+├── public/           # 静态资源
+├── zh/               # 对应的简体中文页面
+└── .vitepress/       # 站点配置与主题
 ```
 
-将 `docs/.vitepress/dist` 部署到支持静态 HTML 的托管服务。构建站点不会配置 DNS、发布应用或启用自动更新。站点使用默认 `.html` 路由，无需配置无扩展名 URL 重写。
+使用指南和开发者文档采用独立侧边栏；历史计划与视觉原型通过 `search: false` 排除在本地搜索之外。移动页面时同步更新链接、导航和另一语言的对应页面。构建站点不会部署网站或启用应用更新。
 
 ## 文档截图
 
@@ -146,4 +158,4 @@ go test ./internal/app ./internal/session -run '^$' -bench 'Benchmark(Main1000Ta
 - [实现状态](implementation-status.md)：已实现行为与发布门槛。
 - [桌面验证](desktop.md)：原生行为与验收。
 - [发布指南](releasing.md)：打包、签名、更新与许可证。
-- [设计参考](design/README.md)：仅供评审的 HTML 原型。
+- [设计参考](../design/README.md)：仅供评审的 HTML 原型。

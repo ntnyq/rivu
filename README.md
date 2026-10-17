@@ -1,87 +1,90 @@
 <p align="center">
-  <img src="resources/icons/rivu-128.png" alt="Rivu icon" width="80" height="80">
+  <img src="resources/icons/rivu-128.png" alt="Rivu icon" width="96" height="96">
 </p>
 
 <h1 align="center">Rivu</h1>
 
-<p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
-
 <p align="center"><strong>Let your downloads flow quietly.</strong></p>
+<p align="center">A native BitTorrent app for macOS. Choose your files, manage your queue, and keep downloading in the background.</p>
 
 <p align="center">
-  A native BitTorrent downloader for macOS.<br>
-  Choose your files, keep your queue in order, and let Rivu take care of the transfers.
-</p>
-
-<p align="center">
-  <a href="#get-started">Get started</a> ·
-  <a href="docs/usage.md">User guide</a> ·
+  <a href="https://rivu.ntnyq.dev">Website</a> ·
+  <a href="https://rivu.ntnyq.dev/guide/getting-started.html">Get started</a> ·
+  <a href="https://rivu.ntnyq.dev/guide/">Documentation</a> ·
   <a href="https://github.com/ntnyq/rivu/issues">Feedback</a>
 </p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-12%2B-111827?logo=apple" alt="macOS 12 or later">
+  <img src="https://img.shields.io/badge/status-in%20development-2563eb" alt="In development">
+</p>
+
+<p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/main-dark.png">
-  <img src="docs/images/main-light.png" alt="Rivu showing a download queue with progress, speeds, and details for the selected transfer">
+  <img src="docs/images/main-light.png" alt="Rivu download queue with transfer progress, speeds, and a file inspector">
 </picture>
 
-## Your downloads, at a glance
+## Why Rivu?
 
-See what's downloading, seeding, finished, or waiting for attention. Search and sort your transfers, then open the details panel for progress, files, and connection information.
+- **Made for macOS.** Native windows, light and dark appearances, keyboard shortcuts, and a command palette. Built with Go and MyGo.
+- **Download only what you need.** Add torrent files or magnet links, preview their contents, and choose files and priorities. Supports v1, v2, and hybrid torrents.
+- **Keep your queue in order.** Search, sort, and tag transfers. Set bandwidth and concurrent-download limits, pause a batch, and preserve individual pauses.
+- **Pick up where you left off.** Restore tasks after restarting and verify existing data before continuing. Reuse downloads or point a task to a different location.
+- **Choose when to seed.** Stop on completion, at a share-ratio target, or after a seeding-time limit; keep seeding without a ratio limit if you prefer.
+- **Automate the routine.** Schedule daily speed limits and import torrents from a watched folder.
 
-- **Add it your way.** Open a `.torrent` file, paste a magnet link, or drag a torrent into the window. Supports v1, v2, and hybrid torrents.
-- **Download what you need.** Choose files, set their priorities, and pick a destination before starting. Magnet links resolve metadata in a cancellable preview.
-- **Set the pace.** Limit bandwidth and concurrent downloads, pause individual transfers, or pause the whole queue. Resuming a paused batch respects tasks you had already paused yourself.
-- **Pick up where you left off.** Tasks and pause choices survive restarts. Rivu checks downloaded data when restoring a transfer.
-- **Seed on your terms.** Stop on completion, choose a share-ratio target, or seed without a ratio limit. Add a cumulative seeding-time limit when needed.
-- **Make it automatic.** Schedule daily bandwidth limits, organize tasks with tags, or watch a folder for new torrent files.
-- **Reuse your data.** Explicitly adopt existing downloads or point a task to a new location; Rivu verifies the data and preserves existing-file deletion rights.
-- **Keep your files.** Removing a task keeps its files by default. Moving downloaded files to Trash is a separate choice.
+Removing a task keeps its files by default. Moving downloaded files to Trash is a separate choice.
 
 ## Close the window. Keep downloading.
 
-Transfers continue while Rivu stays open in the background. The menu bar panel gives you a quick look at speeds and active tasks, with pause, speed-limit, and add-download controls close at hand.
+Rivu stays available in the menu bar while transfers run in the background. Check progress, pause the queue, switch speed limits, or add a download without reopening the main window.
 
 <p align="center">
-  <img src="docs/images/menu-bar.png" alt="Rivu menu bar panel with transfer progress, pause controls, and a speed-limit toggle" width="360">
+  <img src="docs/images/menu-bar.png" alt="Rivu menu bar panel with active transfers and quick controls" width="360">
 </p>
-
-## At home on your Mac
-
-Rivu uses a native interface with light and dark appearances, familiar menus, keyboard shortcuts, and a command palette. Built with Go and MyGo, it runs without a WebView or JavaScript runtime.
-
-Available in **English, 简体中文, 繁體中文, 日本語, and 한국어**. Rivu follows your system language by default; you can change it in **Settings → General → Language**.
 
 <details>
   <summary>View the dark appearance</summary>
 
-  <img src="docs/images/main-dark.png" alt="Rivu download queue and transfer details in dark appearance">
+  <img src="docs/images/main-dark.png" alt="Rivu main window in dark appearance">
 </details>
 
-<sub>Screenshots show the application's UI rendered with demo transfers in Simplified Chinese.</sub>
+<sub>Screenshots use the application UI renderer with demo transfers in Simplified Chinese.</sub>
 
 ## Get started
 
-Rivu is in active development for **macOS 12 or later**. To try the current app, follow the [build and run guide](docs/development.md). Signed distribution and automatic updates are still being prepared; Windows and Linux are not supported releases.
+Rivu targets **macOS 12 or later** and is in active development. The current way to try it is to build from source. Signed distribution and automatic updates are still being prepared.
 
-Once Rivu is running:
+The current application version is **0.0.1**. The project pins **MyGo v0.5.5** and its CLI tool in `go.mod`; no separate MyGo installation is needed.
 
-1. Select **Add Download**, open a `.torrent` file, or paste a magnet link.
-2. Review the download, choose a destination, and select files when metadata is available.
-3. Start the transfer and follow its progress in the main window or menu bar.
-
-See the [user guide](docs/usage.md) for magnet-link requirements, destination handling, and recovery. Report problems or share ideas in [GitHub Issues](https://github.com/ntnyq/rivu/issues).
-
-## Explore the project
-
-[Documentation home](docs/index.md) · [中文文档](docs/zh/index.md) · [Development](docs/development.md) · [Architecture](docs/architecture.md) · [Release status](docs/implementation-status.md) · [Building releases](docs/releasing.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
-
-## Documentation site
-
-The bilingual documentation site uses VitePress. With Node.js 22.12 or later and the pnpm version declared in `package.json`, run from the repository root:
+With Go 1.27.2 or later installed on your Mac:
 
 ```sh
-pnpm install
-pnpm docs:dev
+git clone https://github.com/ntnyq/rivu.git
+cd rivu
+go mod download
+make run
 ```
 
-Use `pnpm docs:build` to generate `docs/.vitepress/dist` and `pnpm docs:preview` to preview the production build. English pages live in `docs/`; Simplified Chinese pages live in `docs/zh/`. See the [documentation workflow](docs/development.md#documentation-site) for deployment base paths. The native app uses the Go toolchain independently.
+To package a local app bundle, run `go tool mygo build -skip-dmg`. See the [getting started guide](https://rivu.ntnyq.dev/guide/getting-started.html) for your first download and the [development guide](https://rivu.ntnyq.dev/development/) for build details.
+
+## Speaks your language
+
+**English · 简体中文 · 繁體中文 · 日本語 · 한국어**
+
+Rivu follows your system language. You can choose another language in **Settings → General → Language**. The documentation is available in [English](https://rivu.ntnyq.dev) and [简体中文](https://rivu.ntnyq.dev/zh/).
+
+## Documentation & feedback
+
+- [User guide](https://rivu.ntnyq.dev/guide/) — adding downloads, managing transfers, automation, and settings.
+- [Troubleshooting](https://rivu.ntnyq.dev/guide/troubleshooting.html) — magnet links, connection issues, and recovering a session.
+- [Development](https://rivu.ntnyq.dev/development/) — building, testing, architecture, and release preparation.
+- [GitHub Issues](https://github.com/ntnyq/rivu/issues) — report a bug or suggest a feature. Include your macOS version, Rivu version, and steps to reproduce.
+
+To work on the documentation locally, run `pnpm install` and `pnpm docs:dev`. Use `pnpm docs:build` to validate the site. Keep English and Chinese pages aligned.
+
+## Acknowledgments & licensing
+
+Rivu is built with [MyGo](https://github.com/egoist/mygo) and [anacrolix/torrent](https://github.com/anacrolix/torrent). See [third-party notices](THIRD_PARTY_NOTICES.md) for dependency licenses. A license for Rivu's own code has not yet been selected.
