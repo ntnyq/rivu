@@ -1,7 +1,7 @@
 {
   "name": "Rivu",
   "identifier": "com.ntnyq.rivu",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "copyright": "© 2026 ntnyq",
   "icon": "resources/icon.png",
   "out": "build",
@@ -11,10 +11,14 @@
     "publicKey": "Bq7SOwF0NSwMvjBZQ9ZTGMMQA94AL8FyvLDnbqmtx94=",
     "deltas": 0
   },
-  "urlSchemes": ["magnet"],
+  "urlSchemes": [
+    "magnet"
+  ],
   "fileAssociations": [
     {
-      "ext": ["torrent"],
+      "ext": [
+        "torrent"
+      ],
       "name": "BitTorrent metadata",
       "mimeType": "application/x-bittorrent",
       "role": "Viewer"

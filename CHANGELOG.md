@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.2 (2026-10-17)
+
+- feat: add signed cross-platform release packages (15ed2d4)
+
+[Full Changelog](https://github.com/ntnyq/rivu/compare/v0.0.1...v0.0.2)
+
 ## 0.0.1 (2026-10-17)
 
 - fix: center empty downloads and enable sidebar toggle (b1371f4)
