@@ -4,9 +4,13 @@ Rivu 是原生 Go/MyGo 应用。`docs/design` 下的 HTML 是已确认的视觉�
 
 ## 状态归属
 
+根目录 `main.go` 调用 `internal/app.Run`。应用组合代码保持在单一的 `internal/app` 包中，下文的应用文件名均相对于该目录。
+
 `application.go` 持有唯一会话、设置存储、更新器、托盘和可选窗口。关闭窗口只取消该窗口的草稿与后台工作，不关闭会话。原生菜单和命令面板共享 `menu.go` 中的稳定命令 ID。
 
 `mainWindow`、`settingsWindow` 和 `addWindow` 分别管理视图状态。`windowBase` 仅共享原生生命周期、状态与可取消异步工作。主窗口区域位于 `view_*.go`，设置渲染与持久化分离。传输视图全部基于不可变观测渲染。`theme.go` 将设计颜色映射为 MyGo 主题值。UI SVG 符号来自已确认的原型，产品标识另有可编辑矢量源文件。
+
+`resources/embed.go` 嵌入托盘图片与 SVG 资源，提供相对于 `resources/` 的读取接口。应用在 `icons.go` 中解析和缓存 SVG，在 `controls.go` 中构建 UI 控件。`internal/windowtask` 管理可取消的窗口作业并丢弃过期回调，传输生命周期仍由 `internal/session` 管理。
 
 ## 传输状态
 

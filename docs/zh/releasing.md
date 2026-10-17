@@ -29,7 +29,7 @@ Apple Silicon 上的应用位于 `build/darwin-arm64/Rivu.app`。默认采用 ad
 
 ## 发布工作流
 
-手动触发的 Release 工作流验证稳定版本，更新 `main.go`、`mygo.json` 和变更日志，运行测试并打包 macOS，然后创建发布提交、标签和 **草稿** GitHub Release。它要求默认分支已有提交，且具备仓库写权限。不发布 Windows/Linux 安装包。公开草稿前请检查原生验收矩阵。
+手动触发的 Release 工作流验证稳定版本，更新 `internal/app/run.go`、`mygo.json` 和变更日志，运行测试并打包 macOS，然后创建发布提交、标签和 **草稿** GitHub Release。它要求默认分支已有提交，且具备仓库写权限。不发布 Windows/Linux 安装包。公开草稿前请检查原生验收矩阵。
 
 仅获取本地开发包时不要运行该工作流，因为它会修改仓库并创建标签。源代码中不包含签名密钥。
 

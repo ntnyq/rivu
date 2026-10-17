@@ -14,7 +14,7 @@ The design baseline comes from the chat [设计 macOS 种子下载器](codex://t
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | Go 1.27.2 and MyGo v0.4.3 remain pinned                   | Production UI uses `ui.View`; the HTML prototype is a visual reference                              |
 | One application-owned session                             | Closing any window cancels only its view/draft work; transfers continue                             |
-| Root package composes the UI                              | Extend the starter's organization rather than introducing a web frontend or IPC                     |
+| `internal/app` composes the UI                            | Extend the starter's organization rather than introducing a web frontend or IPC                     |
 | `session` owns product policy                             | Engine callbacks report observations; they cannot overwrite user intent                             |
 | `anacrolix/torrent` is the first engine candidate         | Validate and pin a release in milestone M0 before shipping an adapter                               |
 | Versioned JSON is the initial persistence format          | One ordered writer, explicit migrations, small stable records, no per-second full-file writes       |
@@ -54,7 +54,7 @@ The operation sequence is validate → persist desired state → publish committ
 
 For pause, publish pending immediately and stop admitting new work. Mark the action complete only after the adapter confirms transfer suppression. A persistence failure must leave the requested task safely stopped in memory, retain a visible unsaved-state error, and block ordinary quit/restart until the user resolves it; do not silently resume a task to conceal the failure.
 
-`window.run` remains the entry point for window-bound blocking operations. Copy parameters before dispatch and apply UI changes with `Window.Update`. Separate dialog/draft jobs from command-result jobs so a slow picker does not block unrelated pause controls. Short jobs can reuse `internal/tasks.Task`; accepted session commands belong to the application context and survive window closure. A window's cancellation stops waiting for the result, not a committed transfer.
+`window.run` remains the entry point for window-bound blocking operations. Copy parameters before dispatch and apply UI changes with `Window.Update`. Separate dialog/draft jobs from command-result jobs so a slow picker does not block unrelated pause controls. Short jobs can reuse `internal/windowtask.Task`; accepted session commands belong to the application context and survive window closure. A window's cancellation stops waiting for the result, not a committed transfer.
 
 Tray commands without an open main window use the application worker with the same command contract. Native MyGo handle operations are dispatched on the main thread. A background operation must never wait for a main-thread callback while the main thread synchronously waits for that operation.
 
@@ -273,6 +273,6 @@ Before release, record macOS version, CPU architecture, bundle/signing state and
 
 The pinned source is authoritative for existing MyGo calls. Application contracts and policy values above are proposed implementation decisions.
 
-- Local starter: [application/window ownership](https://github.com/ntnyq/rivu/blob/main/window.go), [launch handling](https://github.com/ntnyq/rivu/blob/main/main.go), [configuration store](https://github.com/ntnyq/rivu/blob/main/internal/config/store.go), [atomic writes](https://github.com/ntnyq/rivu/blob/main/internal/storage/atomic.go), [job cancellation](https://github.com/ntnyq/rivu/blob/main/internal/tasks/task.go).
+- Local starter: [application/window ownership](https://github.com/ntnyq/rivu/blob/main/internal/app/window.go), [launch handling](https://github.com/ntnyq/rivu/blob/main/main.go), [configuration store](https://github.com/ntnyq/rivu/blob/main/internal/config/store.go), [atomic writes](https://github.com/ntnyq/rivu/blob/main/internal/storage/atomic.go), [job cancellation](https://github.com/ntnyq/rivu/blob/main/internal/windowtask/task.go).
 - MyGo v0.4.3: [tray flyout example](https://github.com/egoist/mygo/blob/v0.4.3/examples/menubar-flyout/main.go), [login and relaunch](https://github.com/egoist/mygo/blob/v0.4.3/login.go), [updater](https://github.com/egoist/mygo/blob/v0.4.3/updater.go), [quit lifecycle](https://github.com/egoist/mygo/blob/v0.4.3/app.go), [shell operations](https://github.com/egoist/mygo/blob/v0.4.3/modules.go).
 - Candidate engine: [anacrolix/torrent](https://github.com/anacrolix/torrent). Exact release and behavior acceptance are M0 outputs.

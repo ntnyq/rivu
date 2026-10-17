@@ -242,7 +242,7 @@ application
 └── settingsWindow         Preferences and actual system state
 ```
 
-These are proposed boundaries, not a requirement to create every package immediately. Keep modules as small as real needs permit and avoid a generic event bus. The current `internal/tasks` cancellation model suits window operations, not long-lived torrent sessions.
+These are proposed boundaries, not a requirement to create every package immediately. Keep modules as small as real needs permit and avoid a generic event bus. The current `internal/windowtask` cancellation model suits window operations, not long-lived torrent sessions.
 
 Run engine work in the background and expose immutable snapshots. Coalesce UI updates to approximately 2–4 Hz in the main window and 1–2 Hz in the panel. Closing a view cancels its subscription, not its transfer.
 

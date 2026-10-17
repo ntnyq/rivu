@@ -133,7 +133,7 @@ Translate phase labels when rendering. Structured errors carry a typed `func(loc
 ## Collection benchmarks
 
 ```sh
-go test . ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
+go test ./internal/app ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
 ```
 
 See [the refactor report](refactor-validation.md) for measured results, persistence migration and feature semantics. The local Tracker integration test checks the pinned engine's diagnostics output contract and must pass after engine upgrades.

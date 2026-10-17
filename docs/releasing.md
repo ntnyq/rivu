@@ -29,7 +29,7 @@ The icon's source of truth is `resources/icon.svg`. `make icon` renders all PNG 
 
 ## Release workflow
 
-The manually dispatched Release workflow validates a stable version, updates `main.go`, `mygo.json` and the changelog, tests and packages macOS, creates the release commit/tag, and uploads a **draft** GitHub release. It requires an existing default branch with commits and repository write permission. It does not publish Windows/Linux installers. Review the native acceptance matrix before publishing a draft.
+The manually dispatched Release workflow validates a stable version, updates `internal/app/run.go`, `mygo.json` and the changelog, tests and packages macOS, creates the release commit/tag, and uploads a **draft** GitHub release. It requires an existing default branch with commits and repository write permission. It does not publish Windows/Linux installers. Review the native acceptance matrix before publishing a draft.
 
 Do not run the workflow merely to obtain a local development bundle: it mutates the repository and creates a tag. There are no signing secrets in this source tree.
 

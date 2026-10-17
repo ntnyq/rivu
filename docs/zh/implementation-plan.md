@@ -127,4 +127,4 @@ make snapshots
 
 - [历史 MyGo v0.4.3 面板示例](https://github.com/egoist/mygo/blob/v0.4.3/examples/menubar-flyout/main.go)、[登录](https://github.com/egoist/mygo/blob/v0.4.3/login.go)、[更新](https://github.com/egoist/mygo/blob/v0.4.3/updater.go)、[生命周期](https://github.com/egoist/mygo/blob/v0.4.3/app.go)、[Shell](https://github.com/egoist/mygo/blob/v0.4.3/modules.go)。
 - [anacrolix/torrent](https://github.com/anacrolix/torrent)：具体版本与行为为 M0 输出。
-- 原有入口：[窗口](https://github.com/ntnyq/rivu/blob/main/window.go)、[启动](https://github.com/ntnyq/rivu/blob/main/main.go)、[配置](https://github.com/ntnyq/rivu/blob/main/internal/config/store.go)、[原子存储](https://github.com/ntnyq/rivu/blob/main/internal/storage/atomic.go)、[任务取消](https://github.com/ntnyq/rivu/blob/main/internal/tasks/task.go)。历史路径可能随实现变化。
+- 原有入口：[窗口](https://github.com/ntnyq/rivu/blob/main/internal/app/window.go)、[启动](https://github.com/ntnyq/rivu/blob/main/main.go)、[配置](https://github.com/ntnyq/rivu/blob/main/internal/config/store.go)、[原子存储](https://github.com/ntnyq/rivu/blob/main/internal/storage/atomic.go)、[任务取消](https://github.com/ntnyq/rivu/blob/main/internal/windowtask/task.go)。历史路径可能随实现变化。

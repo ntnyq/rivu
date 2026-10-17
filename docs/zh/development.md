@@ -133,7 +133,7 @@ Rivu 保存的语言设置继续作为选择来源，设置成功保存后通过
 ## 集合性能基准
 
 ```sh
-go test . ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
+go test ./internal/app ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
 ```
 
 测量、持久化迁移和功能语义见[重构报告](refactor-validation.md)。升级引擎后必须通过本地 Tracker 集成测试，验证诊断输出契约。
