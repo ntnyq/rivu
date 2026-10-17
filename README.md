@@ -4,6 +4,8 @@
 
 <h1 align="center">Rivu</h1>
 
+<p align="center">English · <a href="README.zh-CN.md">简体中文</a></p>
+
 <p align="center"><strong>Let your downloads flow quietly.</strong></p>
 
 <p align="center">
@@ -71,4 +73,15 @@ See the [user guide](docs/usage.md) for magnet-link requirements, destination ha
 
 ## Explore the project
 
-[Documentation index](docs/README.md) · [Development](docs/development.md) · [Architecture](docs/architecture.md) · [Release status](docs/implementation-status.md) · [Building releases](docs/releasing.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+[Documentation home](docs/index.md) · [中文文档](docs/zh/index.md) · [Development](docs/development.md) · [Architecture](docs/architecture.md) · [Release status](docs/implementation-status.md) · [Building releases](docs/releasing.md) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+
+## Documentation site
+
+The bilingual documentation site uses VitePress. With Node.js 22.12 or later and the pnpm version declared in `package.json`, run from the repository root:
+
+```sh
+pnpm install
+pnpm docs:dev
+```
+
+Use `pnpm docs:build` to generate `docs/.vitepress/dist` and `pnpm docs:preview` to preview the production build. English pages live in `docs/`; Simplified Chinese pages live in `docs/zh/`. See the [documentation workflow](docs/development.md#documentation-site) for deployment base paths. The native app uses the Go toolchain independently.

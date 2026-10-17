@@ -2,14 +2,13 @@
 
 > Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](architecture.md), [source structure](implementation-structure.md), and [implementation status](implementation-status.md).
 
-
 Date: October 12, 2026. Status: proposed product specification and interactive design prototype. The download engine and operating system integrations described here are not implemented by this deliverable.
 
 ## Product direction
 
 Rivu is a lightweight, macOS-first BitTorrent client. Use the menu bar for quick checks and controls, and the main window for managing tasks and inspecting details.
 
-Keep the existing Go 1.27.2 + MyGo v0.4.3 native application stack. The review prototype in [design/index.html](design/index.html) is a standalone design aid, not the application's runtime architecture. It introduces no web frontend dependency into the Go application.
+Keep the existing Go 1.27.2 + MyGo v0.4.3 native application stack. The review prototype in [interactive prototype](design/README.md) is a standalone design aid, not the application's runtime architecture. It introduces no web frontend dependency into the Go application.
 
 The initial interface uses Chinese copy, with room for English localization. Keep transfer logic and persistence platform-independent; prioritize macOS integration before other desktop platforms.
 
@@ -24,17 +23,17 @@ The initial interface uses Chinese copy, with room for English localization. Kee
 
 ## Scope and priorities
 
-| Area | P0: initial release | Later iterations |
-| --- | --- | --- |
-| Import | Torrent files, magnets, drag and drop, batch import, duplicate infohash detection | Watch folders and RSS |
-| Transfers | Pause/resume, queue, restart recovery, verification, file selection, destinations | Scheduling and sequential download |
-| Management | Search, filters, sorting, multiple selection, batch actions, separate remove/delete choices | Editable labels, rules, bulk relocation |
-| Details | Overview, file progress and priority, trackers, connection information | Piece diagnostics and history charts |
-| Bandwidth | Global upload/download limits, temporary speed limit mode, concurrency limit | Per-task limits and schedules |
-| Seeding | Uploaded bytes, ratio, ratio-based stop policy, manual resume | Time-based and label-based policies |
-| macOS | Menu bar panel, Dock entry, native dialogs, notifications, shortcuts | Optional menu-bar-only mode |
-| Preferences | Appearance, directories, seeding, startup, notifications, connections, updates | Advanced proxies and diagnostics |
-| Updates | Manual/automatic checks, opt-in automatic installation, release notes, failure handling | Preview release channel |
+| Area        | P0: initial release                                                                         | Later iterations                        |
+| ----------- | ------------------------------------------------------------------------------------------- | --------------------------------------- |
+| Import      | Torrent files, magnets, drag and drop, batch import, duplicate infohash detection           | Watch folders and RSS                   |
+| Transfers   | Pause/resume, queue, restart recovery, verification, file selection, destinations           | Scheduling and sequential download      |
+| Management  | Search, filters, sorting, multiple selection, batch actions, separate remove/delete choices | Editable labels, rules, bulk relocation |
+| Details     | Overview, file progress and priority, trackers, connection information                      | Piece diagnostics and history charts    |
+| Bandwidth   | Global upload/download limits, temporary speed limit mode, concurrency limit                | Per-task limits and schedules           |
+| Seeding     | Uploaded bytes, ratio, ratio-based stop policy, manual resume                               | Time-based and label-based policies     |
+| macOS       | Menu bar panel, Dock entry, native dialogs, notifications, shortcuts                        | Optional menu-bar-only mode             |
+| Preferences | Appearance, directories, seeding, startup, notifications, connections, updates              | Advanced proxies and diagnostics        |
+| Updates     | Manual/automatic checks, opt-in automatic installation, release notes, failure handling     | Preview release channel                 |
 
 Exclude content search, media catalogs, built-in playback, accounts, cloud synchronization, and remote control from the first release. Use open-source distributions and openly licensed movies in examples. Do not claim anonymous networking or comprehensive proxy routing without verifying all traffic paths.
 
@@ -80,11 +79,11 @@ The context menu provides pause/resume, reveal in Finder, verify data, copy magn
 
 ### Inspector
 
-| Tab | Contents |
-| --- | --- |
-| Overview | Name, state, selected-file progress, rates, ETA, size, uploaded bytes, ratio, added time, location, seeding target |
-| Files | Tree, selection, per-file progress, high/normal/do-not-download priority, selected size |
-| Connections | Tracker results, next announce, peer counts and sources |
+| Tab         | Contents                                                                                                           |
+| ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| Overview    | Name, state, selected-file progress, rates, ETA, size, uploaded bytes, ratio, added time, location, seeding target |
+| Files       | Tree, selection, per-file progress, high/normal/do-not-download priority, selected size                            |
+| Connections | Tracker results, next announce, peer counts and sources                                                            |
 
 Exclude unselected files from the completion denominator. Before metadata arrives, show an explicit retrieval state instead of invented sizes, files, or ETA. A failed tracker is a tracker-level result; only promote it to a task error when it prevents progress and needs user intervention.
 
@@ -118,15 +117,15 @@ Batch imports use one review step with individual errors; one invalid torrent mu
 
 ### Settings and defaults
 
-| Category | Proposed defaults and controls |
-| --- | --- |
-| General | Follow system appearance; menu bar icon on; login launch off; background-only login launch on once login launch is enabled |
-| Downloads | `~/Downloads/Rivu`; three concurrent downloads; restore previously running tasks on; completion notifications on |
-| Seeding | Continue after completion; stop at ratio 2.0; allow unlimited or stop immediately; expose policy during import and in details |
-| Bandwidth | Normal mode unlimited; temporary mode 2 MB/s down and 512 KB/s up; editable in the native version |
-| Connections | Listening port, DHT/PEX respecting private torrents, diagnostics, progressively disclosed advanced options |
-| Notifications | Completion and actionable failures on; show OS authorization separately |
-| Updates | Ask before enabling automatic checks; daily checks after consent; automatic installation off; manual check when supported |
+| Category      | Proposed defaults and controls                                                                                                |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| General       | Follow system appearance; menu bar icon on; login launch off; background-only login launch on once login launch is enabled    |
+| Downloads     | `~/Downloads/Rivu`; three concurrent downloads; restore previously running tasks on; completion notifications on              |
+| Seeding       | Continue after completion; stop at ratio 2.0; allow unlimited or stop immediately; expose policy during import and in details |
+| Bandwidth     | Normal mode unlimited; temporary mode 2 MB/s down and 512 KB/s up; editable in the native version                             |
+| Connections   | Listening port, DHT/PEX respecting private torrents, diagnostics, progressively disclosed advanced options                    |
+| Notifications | Completion and actionable failures on; show OS authorization separately                                                       |
+| Updates       | Ask before enabling automatic checks; daily checks after consent; automatic installation off; manual check when supported     |
 
 The prototype opens in light appearance for predictable review, although the product default is Follow System. It shows a post-consent automatic-check setting for demonstration.
 
@@ -157,17 +156,17 @@ Distinguish invalid signature, wrong architecture, insufficient space, interrupt
 
 Separate observed engine state from desired running state. Otherwise a reconnect or restart can incorrectly resume a manually paused task.
 
-| State | Display | Main actions |
-| --- | --- | --- |
-| Retrieving metadata | Retrieving file list; size unknown | Pause, remove |
-| Queued | Waiting for a slot; queue position | Start now, pause |
-| Verifying | Verification percentage | Pause, remove |
-| Downloading | Percentage, rates, estimated remaining time | Pause, file selection |
-| Waiting for peers | Waiting for available peers; no ETA | Pause, inspect connections, retry |
-| Paused | Explain manual, policy, or shutdown pause | Resume, remove |
-| Seeding | Complete, upload rate, ratio | Stop seeding, reveal files |
-| Completed | Complete; seeding goal reached or stopped | Resume seeding, reveal files |
-| Needs attention | Disk full, permission denied, or disk disconnected | Choose location, retry, remove |
+| State               | Display                                            | Main actions                      |
+| ------------------- | -------------------------------------------------- | --------------------------------- |
+| Retrieving metadata | Retrieving file list; size unknown                 | Pause, remove                     |
+| Queued              | Waiting for a slot; queue position                 | Start now, pause                  |
+| Verifying           | Verification percentage                            | Pause, remove                     |
+| Downloading         | Percentage, rates, estimated remaining time        | Pause, file selection             |
+| Waiting for peers   | Waiting for available peers; no ETA                | Pause, inspect connections, retry |
+| Paused              | Explain manual, policy, or shutdown pause          | Resume, remove                    |
+| Seeding             | Complete, upload rate, ratio                       | Stop seeding, reveal files        |
+| Completed           | Complete; seeding goal reached or stopped          | Resume seeding, reveal files      |
+| Needs attention     | Disk full, permission denied, or disk disconnected | Choose location, retry, remove    |
 
 Offline networking is recoverable environmental state, not a reason for repeated alerts. Reconnection and waking restore only tasks intended to run. Keep manual pauses intact.
 
@@ -179,14 +178,14 @@ Removing a task retains data by default. A separate, unchecked “Also move down
 
 Use familiar macOS patterns, restrained chrome, and a quiet hierarchy. Task information should dominate. Avoid large statistics and decorative charts.
 
-| Token | Light | Dark | Role |
-| --- | --- | --- | --- |
-| Content | `#FFFFFF` | `#202226` | Main surface |
-| Sidebar | `#EFF0F3` | `#27292E` | Material fallback |
-| Text | `#20232A` | `#F1F2F5` | Primary text |
-| Secondary | `#626975` | `#A8AEB9` | Secondary labels |
-| Accent | `#0868DB` | `#5AA2FF` | Selection, actions, progress |
-| Separator | `#E3E5E9` | `#3B3E45` | Structural dividers |
+| Token     | Light     | Dark      | Role                         |
+| --------- | --------- | --------- | ---------------------------- |
+| Content   | `#FFFFFF` | `#202226` | Main surface                 |
+| Sidebar   | `#EFF0F3` | `#27292E` | Material fallback            |
+| Text      | `#20232A` | `#F1F2F5` | Primary text                 |
+| Secondary | `#626975` | `#A8AEB9` | Secondary labels             |
+| Accent    | `#0868DB` | `#5AA2FF` | Selection, actions, progress |
+| Separator | `#E3E5E9` | `#3B3E45` | Structural dividers          |
 
 Use semantic green for complete/seeding, orange for attention, and red for errors, always accompanied by text or an icon.
 
@@ -217,16 +216,16 @@ Provide visible focus, accessible names for icon actions, non-hover access to es
 
 This mapping is based on the repository and locally installed MyGo v0.4.3 source, including its menu bar example, login APIs, and updater implementation.
 
-| Requirement | Current support | Proposed work |
-| --- | --- | --- |
-| Windows, themes, menus | Starter includes these | Replace demonstration pages; retain `commands()` and window restoration |
-| Menu bar panel | MyGo `NewTray` and `NewFlyout` | Use `FlyoutOptions{Tray: tray, Popover: true, Focusable: true}` following `examples/menubar-flyout` |
-| Tray clicks | Left and right clicks | Do not permanently attach a menu that consumes `OnClick`; attach the right-click menu temporarily |
-| Login launch | `SetOpenAtLogin`, `OpenAtLogin`, `WasOpenedAtLogin` | Verify registration in a packaged app; branch to background launch |
-| Updates | `Updater.Enabled/Check`, `Update.Install`, `App.Relaunch` | Implement policies and UI; configure feed and key; prefer this updater over adding Sparkle |
-| Transfers after window close | Current starter does not satisfy this | Move engine, repository, and tray ownership to application scope |
-| BitTorrent engine | None yet | Evaluate and pin `anacrolix/torrent`; verify license, protocol support, and recovery before integration |
-| File/URL associations | Not configured | Register `.torrent` and `magnet:`; reuse single-instance routing; validate magnet separately from HTTP-only `desktop.ValidateURL` |
+| Requirement                  | Current support                                           | Proposed work                                                                                                                     |
+| ---------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Windows, themes, menus       | Starter includes these                                    | Replace demonstration pages; retain `commands()` and window restoration                                                           |
+| Menu bar panel               | MyGo `NewTray` and `NewFlyout`                            | Use `FlyoutOptions{Tray: tray, Popover: true, Focusable: true}` following `examples/menubar-flyout`                               |
+| Tray clicks                  | Left and right clicks                                     | Do not permanently attach a menu that consumes `OnClick`; attach the right-click menu temporarily                                 |
+| Login launch                 | `SetOpenAtLogin`, `OpenAtLogin`, `WasOpenedAtLogin`       | Verify registration in a packaged app; branch to background launch                                                                |
+| Updates                      | `Updater.Enabled/Check`, `Update.Install`, `App.Relaunch` | Implement policies and UI; configure feed and key; prefer this updater over adding Sparkle                                        |
+| Transfers after window close | Current starter does not satisfy this                     | Move engine, repository, and tray ownership to application scope                                                                  |
+| BitTorrent engine            | None yet                                                  | Evaluate and pin `anacrolix/torrent`; verify license, protocol support, and recovery before integration                           |
+| File/URL associations        | Not configured                                            | Register `.torrent` and `magnet:`; reuse single-instance routing; validate magnet separately from HTTP-only `desktop.ValidateURL` |
 
 Suggested responsibilities:
 

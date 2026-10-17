@@ -18,16 +18,16 @@ On the development macOS arm64 host, the app bundle builds with ad-hoc signing, 
 
 ## Release acceptance still required
 
-| Area | Required native check |
-| --- | --- |
-| Menu bar | Anchoring/dismissal/right click across multiple monitors and display changes |
-| Lifecycle | Closing the last window during real transfer, Dock reopen, sleep/wake on hardware |
-| Associations | Finder cold launch, browser magnet launch, duplicate launch events |
-| Login | Signed installed bundle, enabled/denied/revoked registration, quiet login |
-| Notifications | Authorized/denied permission, focus mode, click routing from background |
-| Accessibility | VoiceOver, keyboard-only navigation, Reduce Motion/Transparency |
-| Updates | Signed feed, wrong architecture/signature, interrupted replacement, restart after save failure |
-| Storage | External volume replacement, full disk, controlled forced termination during checkpoint/Trash |
+| Area          | Required native check                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| Menu bar      | Anchoring/dismissal/right click across multiple monitors and display changes                   |
+| Lifecycle     | Closing the last window during real transfer, Dock reopen, sleep/wake on hardware              |
+| Associations  | Finder cold launch, browser magnet launch, duplicate launch events                             |
+| Login         | Signed installed bundle, enabled/denied/revoked registration, quiet login                      |
+| Notifications | Authorized/denied permission, focus mode, click routing from background                        |
+| Accessibility | VoiceOver, keyboard-only navigation, Reduce Motion/Transparency                                |
+| Updates       | Signed feed, wrong architecture/signature, interrupted replacement, restart after save failure |
+| Storage       | External volume replacement, full disk, controlled forced termination during checkpoint/Trash  |
 
 MyGo v0.4.8 exposes boolean login observation and notification support, not every OS authorization state. Rivu reports observed values and original errors without inferring richer permission states. The detailed native status adapters proposed in the plan remain a release gap.
 
@@ -53,6 +53,17 @@ writes `i18n-<language>-<surface>.png` captures. Catalog tests validate translat
 coverage and formatting placeholders, while configuration tests cover migration
 and persistence of language preferences.
 
+On October 17, 2026, localization migrated to MyGo v0.5.5's ARB catalogs,
+generated typed accessors, and application locale callbacks. Unit tests, Go vet,
+race tests, the isolated swarm suite, MyGo vet, catalog checks, and localized
+snapshots passed. The macOS arm64 app built successfully with all five language
+resources derived from the catalogs. Seven isolated native startup/capture/exit
+checks covered all five main-window languages, Japanese download settings, and
+the Traditional Chinese tray panel (`snapshots/native-mygo-i18n-*.png`). A separate
+isolated native session verified saving English → Japanese → Follow System,
+including immediate menu, window-title, main-window, and save-result refresh.
+`MYGO_LOCALE` prevented these checks from persisting native language preferences.
+
 The October 12, 2026 macOS arm64 i18n build passed native startup/capture/exit checks
 for all five explicit languages and the system default. These checks used an
 isolated data directory and `XDG_RUNTIME_DIR` for the MyGo instance socket, leaving
@@ -64,7 +75,7 @@ To capture the actual AppKit popover with an isolated session, quit other Rivu
 instances, then run (the capture process quits after writing the PNG):
 
 ```sh
-rtk proxy env RIVU_CAPTURE="$PWD/snapshots/native-tray.png" RIVU_CAPTURE_SURFACE=tray \
+env RIVU_CAPTURE="$PWD/snapshots/native-tray.png" RIVU_CAPTURE_SURFACE=tray \
   build/darwin-arm64/Rivu.app/Contents/MacOS/Rivu --data-dir /tmp/rivu-tray-review
 ```
 

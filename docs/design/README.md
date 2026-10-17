@@ -9,7 +9,7 @@ Documentation is in English. Interface copy remains Chinese for this design revi
 Open `index.html` in a browser; all assets are local and no build or package installation is required. Alternatively, from the repository root:
 
 ```sh
-rtk proxy python3 -m http.server 8765 --bind 127.0.0.1 --directory docs/design
+python3 -m http.server 8765 --bind 127.0.0.1 --directory docs/design
 ```
 
 Then open `http://127.0.0.1:8765`.
@@ -38,12 +38,12 @@ Product layout targets use native points. The browser presentation approximates 
 
 ## Files
 
-| File | Purpose |
-| --- | --- |
-| `index.html` | Application shell and dialogs |
+| File         | Purpose                                          |
+| ------------ | ------------------------------------------------ |
+| `index.html` | Application shell and dialogs                    |
 | `styles.css` | Light/dark appearance and adaptive review layout |
-| `app.js` | In-memory sample state and interactions |
-| `previews/` | Captured review images |
+| `app.js`     | In-memory sample state and interactions          |
+| `previews/`  | Captured review images                           |
 
 The prototype uses system fonts and locally defined vector symbols. It makes no external resource or application API requests.
 
@@ -53,7 +53,20 @@ The prototype uses system fonts and locally defined vector symbols. It makes no 
 
 ![Menu bar panel](previews/menu-bar.png)
 
-Additional screens: [Dark appearance](previews/main-dark.png), [Add Download](previews/add-download.png), [General settings](previews/settings-general.png), [Updates](previews/settings-updates.png), and [Narrow review layout](previews/narrow-layout.png).
+<details>
+<summary>More prototype screens</summary>
+
+![Dark appearance](previews/main-dark.png)
+
+![Add Download](previews/add-download.png)
+
+![General settings](previews/settings-general.png)
+
+![Updates](previews/settings-updates.png)
+
+![Narrow review layout](previews/narrow-layout.png)
+
+</details>
 
 ## Validation
 

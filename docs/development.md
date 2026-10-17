@@ -1,37 +1,37 @@
 # Developing Rivu
 
-[Back to Rivu](../README.md) · [User guide](usage.md) · [Release guide](releasing.md)
+[Documentation home](index.md) · [User guide](usage.md) · [Release guide](releasing.md)
 
 ## Requirements and dependencies
 
-Use Go 1.27.2 or later on macOS. The project pins MyGo and its CLI tool in `go.mod`; no Node.js package manager is needed. macOS is the supported runtime target. Windows and Linux builds currently serve as compilation checks.
+Use Go 1.27.2 or later on macOS. The project pins MyGo and its CLI tool in `go.mod`; no Node.js package manager is needed for the native app. The documentation site has its own Node.js toolchain. macOS is the supported runtime target. Windows and Linux builds currently serve as compilation checks.
 
-MyGo v0.4.8 and anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e are pinned in `go.mod`. Torrent and dht/v2 use fixed development commits (`d913b30f520e` and `a9c967f9d68b`), recorded as Go pseudo-versions rather than release tags. Together they support `missinggo/v2` v2.11.0's roaring/v2 bitmap and remove the old DHT dependency on `stm`'s iterator API.
+MyGo v0.5.5 and anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e are pinned in `go.mod`. Torrent and dht/v2 use fixed development commits (`d913b30f520e` and `a9c967f9d68b`), recorded as Go pseudo-versions rather than release tags. Together they support `missinggo/v2` v2.11.0's roaring/v2 bitmap and remove the old DHT dependency on `stm`'s iterator API.
 
-Commands below use RTK, following the repository guidelines. Run them from the repository root.
+Run the following commands from the repository root.
 
 ## Run locally
 
 ```sh
-rtk go mod download
-rtk proxy make run
+go mod download
+make run
 ```
 
-Use `rtk proxy make dev` for MyGo development mode. To build a local app bundle without creating a disk image:
+Use `make dev` for MyGo development mode. To build a local app bundle without creating a disk image:
 
 ```sh
-rtk proxy go tool mygo build -skip-dmg
+go tool mygo build -skip-dmg
 ```
 
-On Apple Silicon, the resulting app is `build/darwin-arm64/Rivu.app`. Local builds are ad-hoc signed, not Developer ID signed or notarized. `rtk proxy make build` also produces the platform installer. See [releasing](releasing.md) for universal builds and distribution.
+On Apple Silicon, the resulting app is `build/darwin-arm64/Rivu.app`. Local builds are ad-hoc signed, not Developer ID signed or notarized. `make build` also produces the platform installer. See [releasing](releasing.md) for universal builds and distribution.
 
 ## Launch options
 
 ```sh
-rtk proxy go run . /path/to/file.torrent 'magnet:?xt=urn:btih:…&tr=…'
-rtk proxy go run . --data-dir /tmp/rivu-session
-rtk proxy go run . --config /tmp/rivu-settings.json
-rtk proxy go run . --version
+go run . /path/to/file.torrent 'magnet:?xt=urn:btih:…&tr=…'
+go run . --data-dir /tmp/rivu-session
+go run . --config /tmp/rivu-settings.json
+go run . --version
 ```
 
 `--data-dir` changes session and default preference storage; `--config` changes preferences only. Neither changes the single-instance application identity or MyGo window-state location. Close an existing Rivu instance before using an isolated test session. The [desktop verification guide](desktop.md) describes instance-socket isolation for native smoke checks.
@@ -39,26 +39,52 @@ rtk proxy go run . --version
 ## Validation
 
 ```sh
-rtk proxy make check
-rtk proxy make race
-rtk proxy make integration
-rtk proxy go tool mygo vet
-rtk proxy make snapshots
+make check
+make race
+make integration
+go tool mygo vet
+make snapshots
 ```
 
-`make check` runs unit tests and Go vet. Integration tests use an isolated local swarm without public torrents. Snapshot tests render the application UI with synthetic tasks and cover both appearances and all supported languages.
+`make check` runs unit tests, Go vet, and MyGo's translation checks. Integration tests use an isolated local swarm without public torrents. Snapshot tests render the application UI with synthetic tasks and cover both appearances and all supported languages.
 
 Native changes also require the checks in [desktop behavior and acceptance](desktop.md). Rendered snapshots and cross-compilation do not validate platform permissions, menu bar positioning, accessibility, or signed updates.
 
 To capture a packaged native empty window and exit, first close existing Rivu instances and ensure `snapshots/` exists:
 
 ```sh
-rtk proxy mkdir -p snapshots
-rtk proxy env RIVU_CAPTURE="$PWD/snapshots/native-empty.png" \
+mkdir -p snapshots
+env RIVU_CAPTURE="$PWD/snapshots/native-empty.png" \
   build/darwin-arm64/Rivu.app/Contents/MacOS/Rivu --data-dir /tmp/rivu-smoke
 ```
 
 Use a fresh data directory for an empty session. A `--data-dir` override does not isolate MyGo's window state.
+
+## Documentation site
+
+Use Node.js 22.12 or later and the pnpm version declared in the root `package.json`. This toolchain builds the VitePress site independently of the native app.
+
+```sh
+pnpm install
+pnpm docs:dev
+pnpm docs:build
+pnpm docs:preview
+```
+
+The development server supports live editing. The production build checks internal dead links and writes `docs/.vitepress/dist`; preview serves that build locally.
+
+English content lives in `docs/` and matching Simplified Chinese pages in `docs/zh/`. Keep file names and directory structure aligned so language switching reaches the corresponding page. Both homepages use `layout: home`, `hero`, and `features`. Navigation, sidebars, local search and translated theme labels live in `docs/.vitepress/config.ts`.
+
+The default base path is `/`. For subpath hosting, use the same `DOCS_BASE` for build and preview, with both a leading and trailing slash:
+
+```sh
+DOCS_BASE=/rivu/ pnpm docs:build
+DOCS_BASE=/rivu/ pnpm docs:preview
+```
+
+Deploy `docs/.vitepress/dist` to a static HTML host. The site uses default `.html` routes and does not require extensionless URL rewrites. Building documentation does not configure DNS, publish the app, or enable app updates.
+
+The site icon, `docs/public/icon.png`, is copied from `resources/icons/rivu-256.png`; refresh it when the app icon changes.
 
 ## Documentation screenshots
 
@@ -67,20 +93,20 @@ The product screenshots committed under `docs/images/` come from the application
 Refresh them after relevant UI changes:
 
 ```sh
-rtk proxy make snapshots
-rtk proxy cp snapshots/light-1280.png docs/images/main-light.png
-rtk proxy cp snapshots/dark-1280.png docs/images/main-dark.png
-rtk proxy cp snapshots/menu-bar-light.png docs/images/menu-bar.png
+make snapshots
+cp snapshots/light-1280.png docs/images/main-light.png
+cp snapshots/dark-1280.png docs/images/main-dark.png
+cp snapshots/menu-bar-light.png docs/images/menu-bar.png
 ```
 
 Inspect each image before committing. `snapshots/` remains ignored; only the curated images in `docs/images/` are tracked. Native captures are a separate verification step.
 
 ## Icons
 
-The source of truth is [resources/icon.svg](../resources/icon.svg). Regenerate assets with:
+The source of truth is [resources/icon.svg](https://github.com/ntnyq/rivu/blob/main/resources/icon.svg). Regenerate assets with:
 
 ```sh
-rtk proxy make icon
+make icon
 ```
 
 Generated assets include PNG sizes 16–1024, `resources/rivu.icns`, `resources/rivu.ico`, the macOS iconset, and template menu bar images. Edit the SVG rather than generated bitmaps.
@@ -89,14 +115,25 @@ Generated assets include PNG sizes 16–1024, `resources/rivu.icns`, `resources/
 
 The `language` preference accepts `system` (default), `zh-Hans`, `zh-Hant`, `en`, `ja`, or `ko`. Existing settings without this field continue to follow the system language.
 
-Translations are embedded from `internal/i18n/locales`. All catalogs use stable, dot-separated English semantic keys (for example `settings.save` and `transfer.eta.seconds`). Each segment starts with a lowercase letter and contains only ASCII letters or digits; use lower camel case within segments. Keep punctuation, spaces and formatting placeholders in values only. Use complete format templates instead of concatenating sentence fragments, and preserve the English template’s ordered Go format directives in every language. Keep distinct keys when similar English messages have different meanings or translations. Changing English wording does not require renaming a key.
+MyGo embeds the five ARB JSON catalogs in `locales/`. English is the source and fallback language. Use flat lower camel case keys with a shared semantic prefix, such as `settingsSave` and `transferEtaSeconds`. Write complete ICU MessageFormat messages with named placeholders; declare their Go types in the source catalog's `@message` metadata. Keep distinct keys for distinct meanings. The reserved `mygo.*` keys supply framework menu, control, and dialog translations, including Japanese and Korean strings from the starter.
 
-Use literal keys in `tr`, `i18n.T`, `i18n.Translate`, and `problem.Message` calls. Translate phase labels when rendering, and defer structured-error translation to the presentation boundary; `Error()` resolves the English template for stable diagnostics and retains wrapped causes. Async work returns display text, which must not be translated a second time. Missing translations fall back to English; an unknown key is logged and displays a generic English fallback. Catalog tests check semantic names, exact catalog coverage, unused and missing references (including deferred errors), and format directives against English values. New dynamic translation calls fail reference checking unless explicitly audited. The existing translation and error-presentation adapters are the only allowed forwarding sites. Localized UI tests cover normal and minimum window sizes. Operating-system dialogs and third-party diagnostic messages may use their own language.
+Update all five catalogs together, then run:
+
+```sh
+make generate
+make i18n
+```
+
+Commit `locales/catalog_gen.go` with catalog changes; never edit it by hand. Call the generated functions directly (`locales.SettingsSave()`, `locales.TransferEtaSeconds(seconds)`) or use `locales.In(tag)` for an explicit language. MyGo's CLI also writes optional TypeScript output under the ignored `.mygo/` directory, keeping native source generation out of the documentation workspace.
+
+The saved Rivu preference remains authoritative and applies through `App.SetLocale` after a successful settings save; `system` maps to MyGo's empty override. MyGo resolves the user's ordered preferred languages and updates native text, controls, and role menus together. `App.OnLocaleChanged` rebuilds application menus and tray content and refreshes window titles, including when system preferences change. `MYGO_LOCALE` supports temporary language previews without persisting them.
+
+Translate phase labels when rendering. Structured errors carry a typed `func(locales.Messages) string` renderer and an explicit cause; the presentation boundary selects the current locale, while `Error()` uses English for stable diagnostics and `Unwrap()` preserves the cause. Async work returns display text, which must not be translated again. Catalog tests check complete translations and unused messages, and `mygo i18n check` validates ICU messages and placeholder compatibility. Compilation checks accessor names and argument types. Localized UI tests cover all five languages at normal and minimum window sizes and set the tester's locale for framework controls. Tests replace only the in-memory locale provider and run serially, without writing native language preferences. Operating-system dialogs and third-party diagnostic messages may use their own language.
 
 ## Collection benchmarks
 
 ```sh
-rtk proxy go test . ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
+go test . ./internal/session -run '^$' -bench 'Benchmark(Main1000Tasks|FileTree10000Files|CachedFileTree10000Files|Snapshot1000Tasks10000Files)$' -benchmem
 ```
 
 See [the refactor report](refactor-validation.md) for measured results, persistence migration and feature semantics. The local Tracker integration test checks the pinned engine's diagnostics output contract and must pass after engine upgrades.

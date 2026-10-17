@@ -1,15 +1,31 @@
 {
+  "oxc.enable": true,
+  "eslint.enable": false,
+  "prettier.enable": false,
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.codeActionsOnSave": {
+    "source.format.oxc": "explicit"
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
   "cSpell.words": [
     "anacrolix",
     "btih",
     "btstorage",
+    "bumpp",
+    "esbuild",
     "GOARCH",
     "godiff",
     "gofmt",
     "GOTOOLCHAIN",
     "mygo",
     "purego",
+    "quiesces",
     "rivu",
-    "Upverted"
+    "unconfigured",
+    "unsubmitted",
+    "Upverted",
+    "vitepress"
   ]
 }

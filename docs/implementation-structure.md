@@ -1,20 +1,20 @@
 # Current implementation structure
 
-Updated October 13, 2026. Go 1.27.2 and MyGo 0.4.8 remain pinned in `go.mod`. Root Go files compose native application behavior; business logic lives under `internal`.
+Structure recorded October 13, 2026. The current `go.mod` pins Go 1.27.2 and MyGo v0.5.5; earlier verification records used MyGo v0.4.8. Root Go files compose native application behavior; business logic lives under `internal`.
 
-| Area | Files and ownership |
-| --- | --- |
-| Bootstrap | `main.go`, `cli.go`, `application.go`: process, single session, app lifecycle |
-| Windows | `window_base.go`: native lifetime and cancellable work; `window.go`: main state; `settings_window.go`: settings draft; `add_window.go`: import draft |
-| Main UI | `view.go`, `view_sidebar.go`, `view_toolbar.go`, `view_task_list.go`, `view_statusbar.go`, `view_inspector.go`, `view_palette.go` |
-| Dialogs and inputs | `add_view.go`, `remove_window.go`, `recovery_actions.go`, `file_tree.go` |
-| Preferences | `settings.go`: rendering; `settings_inputs.go`: units, policy controls and automation; `settings_save.go`: validation/persistence; `settings_updates.go`: updater |
-| Desktop composition | `menu.go`, `tray.go`, `capture.go`, `localization.go`, `presentation.go`, `theme.go`, `icons.go` |
-| Session | `manager.go`: lifecycle/serialization; `model.go`, `types.go`: data contracts; `validation.go`, `commands.go`: validated mutations; `import.go`, `removal.go`, `persistence.go`, `recovery.go`, `observation.go`, `snapshot.go`, `scheduler.go`, `space.go` |
-| Torrent adapter | `engine.go`, `source.go`, `storage.go`, `preview.go`, `diagnostics.go` |
-| Automation | `internal/config/schedule.go`, `internal/watchfolder/watcher.go`, root `watch_folder.go` |
-| Supporting packages | `internal/problem`, `config`, `files`, `storage`, `desktop`, `tasks`, `i18n`, `updater` |
+| Area                | Files and ownership                                                                                                                                                                                                                                         |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bootstrap           | `main.go`, `cli.go`, `application.go`: process, single session, app lifecycle                                                                                                                                                                               |
+| Windows             | `window_base.go`: native lifetime and cancellable work; `window.go`: main state; `settings_window.go`: settings draft; `add_window.go`: import draft                                                                                                        |
+| Main UI             | `view.go`, `view_sidebar.go`, `view_toolbar.go`, `view_task_list.go`, `view_statusbar.go`, `view_inspector.go`, `view_palette.go`                                                                                                                           |
+| Dialogs and inputs  | `add_view.go`, `remove_window.go`, `recovery_actions.go`, `file_tree.go`                                                                                                                                                                                    |
+| Preferences         | `settings.go`: rendering; `settings_inputs.go`: units, policy controls and automation; `settings_save.go`: validation/persistence; `settings_updates.go`: updater                                                                                           |
+| Desktop composition | `menu.go`, `tray.go`, `capture.go`, `localization.go`, `presentation.go`, `theme.go`, `icons.go`                                                                                                                                                            |
+| Session             | `manager.go`: lifecycle/serialization; `model.go`, `types.go`: data contracts; `validation.go`, `commands.go`: validated mutations; `import.go`, `removal.go`, `persistence.go`, `recovery.go`, `observation.go`, `snapshot.go`, `scheduler.go`, `space.go` |
+| Torrent adapter     | `engine.go`, `source.go`, `storage.go`, `preview.go`, `diagnostics.go`                                                                                                                                                                                      |
+| Automation          | `internal/config/schedule.go`, `internal/watchfolder/watcher.go`, root `watch_folder.go`                                                                                                                                                                    |
+| Supporting packages | `internal/problem`, `config`, `files`, `storage`, `desktop`, `tasks`, `updater`; `locales` holds MyGo catalogs and generated accessors                                                                                                                      |
 
-Tests remain beside implementations. `resources` contains shipped assets, `tools/genicon` generates icons, `snapshots` and `build` contain generated output. There is no frontend package manager or web runtime.
+Tests remain beside implementations. `resources` contains shipped assets, `tools/genicon` generates icons, `snapshots` and `build` contain generated output. The native application has no web runtime. The VitePress documentation in `docs` uses a separate pnpm toolchain.
 
 See [architecture](architecture.md) for ownership and persistence contracts, [validation report](refactor-validation.md) for feature behavior, and [desktop acceptance](desktop.md) before release. The [October 12 proposed tree](history/implementation-structure-2026-10-12.md) is retained as historical design, not current implementation documentation.

@@ -1,0 +1,29 @@
+{
+  "name": "rivu",
+  "version": "0.0.0",
+  "private": true,
+  "description": "",
+  "keywords": [],
+  "type": "module",
+  "scripts": {
+    "docs:build": "pnpm -C docs run build",
+    "docs:dev": "pnpm -C docs run dev",
+    "docs:preview": "pnpm -C docs run preview",
+    "format": "oxfmt",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "bumpp": "^12.3.0",
+    "husky": "^9.1.7",
+    "nano-staged": "^1.0.2",
+    "npm-run-all2": "^9.0.3",
+    "oxfmt": "^0.73.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "nano-staged": {
+    "*": "oxfmt --no-error-on-unmatched-pattern",
+    "*.go": "gofmt -w"
+  },
+  "packageManager": "pnpm@12.14.0"
+}

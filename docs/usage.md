@@ -1,6 +1,6 @@
 # Using Rivu
 
-[Back to Rivu](../README.md) · [Build and run](development.md)
+[Documentation home](index.md) · [Build and run](development.md)
 
 Rivu is a macOS BitTorrent downloader in active development. It supports `.torrent` files and magnet links, including v1, v2-only, and hybrid torrents.
 

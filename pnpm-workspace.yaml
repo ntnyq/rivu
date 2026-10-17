@@ -1,0 +1,9 @@
+packages:
+  - docs
+
+allowBuilds:
+  esbuild: true
+
+minimumReleaseAge: 0
+pmOnFail: warn
+ignoreWorkspaceRootCheck: true

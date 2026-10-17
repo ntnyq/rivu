@@ -2,7 +2,6 @@
 
 > Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](architecture.md), [source structure](implementation-structure.md), and [implementation status](implementation-status.md).
 
-
 Date: October 12, 2026. Status: implementation design; native transfer features are not implemented by this document.
 
 Implement the [product requirements](product-design.md) and [screen prototype](design/README.md) as a Go and MyGo macOS application. Use [the proposed file structure](implementation-structure.md) as the file ownership guide. Preserve the existing native stack, introduce one application-owned transfer session, and make the main window and menu bar panel projections of that session.
@@ -11,16 +10,16 @@ The design baseline comes from the chat [设计 macOS 种子下载器](codex://t
 
 ## Architecture decisions
 
-| Decision | Implementation consequence |
-| --- | --- |
-| Go 1.27.2 and MyGo v0.4.3 remain pinned | Production UI uses `ui.View`; the HTML prototype is a visual reference |
-| One application-owned session | Closing any window cancels only its view/draft work; transfers continue |
-| Root package composes the UI | Extend the starter's organization rather than introducing a web frontend or IPC |
-| `session` owns product policy | Engine callbacks report observations; they cannot overwrite user intent |
-| `anacrolix/torrent` is the first engine candidate | Validate and pin a release in milestone M0 before shipping an adapter |
-| Versioned JSON is the initial persistence format | One ordered writer, explicit migrations, small stable records, no per-second full-file writes |
-| MyGo handles native tray, login registration and updating | Add narrow adapters only where product requirements exceed exposed status information |
-| macOS is the first release target | Other platforms report unsupported capabilities; native behavior needs platform-specific acceptance |
+| Decision                                                  | Implementation consequence                                                                          |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Go 1.27.2 and MyGo v0.4.3 remain pinned                   | Production UI uses `ui.View`; the HTML prototype is a visual reference                              |
+| One application-owned session                             | Closing any window cancels only its view/draft work; transfers continue                             |
+| Root package composes the UI                              | Extend the starter's organization rather than introducing a web frontend or IPC                     |
+| `session` owns product policy                             | Engine callbacks report observations; they cannot overwrite user intent                             |
+| `anacrolix/torrent` is the first engine candidate         | Validate and pin a release in milestone M0 before shipping an adapter                               |
+| Versioned JSON is the initial persistence format          | One ordered writer, explicit migrations, small stable records, no per-second full-file writes       |
+| MyGo handles native tray, login registration and updating | Add narrow adapters only where product requirements exceed exposed status information               |
+| macOS is the first release target                         | Other platforms report unsupported capabilities; native behavior needs platform-specific acceptance |
 
 The candidate engine is a Go BitTorrent library with an MPL-2.0 license in its upstream repository. Selection is provisional until protocol, storage, pause, recovery, and redistribution requirements pass M0. See [the upstream project](https://github.com/anacrolix/torrent).
 
@@ -117,20 +116,20 @@ The engine seam in `session/ports.go` provides attach/reconcile, stop/detach, ve
 
 Store three separate concepts: durable user intent, durable policy/hold information, and observed engine phase. A task intended to run can currently be queued, offline, or waiting for peers. Neither a reconnect nor a measurement callback changes intent.
 
-| Trigger | Durable change | Execution/display result |
-| --- | --- | --- |
-| Start reviewed torrent | Desired run, selected files, destination, queue order | Verify existing data, then download when admitted |
-| Queue unresolved magnet | Desired run or stop and pending default-all selection | Metadata retrieval only after admission; show unknown size |
-| Pause individually | Desired stop, manual reason; remove batch membership | Stop engine handle and display Paused |
-| Pause All | Atomically record all currently desired-run tasks, including queued/metadata tasks, under one batch ID | Stop that set; preserve already stopped tasks |
-| Resume This Batch | Resume only tasks still carrying that batch ID; clear their membership | Re-enter normal scheduling |
-| Resume one batch member | Desired run, clear that membership | Later batch resume does not act on it again |
-| Selected files verified complete | Record completion epoch | Seed or stop according to policy; one logical completion notification |
-| Seeding target reached | Desired stop, policy reason | Completed |
-| Explicit resume after ratio stop | Desired run and persisted override until next stop/policy change | Avoid immediately stopping again at the same target |
-| Disk unavailable or write failure | Preserve intent, attach actionable hold | Needs Attention; retry only after the cause is resolved |
-| Offline or sleep/wake | Preserve intent | Suspend/reconcile transport without notification storms |
-| Remove | Commit removal operation/tombstone | Stop, detach, then retain or safely trash owned payload |
+| Trigger                           | Durable change                                                                                         | Execution/display result                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| Start reviewed torrent            | Desired run, selected files, destination, queue order                                                  | Verify existing data, then download when admitted                     |
+| Queue unresolved magnet           | Desired run or stop and pending default-all selection                                                  | Metadata retrieval only after admission; show unknown size            |
+| Pause individually                | Desired stop, manual reason; remove batch membership                                                   | Stop engine handle and display Paused                                 |
+| Pause All                         | Atomically record all currently desired-run tasks, including queued/metadata tasks, under one batch ID | Stop that set; preserve already stopped tasks                         |
+| Resume This Batch                 | Resume only tasks still carrying that batch ID; clear their membership                                 | Re-enter normal scheduling                                            |
+| Resume one batch member           | Desired run, clear that membership                                                                     | Later batch resume does not act on it again                           |
+| Selected files verified complete  | Record completion epoch                                                                                | Seed or stop according to policy; one logical completion notification |
+| Seeding target reached            | Desired stop, policy reason                                                                            | Completed                                                             |
+| Explicit resume after ratio stop  | Desired run and persisted override until next stop/policy change                                       | Avoid immediately stopping again at the same target                   |
+| Disk unavailable or write failure | Preserve intent, attach actionable hold                                                                | Needs Attention; retry only after the cause is resolved               |
+| Offline or sleep/wake             | Preserve intent                                                                                        | Suspend/reconcile transport without notification storms               |
+| Remove                            | Commit removal operation/tombstone                                                                     | Stop, detach, then retain or safely trash owned payload               |
 
 Repeated Pause All extends the current batch with newly eligible tasks and never steals ownership from manual pauses. Manual pause of a batch member removes it from the batch. Persist batch membership so restart does not erase the distinction. Global restore-disabled preference adds a recovery hold without changing historical intent; Resume clears it explicitly.
 
@@ -180,15 +179,15 @@ Default removal retains payload. For the separate Trash option, exclude files sh
 
 ## Native screen implementation
 
-| Surface | Implementation and acceptance behavior |
-| --- | --- |
-| Main window | Default 1180 × 760 pt, minimum 880 × 560 pt; 190–220 pt sidebar, roughly 292 pt inspector; hide inspector first when constrained |
-| Task list | Stable ID keys; compact 86–96 pt rows; Cmd/Shift selection; Space pause/resume; double-click details; context actions use shared commands |
-| Inspector | Overview, selected-file tree/priorities and tracker/peer observations; discard detail callbacks after selection changes |
-| Add Download | MyGo child window with `Parent` and `Modal`; verify actual macOS sheet presentation before promising sheet animation; per-item batch errors |
-| Menu bar | Template icon, app lifetime; `NewFlyout` anchored to the tray, approximately 360 pt wide; maximum four rows and attention summary |
-| Settings | One independently reopenable window; five product categories; display both stored preference and observed native result |
-| Empty/error states | Add action when empty; actionable disk/import/update messages; preserve valid work on partial failure |
+| Surface            | Implementation and acceptance behavior                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main window        | Default 1180 × 760 pt, minimum 880 × 560 pt; 190–220 pt sidebar, roughly 292 pt inspector; hide inspector first when constrained            |
+| Task list          | Stable ID keys; compact 86–96 pt rows; Cmd/Shift selection; Space pause/resume; double-click details; context actions use shared commands   |
+| Inspector          | Overview, selected-file tree/priorities and tracker/peer observations; discard detail callbacks after selection changes                     |
+| Add Download       | MyGo child window with `Parent` and `Modal`; verify actual macOS sheet presentation before promising sheet animation; per-item batch errors |
+| Menu bar           | Template icon, app lifetime; `NewFlyout` anchored to the tray, approximately 360 pt wide; maximum four rows and attention summary           |
+| Settings           | One independently reopenable window; five product categories; display both stored preference and observed native result                     |
+| Empty/error states | Add action when empty; actionable disk/import/update messages; preserve valid work on partial failure                                       |
 
 Use semantic theme tokens and system fonts, approximately 13 pt body, 11–12 pt secondary text. Keep normal content opaque; allow system popover material and a solid fallback. Provide focus indicators, keyboard paths, accessible labels, and restrained announcements. Validate Reduce Motion, Reduce Transparency and VoiceOver on a packaged app; unsupported accessibility behavior is a release gap, not a screenshot success.
 
@@ -236,36 +235,36 @@ Use a trusted HTTPS feed, embedded verification key, signed artifacts and macOS 
 
 Each milestone produces working, reviewable behavior with an exit gate. M0 resolves engine/native feasibility before a large UI rewrite. Native presentation follows the accepted design; it does not redefine product scope.
 
-| Milestone | Main files | Deliverable and exit gate |
-| --- | --- | --- |
-| M0 Feasibility | `internal/torrent`, integration fixtures, targeted native probes | Pin engine release; verify v1/v2/hybrid scope, private discovery, real pause, metadata-only mode, selected-file storage, recheck and restore. Verify native panel/modal behavior and identify status-adapter requirements. Record limitations before proceeding |
-| M1 Lifetime and state | `application.go`, `lifecycle.go`, `commands.go`, `session`, `config` | One app session with deterministic engine fixture; durable intent, batch pauses and subscriptions; closing windows leaves session alive; snapshot consumers share revisions |
-| M2 Native presentation | `view*.go`, add/settings windows, `tray*.go`, `theme.go` | All designed screens, light/dark, selection, filtering, empty/errors and disabled capabilities; MyGo snapshots plus packaged panel smoke test |
-| M3 Real transfer loop | Torrent adapter, import, scheduler, persistence, file safety | Controlled swarm download, partial selection, pause/resume, verify, queue, ratio stop, recovery and safe removal; no fake success responses in production |
-| M4 Desktop integration | `launch.go`, `cli.go`, `desktop`, packaging identity | Associations, second-instance routing, background login, OS status, notifications, sleep/wake, Dock reopen and multiple-monitor panel verified in a packaged app |
-| M5 Updates and release | `updater`, shutdown coordinator, release config/docs | Signed update check/install/relaunch, blocked restart on save failure, recovery after failed install, signing/notarization and final regression matrix |
+| Milestone              | Main files                                                           | Deliverable and exit gate                                                                                                                                                                                                                                       |
+| ---------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0 Feasibility         | `internal/torrent`, integration fixtures, targeted native probes     | Pin engine release; verify v1/v2/hybrid scope, private discovery, real pause, metadata-only mode, selected-file storage, recheck and restore. Verify native panel/modal behavior and identify status-adapter requirements. Record limitations before proceeding |
+| M1 Lifetime and state  | `application.go`, `lifecycle.go`, `commands.go`, `session`, `config` | One app session with deterministic engine fixture; durable intent, batch pauses and subscriptions; closing windows leaves session alive; snapshot consumers share revisions                                                                                     |
+| M2 Native presentation | `view*.go`, add/settings windows, `tray*.go`, `theme.go`             | All designed screens, light/dark, selection, filtering, empty/errors and disabled capabilities; MyGo snapshots plus packaged panel smoke test                                                                                                                   |
+| M3 Real transfer loop  | Torrent adapter, import, scheduler, persistence, file safety         | Controlled swarm download, partial selection, pause/resume, verify, queue, ratio stop, recovery and safe removal; no fake success responses in production                                                                                                       |
+| M4 Desktop integration | `launch.go`, `cli.go`, `desktop`, packaging identity                 | Associations, second-instance routing, background login, OS status, notifications, sleep/wake, Dock reopen and multiple-monitor panel verified in a packaged app                                                                                                |
+| M5 Updates and release | `updater`, shutdown coordinator, release config/docs                 | Signed update check/install/relaunch, blocked restart on save failure, recovery after failed install, signing/notarization and final regression matrix                                                                                                          |
 
 Within M1, first migrate ownership, then persistence/state, then commands/subscriptions. Within M3, first complete a single torrent round trip, then queue/seeding/batch operations, then magnet/batch import and failure recovery. Keep individual commits behavior-focused; delete starter demo views and checksum code only after replacement behavior and tests land.
 
 ## Validation and acceptance
 
-| Level | Required scenarios |
-| --- | --- |
-| Pure Go behavior | Intent versus observations; batch membership; fair slots; seed override; hash alias duplicates; corrupt/future schema; failed writes; shutdown barriers; slow/stale subscribers |
-| Filesystem fixtures | Existing data verification; traversal and symlinks; same-name/case-fold conflicts; selected-file piece overlap; external volume absence; shared ownership; partial Trash failure |
+| Level                  | Required scenarios                                                                                                                                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pure Go behavior       | Intent versus observations; batch membership; fair slots; seed override; hash alias duplicates; corrupt/future schema; failed writes; shutdown barriers; slow/stale subscribers                                              |
+| Filesystem fixtures    | Existing data verification; traversal and symlinks; same-name/case-fold conflicts; selected-file piece overlap; external volume absence; shared ownership; partial Trash failure                                             |
 | Controlled local swarm | Torrent and magnet metadata; actual byte integrity; partial selection; no payload during metadata review; paused traffic behavior; restart and forced process termination; upload limits and private-discovery configuration |
-| Native MyGo UI | Default/minimum sizes, light/dark, long names, keyboard multi-selection, inspector tabs, empty/error states, settings errors, no post-close callbacks |
-| Packaged macOS | Tray anchor/dismissal/right-click, close versus Quit, Dock reopen, cold associations, login enabled/denied/revoked, notification permission/clicks, sleep/wake, update/restart |
+| Native MyGo UI         | Default/minimum sizes, light/dark, long names, keyboard multi-selection, inspector tabs, empty/error states, settings errors, no post-close callbacks                                                                        |
+| Packaged macOS         | Tray anchor/dismissal/right-click, close versus Quit, Dock reopen, cold associations, login enabled/denied/revoked, notification permission/clicks, sleep/wake, update/restart                                               |
 
 Use controlled dependencies and `t.TempDir()` for unit tests. Keep network-dependent swarm tests behind an explicit integration target, using locally generated fixtures and no public swarm dependency in normal CI. For crashes and recovery, launch a subprocess and terminate it at defined persistence/engine checkpoints. UI snapshot success does not establish native registration, networking or update correctness.
 
 Run repository checks for each implementation milestone:
 
 ```sh
-rtk proxy make check
-rtk proxy make race
-rtk proxy go tool mygo vet
-rtk proxy make snapshots
+make check
+make race
+go tool mygo vet
+make snapshots
 ```
 
 Before release, record macOS version, CPU architecture, bundle/signing state and outcomes for native checks. Measure task-list responsiveness and idle/active resource usage rather than declaring performance from code inspection. The release gate requires every P0 requirement to have a working path or an explicit product scope decision; an unimplemented settings switch is not completion.
@@ -274,6 +273,6 @@ Before release, record macOS version, CPU architecture, bundle/signing state and
 
 The pinned source is authoritative for existing MyGo calls. Application contracts and policy values above are proposed implementation decisions.
 
-- Local starter: [application/window ownership](../window.go), [launch handling](../main.go), [configuration store](../internal/config/store.go), [atomic writes](../internal/storage/atomic.go), [job cancellation](../internal/tasks/task.go).
+- Local starter: [application/window ownership](https://github.com/ntnyq/rivu/blob/main/window.go), [launch handling](https://github.com/ntnyq/rivu/blob/main/main.go), [configuration store](https://github.com/ntnyq/rivu/blob/main/internal/config/store.go), [atomic writes](https://github.com/ntnyq/rivu/blob/main/internal/storage/atomic.go), [job cancellation](https://github.com/ntnyq/rivu/blob/main/internal/tasks/task.go).
 - MyGo v0.4.3: [tray flyout example](https://github.com/egoist/mygo/blob/v0.4.3/examples/menubar-flyout/main.go), [login and relaunch](https://github.com/egoist/mygo/blob/v0.4.3/login.go), [updater](https://github.com/egoist/mygo/blob/v0.4.3/updater.go), [quit lifecycle](https://github.com/egoist/mygo/blob/v0.4.3/app.go), [shell operations](https://github.com/egoist/mygo/blob/v0.4.3/modules.go).
 - Candidate engine: [anacrolix/torrent](https://github.com/anacrolix/torrent). Exact release and behavior acceptance are M0 outputs.
