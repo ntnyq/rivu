@@ -6,7 +6,6 @@
 - Bundle ID: `com.ntnyq.rivu`
 - Repository: `https://github.com/ntnyq/rivu`
 - Website: `https://rivu.ntnyq.dev`
-- Initial version: `0.0.1`
 - Platforms: macOS, Windows, Linux
 - macOS minimum: 12.0
 
@@ -40,7 +39,7 @@ The icon's source of truth is `resources/icon.svg`. `make icon` renders all PNG 
 
 ## Release workflow
 
-Manually dispatch the Release workflow from the default branch with a stable version such as `0.0.2`, without `v`. It requires an existing default branch with commits and repository write permission.
+Manually dispatch the Release workflow from the default branch with a stable version in `MAJOR.MINOR.PATCH` format, without `v`. It requires an existing default branch with commits and repository write permission.
 
 1. **Prepare:** validate the version and branch, update `internal/app/run.go`, `mygo.json` and `CHANGELOG.md`, then run race tests, translation checks, local-swarm integration, Go vet and MyGo vet. Share these prepared files and `RELEASE_NOTES.md` with the remaining jobs.
 2. **Build:** package the same prepared version on macOS, Windows and Linux runners in parallel, signing the update archives with `MYGO_UPDATER_PRIVATE_KEY`. Verify and collect each target's installer, archive and update manifest. A missing asset or an invalid signature, size, version or archive URL fails the build.
@@ -75,6 +74,10 @@ For a signed local build, supply the same private key through `MYGO_UPDATER_PRIV
 Draft releases are invisible to users' update checks. The first update-enabled build must be installed manually on systems running an older unconfigured build. Development mode and installations without write permission report updates as unavailable; Linux DEB installations should use the package manager instead. Do not treat `Updater.Enabled() == false` as an up-to-date result.
 
 Automatic checks and automatic installation are separate opt-ins. Automatic installation requires an idle session and blocks new admissions. Manual install explains the interruption, saves/quiesces transfers, downloads/verifies/replaces through MyGo, and restores permitted execution. Restart goes through the normal quit/save coordinator.
+
+Update checks keep a 45-second overall network deadline, with at most three attempts of 12 seconds each and 0.5/1-second backoff. Dial and TLS handshake timeouts are 5 seconds; the response-header timeout is 10 seconds. Only EOF, truncated responses, connection resets/aborts and timeouts are retried. Cancellation, invalid JSON, certificate errors and HTTP errors such as 404 stop the check; failures do not advance the last successful check time. Installation is not retried as a whole.
+
+Update requests and archive downloads use a dedicated transport. Explicit `HTTP_PROXY`/`HTTPS_PROXY` settings take precedence; `NO_PROXY` also bypasses the Windows system proxy. Otherwise Windows reads the current user's proxy settings for every request, including redirected URLs. A manual proxy is preferred over WPAD discovery; an explicit PAC script takes precedence over the manual proxy, and PAC `DIRECT` is honored. PAC/WPAD lookup uses WinHTTP, with a 5-second caller deadline and at most one outstanding native lookup. Unavailable or timed-out WPAD discovery falls back to the direct route and pauses discovery for one minute, so the default auto-detect setting on home networks does not block updates. Manual proxy and explicit PAC changes still apply immediately. Explicit PAC failures are reported rather than silently bypassing the proxy. The MyGo v0.5.5 adapter routes only marked update contexts through this transport, preserving other application HTTP traffic and MyGo's HTTPS and signature checks. CI runs the updater's real-MyGo EOF contract and Windows proxy/PAC tests on the existing Windows AMD64 runner.
 
 Before enabling this for users, test a controlled signed update, bad signature, wrong architecture, low disk space, interrupted replacement and save failure at restart. A runnable previous bundle must survive a failed update. See `desktop.md` for the rest of native acceptance.
 

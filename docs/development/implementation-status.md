@@ -1,6 +1,6 @@
 # Implementation status
 
-Date: October 13, 2026. Scope: macOS-first development build of Rivu 0.0.1.
+Date: October 13, 2026. Scope: macOS-first development build of Rivu.
 
 ## Implemented
 

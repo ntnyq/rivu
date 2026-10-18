@@ -61,6 +61,14 @@ Restored transfers recheck actual data. Upload totals and cumulative seeding tim
 
 Use a release build installed in a writable location. Development mode, older builds without update configuration, and read-only installations cannot update themselves. On macOS, copy Rivu out of the DMG into Applications. On Linux, update a DEB installation through the package manager. Install an update-enabled release manually once if your older build has no update configuration. An unavailable result does not mean the build is current; see [update settings](settings.md#updates).
 
+## Windows update check reports EOF or a timeout
+
+`EOF` or `unexpected EOF` means the connection or response ended early. It does not mean your version is current or that an update signature failed. Windows release builds use `update-windows-amd64.json`.
+
+Rivu retries interrupted or timed-out checks up to two times. On Windows, it uses the proxy environment variables when configured; otherwise it reads your current Windows system proxy, including automatic configuration scripts (PAC). Proxy exceptions are respected. You can enable a working system proxy and check again without enabling TUN mode. A browser reaching GitHub does not by itself prove that Rivu's proxy path is working.
+
+If checks still fail, verify that the configured proxy is running and permits both `github.com` and the redirected release-download hosts. If you launch Rivu from a terminal, review `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY`, because they take precedence over system proxy selection. Check again even if you already installed the newest version: Rivu still retrieves the manifest before comparing versions. Report the complete final error if the problem persists, removing proxy credentials before sharing it.
+
 ## Still need help?
 
 Search [GitHub Issues](https://github.com/ntnyq/rivu/issues), then report your operating system and version, Rivu version, steps to reproduce, and the exact error. Remove private paths and tracker credentials from screenshots or logs.
