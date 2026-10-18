@@ -55,7 +55,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - name: Verify native storage and session behavior
-        run: go test ./internal/files ./internal/config ./internal/storage ./internal/session ./internal/torrent
+      - name: Verify native storage, session and update networking
+        run: go test ./internal/files ./internal/config ./internal/storage ./internal/session ./internal/torrent ./internal/updater
       - name: Verify local swarm transfers
         run: go test -tags integration ./internal/torrent -count=1 -timeout=60s
