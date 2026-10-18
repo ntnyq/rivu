@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.3 (2026-10-18)
+
+- feat: add feedback button to update settings (9e20fe3)
+- fix: adapt desktop windows and storage across platforms (a0d507f)
+- fix: use platform-neutral localized copy (5f5ed16)
+
+[Full Changelog](https://github.com/ntnyq/rivu/compare/v0.0.2...v0.0.3)
+
 ## 0.0.2 (2026-10-17)
 
 - feat: add signed cross-platform release packages (15ed2d4)

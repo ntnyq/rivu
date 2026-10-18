@@ -19,7 +19,7 @@ import (
 )
 
 const appName = "Rivu"
-const version = "0.0.2"
+const version = "0.0.3"
 const website = "https://rivu.ntnyq.dev"
 const repository = "https://github.com/ntnyq/rivu"
 
