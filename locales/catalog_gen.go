@@ -116,6 +116,16 @@ func (msgs Messages) CommonCopy() string {
 	return Catalog.Format(msgs.locale, "commonCopy", nil)
 }
 
+// CommonFeedback says "Feedback"
+// in the language the app shows.
+func CommonFeedback() string { return In(i18n.Locale()).CommonFeedback() }
+
+// CommonFeedback says "Feedback"
+// in the language of msgs.
+func (msgs Messages) CommonFeedback() string {
+	return Catalog.Format(msgs.locale, "commonFeedback", nil)
+}
+
 // CommonFollowSystem says "Follow System"
 // in the language the app shows.
 func CommonFollowSystem() string { return In(i18n.Locale()).CommonFollowSystem() }

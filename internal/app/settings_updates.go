@@ -59,19 +59,23 @@ func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 	if !w.settings.AutoCheck {
 		w.settings.AutoInstall = false
 	}
-	ui.Row(c).Gap(8).Children(func() {
+	ui.Row(c).Gap(8).Wrap().Justify(ui.SpaceBetween).Children(func() {
 		if actionButton(c, "refresh", locales.UpdatesCheck(), false).FontSize(11).Disabled(!available || w.task.Running()).Clicked() {
 			w.run(locales.UpdatesCheck(), func(ctx context.Context) (string, error) {
 				return locales.UpdatesCheckComplete(), w.app.updater.Check(ctx)
 			}, nil)
 		}
-		ui.Spacer(c)
-		if actionButton(c, "globe", locales.CommonWebsite(), false).FontSize(11).Clicked() {
-			w.openURL(website)
-		}
-		if actionButton(c, "github", "GitHub", false).FontSize(11).Clicked() {
-			w.openURL(repository)
-		}
+		ui.Row(c).Gap(8).Shrink(0).Children(func() {
+			if actionButton(c, "feedback", locales.CommonFeedback(), false).FontSize(11).Clicked() {
+				w.openURL(repository + "/issues/new/choose")
+			}
+			if actionButton(c, "globe", locales.CommonWebsite(), false).FontSize(11).Clicked() {
+				w.openURL(website)
+			}
+			if actionButton(c, "github", "GitHub", false).FontSize(11).Clicked() {
+				w.openURL(repository)
+			}
+		})
 	})
 	ui.Text(c, locales.UpdatesInstallHint()).FontSize(11).TextColor(p.muted)
 }

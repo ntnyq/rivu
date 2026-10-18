@@ -62,8 +62,10 @@ func TestLocalizedSurfaces(t *testing.T) {
 			}{
 				{"main", w.view, 1180, 760, locales.FilterAll()},
 				{"main-minimum", w.view, 880, 560, locales.FilterAll()},
-				{"settings", settings.settingsView, 750, 630, locales.SettingsLanguageLabel()},
-				{"settings-minimum", settings.settingsView, 640, 520, locales.SettingsLanguageLabel()},
+				{"settings", func(c *ui.Context) { settings.settingsTab = 0; settings.settingsView(c) }, 750, 630, locales.SettingsLanguageLabel()},
+				{"settings-minimum", func(c *ui.Context) { settings.settingsTab = 0; settings.settingsView(c) }, 640, 520, locales.SettingsLanguageLabel()},
+				{"settings-updates", func(c *ui.Context) { settings.settingsTab = 4; settings.settingsView(c) }, 750, 630, locales.CommonFeedback()},
+				{"settings-updates-minimum", func(c *ui.Context) { settings.settingsTab = 4; settings.settingsView(c) }, 640, 520, locales.CommonFeedback()},
 				{"add", add.view, 550, 660, locales.TransferAdd()},
 				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), locales.TrayOpenWindow()},
 			} {
@@ -78,6 +80,14 @@ func TestLocalizedSurfaces(t *testing.T) {
 				}
 				if surface.name == "settings" && !tt.HasText(locales.CommonFollowSystem()) {
 					t.Error("default language option missing")
+				}
+				if surface.name == "settings-updates" || surface.name == "settings-updates-minimum" {
+					for _, label := range []string{locales.UpdatesCheck(), locales.CommonFeedback(), locales.CommonWebsite(), "GitHub"} {
+						r, ok := tt.Find(label)
+						if !ok || r.X < 197 || r.X+r.W > float32(surface.width-29) {
+							t.Errorf("%s: %s exceeds content width: %+v", surface.name, label, r)
+						}
+					}
 				}
 				if surface.name == "tray" {
 					for _, label := range []string{locales.TrayOpenWindow(), locales.TransferAdd(), locales.SettingsLabel(), locales.TransferSpeedLimit()} {
