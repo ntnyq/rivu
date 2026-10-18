@@ -6,13 +6,13 @@ search: false
 
 > Historical design reference (October 12, 2026). For the shipped code and current dependency versions, see [architecture](../development/architecture.md), [source structure](../development/implementation-structure.md), and [implementation status](../development/implementation-status.md).
 
-Date: October 12, 2026. Status: proposed product specification and interactive design prototype. The download engine and operating system integrations described here are not implemented by this deliverable.
+Date: October 12, 2026. Status: proposed product specification. The download engine and operating system integrations described here are not implemented by this deliverable.
 
 ## Product direction
 
 Rivu is a lightweight, macOS-first BitTorrent client. Use the menu bar for quick checks and controls, and the main window for managing tasks and inspecting details.
 
-Keep the existing Go 1.27.2 + MyGo v0.4.3 native application stack. The review prototype in [interactive prototype](../design/README.md) is a standalone design aid, not the application's runtime architecture. It introduces no web frontend dependency into the Go application.
+Keep the existing Go 1.27.2 + MyGo v0.4.3 native application stack.
 
 The initial interface uses Chinese copy, with room for English localization. Keep transfer logic and persistence platform-independent; prioritize macOS integration before other desktop platforms.
 
@@ -69,7 +69,7 @@ Rivu
 
 ### Main window
 
-Target a default native size of 1180 × 760 pt, with a minimum of 880 × 560 pt. Use a 190–220 pt sidebar and an approximately 292 pt optional inspector. Hide the inspector first when space becomes constrained; provide a details sheet when needed. The browser prototype also adapts to narrow review screens, which does not imply a mobile application.
+Target a default native size of 1180 × 760 pt, with a minimum of 880 × 560 pt. Use a 190–220 pt sidebar and an approximately 292 pt optional inspector. Hide the inspector first when space becomes constrained; provide a details sheet when needed.
 
 Preserve native traffic-light controls and integrate the toolbar with the title bar. Use sidebar material for navigation and an opaque content surface for sustained reading. Reserve transparency for navigation and temporary panels.
 
@@ -131,7 +131,7 @@ Batch imports use one review step with individual errors; one invalid torrent mu
 | Notifications | Completion and actionable failures on; show OS authorization separately                                                       |
 | Updates       | Ask before enabling automatic checks; daily checks after consent; automatic installation off; manual check when supported     |
 
-The prototype opens in light appearance for predictable review, although the product default is Follow System. It shows a post-consent automatic-check setting for demonstration.
+The product default is Follow System.
 
 Show real login-item registration results, including failure, system disablement, and authorization requirements. A local checkbox is not proof that the OS will launch the app. Disabling the menu bar icon must leave a Dock entry available.
 
@@ -274,8 +274,6 @@ Required acceptance cases:
 - Partial file selection produces correct progress and clear storage requirements.
 - Automatic updates never force a restart during transfers. Failed checks do not become “up to date.” Invalid signatures leave the current app runnable.
 - During native implementation, run `make check`, `make race`, `go tool mygo vet`, and `make snapshots`. Separately test packaged macOS tray behavior, login items, associations, notifications, and updates. Cross-compilation does not validate these integrations.
-
-See [the prototype guide](../design/README.md) for supported review interactions and limitations.
 
 ## References
 

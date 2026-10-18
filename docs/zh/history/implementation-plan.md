@@ -8,7 +8,7 @@ search: false
 本文为 2026 年 10 月 12 日的实施设计，并非功能完成清单。当前状态见[架构](../development/architecture.md)、[源码结构](../development/implementation-structure.md)和[实现状态](../development/implementation-status.md)。
 :::
 
-将[产品需求](product-design.md)和[视觉原型](../design/README.md)落地为 Go/MyGo macOS 应用。原[目录规划](implementation-structure-2026-10-12.md)用于职责参考。保留原生技术栈，建立一个应用级会话，让主窗口与菜单栏成为会话投影。P0 包括真实导入、文件选择、队列、做种、恢复、桌面和更新；RSS、远程控制、流播放、账号和代理路由不在本轮范围。
+将[产品需求](product-design.md)落地为 Go/MyGo macOS 应用。原[目录规划](implementation-structure-2026-10-12.md)用于职责参考。保留原生技术栈，建立一个应用级会话，让主窗口与菜单栏成为会话投影。P0 包括真实导入、文件选择、队列、做种、恢复、桌面和更新；RSS、远程控制、流播放、账号和代理路由不在本轮范围。
 
 ## 架构决策
 

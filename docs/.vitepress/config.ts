@@ -54,10 +54,6 @@ const developmentSidebar: DefaultTheme.SidebarItem[] = [
         text: 'Proposed source tree',
         link: '/history/implementation-structure-2026-10-12',
       },
-      {
-        text: 'Visual prototype',
-        link: '/design/README',
-      },
     ],
   },
 ]
@@ -115,10 +111,6 @@ const zhDevelopmentSidebar: DefaultTheme.SidebarItem[] = [
       {
         text: '早期目录规划',
         link: '/zh/history/implementation-structure-2026-10-12',
-      },
-      {
-        text: '视觉原型',
-        link: '/zh/design/README',
       },
     ],
   },
@@ -182,7 +174,7 @@ export default defineConfig({
           {
             text: 'Developers',
             link: '/development/',
-            activeMatch: '/(development|history|design)/',
+            activeMatch: '/(development|history)/',
           },
         ],
         sidebar: {
@@ -237,7 +229,6 @@ export default defineConfig({
           ],
           '/development/': developmentSidebar,
           '/history/': developmentSidebar,
-          '/design/': developmentSidebar,
         },
         editLink: {
           pattern: 'https://github.com/ntnyq/rivu/edit/main/docs/:path',
@@ -276,7 +267,7 @@ export default defineConfig({
           {
             text: '开发者',
             link: '/zh/development/',
-            activeMatch: '/zh/(development|history|design)/',
+            activeMatch: '/zh/(development|history)/',
           },
         ],
         sidebar: {
@@ -331,7 +322,6 @@ export default defineConfig({
           ],
           '/zh/development/': zhDevelopmentSidebar,
           '/zh/history/': zhDevelopmentSidebar,
-          '/zh/design/': zhDevelopmentSidebar,
         },
         editLink: {
           pattern: 'https://github.com/ntnyq/rivu/edit/main/docs/:path',

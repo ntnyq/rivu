@@ -49,7 +49,7 @@ func navigationButton(c *ui.Context, label string, selected bool, p palette) ui.
 	return button
 }
 
-// Compact controls use the prototype's row and footer sizes, without inheriting
+// Compact controls use row and footer sizes, without inheriting
 // the larger toolbar hit box that shifts task text and progress tracks.
 func compactIconButton(c *ui.Context, name, label string, size, iconSize float32, color ui.Color) bool {
 	e := ui.Row(c).Key(label).Size(size, size).Shrink(0).Radius(5).Justify(ui.Center).Label(label).Tooltip(label).Focusable()

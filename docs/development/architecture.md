@@ -1,6 +1,6 @@
 # Architecture
 
-Rivu is a native Go/MyGo application. The HTML under `docs/design` is the accepted visual reference, not the application runtime.
+Rivu is a native Go/MyGo application.
 
 ## Ownership
 
@@ -8,7 +8,7 @@ The root `main.go` delegates to `internal/app.Run`. Application composition stay
 
 `application.go` owns a single session, preferences store, updater, tray and optional windows. Closing a window cancels its draft/background work without closing the session. Native menu actions and the command palette share stable command IDs in `menu.go`.
 
-`mainWindow`, `settingsWindow`, and `addWindow` own separate view state. Only native lifetime, status, and cancellable asynchronous work live in `windowBase`. Main list regions live in `view_*.go`; settings rendering and persistence are separate. All transfer views render immutable observations. `theme.go` translates the design reference's colors into MyGo theme values. SVG UI symbols originate in the approved local prototype; the product mark has its own editable vector source.
+`mainWindow`, `settingsWindow`, and `addWindow` own separate view state. Only native lifetime, status, and cancellable asynchronous work live in `windowBase`. Main list regions live in `view_*.go`; settings rendering and persistence are separate. All transfer views render immutable observations. `theme.go` defines MyGo theme values. SVG UI symbols and the product mark have editable vector source files in `resources/`.
 
 `resources/embed.go` embeds the tray image and SVG artwork and exposes reads relative to `resources/`. The app parses and caches SVGs in `icons.go` and builds UI controls in `controls.go`. `internal/windowtask` owns cancellable window jobs and drops stale callbacks; transfer lifecycle remains in `internal/session`.
 

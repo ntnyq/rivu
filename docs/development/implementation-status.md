@@ -6,7 +6,7 @@ Date: October 13, 2026. Scope: macOS-first development build of Rivu 0.0.1.
 
 The application now has a real application-owned torrent session, native main/settings/import/menu bar views, Chinese UI, persisted settings and tasks, queue admission, file priorities, pause/batch restore, recheck, ratio seeding, completion notification bookkeeping, conservative private-magnet discovery, rooted storage and journaled removal. Product identity, repository/domain links and editable/generated icons are configured.
 
-The visual implementation follows `docs/design/styles.css` and the approved prototype rather than the old starter screens: 191 pt sidebar, solid blue navigation, 69 pt toolbar, 102 pt task rows, 271 pt inspector, segmented tabs, file symbols and small secondary labels. Settings use a 168 pt category sidebar and grouped rows/switches. Both appearances and the 880 × 560 minimum window are rendered in tests.
+The visual implementation uses a 191 pt sidebar, solid blue navigation, a 69 pt toolbar, 102 pt task rows, a 271 pt inspector, segmented tabs, file symbols and small secondary labels. Settings use a 168 pt category sidebar and grouped rows/switches. Both appearances and the 880 × 560 minimum window are rendered in tests.
 
 The engine is pinned to anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e. Controlled local swarm tests verify v1, v2-only and hybrid byte integrity, magnet metadata without payload writes, pause detachment, resume rehash and selected-file transfers across shared piece boundaries. The adapter retains the short-hash admission path introduced for v1.61.0, retaining/comparing full identity in Rivu before payload admission. No dependency cache source was modified.
 

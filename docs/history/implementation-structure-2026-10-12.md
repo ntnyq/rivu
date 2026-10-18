@@ -6,9 +6,9 @@ search: false
 
 Date: October 12, 2026. Status: proposed implementation structure.
 
-Rivu will keep the existing Go 1.27.2 and MyGo v0.4.3 native stack. The root package composes application lifecycle, windows, views, and commands; `internal` owns transfer behavior, persistence, and native integration. The target below translates [the product design](product-design.md) and [interactive prototype](../design/README.md) into implementation files. It is a plan, not a description of files already implemented.
+Rivu will keep the existing Go 1.27.2 and MyGo v0.4.3 native stack. The root package composes application lifecycle, windows, views, and commands; `internal` owns transfer behavior, persistence, and native integration. The target below translates [the product design](product-design.md) into implementation files. It is a plan, not a description of files already implemented.
 
-Read [the implementation plan](implementation-plan.md) for contracts, state transitions, sequencing, and acceptance criteria. Keep the browser prototype under `docs/design` as a review reference; production views are Go code.
+Read [the implementation plan](implementation-plan.md) for contracts, state transitions, sequencing, and acceptance criteria. Production views are Go code.
 
 ## Target source tree
 
@@ -131,8 +131,7 @@ rivu/
 │   ├── releasing.md                  # Bundle signing, update signing, notarization, smoke tests
 │   ├── product-design.md
 │   ├── implementation-structure.md   # This proposed tree
-│   ├── implementation-plan.md        # Contracts, behavior, milestones and verification
-│   └── design/                       # Existing review HTML, scripts and screenshots
+│   └── implementation-plan.md        # Contracts, behavior, milestones and verification
 ├── build/                            # Ignored packaging output
 └── snapshots/                        # Ignored native UI snapshots
 ```

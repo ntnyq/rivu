@@ -87,20 +87,19 @@ docs/
 ├── guide/            # Getting started, features, settings, and help
 ├── development/      # Build, architecture, verification, and releases
 ├── history/          # Archived design and implementation plans
-├── design/           # Review-only visual prototype
 ├── images/           # Product screenshots
 ├── public/           # Static assets
 ├── zh/               # Matching Simplified Chinese pages
 └── .vitepress/       # Site configuration and theme
 ```
 
-User-guide sidebars and developer sidebars are separate. Historical plans and the visual prototype are excluded from local search with `search: false`. When moving a page, update links, navigation, and its translated counterpart. Building the site does not deploy it or enable app updates.
+User-guide sidebars and developer sidebars are separate. Historical plans are excluded from local search with `search: false`. When moving a page, update links, navigation, and its translated counterpart. Building the site does not deploy it or enable app updates.
 
 The site icon, `docs/public/icon.png`, is copied from `resources/icons/rivu-256.png`; refresh it when the app icon changes.
 
 ## Documentation screenshots
 
-The product screenshots committed under `docs/images/` come from the application UI renderer, not the HTML design prototype. Their transfer names, rates, and progress are test fixtures. The README identifies them as demo transfers.
+The product screenshots committed under `docs/images/` come from the application UI renderer. Their transfer names, rates, and progress are test fixtures. The README identifies them as demo transfers.
 
 Refresh them after relevant UI changes:
 
@@ -158,4 +157,3 @@ Native capture also accepts `RIVU_CAPTURE_SURFACE=settings-downloads` or `settin
 - [Implementation status](implementation-status.md): implemented behavior and remaining release gates.
 - [Desktop verification](desktop.md): native behavior and acceptance checks.
 - [Release guide](releasing.md): packaging, signing, updates, and licenses.
-- [Design reference](../design/README.md): the review-only HTML prototype.

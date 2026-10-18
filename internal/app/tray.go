@@ -46,8 +46,8 @@ func (a *application) configureTray() {
 	}
 }
 
-// These dimensions mirror docs/design/styles.css in logical pixels. The panel
-// grows with its preview rows instead of reserving a full list for an empty session.
+// Panel dimensions are in logical pixels. The panel grows with its preview rows
+// instead of reserving a full list for an empty session.
 const (
 	trayWidth           = 360
 	trayRowHeight       = 71
@@ -109,8 +109,8 @@ func (a *application) trayView(c *ui.Context) {
 	p := designTheme(c)
 	preview := presentTray(a.snapshot)
 	c.Root().Background(ui.Transparent)
-	// AppKit supplies the arrow and outer shape. Tint its material as in the
-	// prototype; fully transparent content lets desktop wallpaper swamp the UI.
+	// AppKit supplies the arrow and outer shape. Tint its material so desktop
+	// wallpaper does not swamp the UI through fully transparent content.
 	background := p.sidebar
 	if c.Vibrancy() {
 		background = background.Alpha(.96)

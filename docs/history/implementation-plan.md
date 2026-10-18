@@ -8,7 +8,7 @@ search: false
 
 Date: October 12, 2026. Status: implementation design; native transfer features are not implemented by this document.
 
-Implement the [product requirements](product-design.md) and [screen prototype](../design/README.md) as a Go and MyGo macOS application. Use [the proposed file structure](implementation-structure-2026-10-12.md) as the file ownership guide. Preserve the existing native stack, introduce one application-owned transfer session, and make the main window and menu bar panel projections of that session.
+Implement the [product requirements](product-design.md) as a Go and MyGo macOS application. Use [the proposed file structure](implementation-structure-2026-10-12.md) as the file ownership guide. Preserve the existing native stack, introduce one application-owned transfer session, and make the main window and menu bar panel projections of that session.
 
 The design baseline comes from the chat [设计 macOS 种子下载器](codex://threads/01a12e83-53af-7360-9b8f-475021c5c0ac). Its P0 scope includes real torrent/magnet imports, file selection, queueing, seeding, recovery, desktop integration, and updates. RSS, remote control, streaming playback, accounts, and proxy routing remain outside this implementation.
 
@@ -16,7 +16,7 @@ The design baseline comes from the chat [设计 macOS 种子下载器](codex://t
 
 | Decision                                                  | Implementation consequence                                                                          |
 | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Go 1.27.2 and MyGo v0.4.3 remain pinned                   | Production UI uses `ui.View`; the HTML prototype is a visual reference                              |
+| Go 1.27.2 and MyGo v0.4.3 remain pinned                   | Production UI uses `ui.View`                                                                        |
 | One application-owned session                             | Closing any window cancels only its view/draft work; transfers continue                             |
 | `internal/app` composes the UI                            | Extend the starter's organization rather than introducing a web frontend or IPC                     |
 | `session` owns product policy                             | Engine callbacks report observations; they cannot overwrite user intent                             |

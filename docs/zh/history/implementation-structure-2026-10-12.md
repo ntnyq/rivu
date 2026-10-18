@@ -8,7 +8,7 @@ search: false
 日期：2026 年 10 月 12 日。以下为提议目录，不是已实现文件清单。当时基于 Go 1.27.2 和 MyGo v0.4.3。当前布局见[源码结构](../development/implementation-structure.md)。
 :::
 
-根包组合生命周期、窗口、视图与命令，`internal` 承担传输、持久化和原生适配。[产品设计](product-design.md)和[视觉原型](../design/README.md)提供目标，[实施计划](implementation-plan.md)说明契约、状态与验收。生产视图使用 Go，浏览器原型仅作评审。
+根包组合生命周期、窗口、视图与命令，`internal` 承担传输、持久化和原生适配。[产品设计](product-design.md)提供目标，[实施计划](implementation-plan.md)说明契约、状态与验收。生产视图使用 Go。
 
 ## 目标源码树
 
@@ -131,8 +131,7 @@ rivu/
 │   ├── releasing.md
 │   ├── product-design.md
 │   ├── implementation-structure.md
-│   ├── implementation-plan.md
-│   └── design/
+│   └── implementation-plan.md
 ├── build/
 └── snapshots/
 ```

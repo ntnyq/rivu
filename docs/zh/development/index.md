@@ -87,14 +87,13 @@ docs/
 ├── guide/            # 快速开始、功能、设置与帮助
 ├── development/      # 构建、架构、验证与发布
 ├── history/          # 早期设计与实施计划归档
-├── design/           # 仅供评审的视觉原型
 ├── images/           # 产品截图
 ├── public/           # 静态资源
 ├── zh/               # 对应的简体中文页面
 └── .vitepress/       # 站点配置与主题
 ```
 
-使用指南和开发者文档采用独立侧边栏；历史计划与视觉原型通过 `search: false` 排除在本地搜索之外。移动页面时同步更新链接、导航和另一语言的对应页面。构建站点不会部署网站或启用应用更新。
+使用指南和开发者文档采用独立侧边栏；历史计划通过 `search: false` 排除在本地搜索之外。移动页面时同步更新链接、导航和另一语言的对应页面。构建站点不会部署网站或启用应用更新。
 
 ## 文档截图
 
@@ -158,4 +157,3 @@ go test ./internal/app ./internal/session -run '^$' -bench 'Benchmark(Main1000Ta
 - [实现状态](implementation-status.md)：已实现行为与发布门槛。
 - [桌面验证](desktop.md)：原生行为与验收。
 - [发布指南](releasing.md)：打包、签名、更新与许可证。
-- [设计参考](../design/README.md)：仅供评审的 HTML 原型。

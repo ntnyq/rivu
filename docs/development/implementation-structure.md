@@ -28,7 +28,6 @@ rivu/
     ├── guide/
     ├── development/
     ├── history/
-    ├── design/
     ├── images/
     ├── public/
     ├── zh/
