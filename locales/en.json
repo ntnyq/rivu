@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "aboutVersion": "Version {version} · Made for your Mac",
+  "aboutVersion": "Version {version} · Made for you",
   "@aboutVersion": {
     "placeholders": {
       "version": {
@@ -147,7 +147,7 @@
   "importSourcesLabel": "Download sources, one per line",
   "importSourcesPlaceholder": "magnet:?xt=urn:btih:… One source per line",
   "importStartImmediately": "Start downloading immediately",
-  "importSubtitle": "Bring something new to your Mac.",
+  "importSubtitle": "Bring something new to your computer.",
   "menuAbout": "About Rivu",
   "menuAdd": "Add Download…",
   "menuBringToFront": "Bring All to Front",

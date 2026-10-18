@@ -97,12 +97,14 @@ func TestExclusivePublicationUsesOpenDirectory(t *testing.T) {
 	if err := os.Mkdir(original, 0700); err != nil {
 		t.Fatal(err)
 	}
-	root, err := os.OpenRoot(original)
+	// OpenRoot's handle does not share delete access on Windows. Keep it on
+	// the parent so only the directory-relative handle follows the rename.
+	root, err := os.OpenRoot(base)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer root.Close()
-	directory, err := root.Open(".")
+	directory, err := root.Open("original")
 	if err != nil {
 		t.Fatal(err)
 	}

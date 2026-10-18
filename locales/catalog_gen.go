@@ -36,11 +36,11 @@ type Messages struct{ locale string }
 // source language.
 func In(locale string) Messages { return Messages{locale} }
 
-// AboutVersion says "Version {version} · Made for your Mac"
+// AboutVersion says "Version {version} · Made for you"
 // in the language the app shows.
 func AboutVersion(version string) string { return In(i18n.Locale()).AboutVersion(version) }
 
-// AboutVersion says "Version {version} · Made for your Mac"
+// AboutVersion says "Version {version} · Made for you"
 // in the language of msgs.
 func (msgs Messages) AboutVersion(version string) string {
 	return Catalog.Format(msgs.locale, "aboutVersion", map[string]any{"version": version})
@@ -884,11 +884,11 @@ func (msgs Messages) ImportStartImmediately() string {
 	return Catalog.Format(msgs.locale, "importStartImmediately", nil)
 }
 
-// ImportSubtitle says "Bring something new to your Mac."
+// ImportSubtitle says "Bring something new to your computer."
 // in the language the app shows.
 func ImportSubtitle() string { return In(i18n.Locale()).ImportSubtitle() }
 
-// ImportSubtitle says "Bring something new to your Mac."
+// ImportSubtitle says "Bring something new to your computer."
 // in the language of msgs.
 func (msgs Messages) ImportSubtitle() string {
 	return Catalog.Format(msgs.locale, "importSubtitle", nil)

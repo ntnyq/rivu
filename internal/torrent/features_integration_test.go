@@ -55,7 +55,11 @@ func TestLocalPreviewAndAdoptedRepair(t *testing.T) {
 	prefs := config.Default()
 	prefs.DHT = false
 	prefs.PEX = false
-	t.Setenv("TMPDIR", t.TempDir())
+	tempDir := t.TempDir()
+	// Unix uses TMPDIR; Windows uses TMP or TEMP.
+	for _, key := range []string{"TMPDIR", "TMP", "TEMP"} {
+		t.Setenv(key, tempDir)
+	}
 	source, err := Preview(ctx, raw, prefs)
 	if err != nil {
 		t.Fatal(err)

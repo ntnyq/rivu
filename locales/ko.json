@@ -1,6 +1,6 @@
 {
   "@@locale": "ko",
-  "aboutVersion": "버전 {version} · Mac을 위한 디자인",
+  "aboutVersion": "버전 {version} · 당신을 위한 디자인",
   "commonBrowserOpened": "브라우저를 열었습니다",
   "commonCancel": "취소",
   "commonCanceled": "취소됨",
@@ -84,7 +84,7 @@
   "importSourcesLabel": "다운로드 소스, 한 줄에 하나",
   "importSourcesPlaceholder": "magnet:?xt=urn:btih:… 한 줄에 하나",
   "importStartImmediately": "추가 후 즉시 다운로드 시작",
-  "importSubtitle": "새로운 콘텐츠를 Mac으로 가져오세요.",
+  "importSubtitle": "새로운 콘텐츠를 컴퓨터로 가져오세요.",
   "menuAbout": "Rivu 정보",
   "menuAdd": "다운로드 추가…",
   "menuBringToFront": "모두 앞으로 가져오기",

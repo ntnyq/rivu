@@ -1,6 +1,6 @@
 {
   "@@locale": "ja",
-  "aboutVersion": "バージョン {version} · Mac のためのデザイン",
+  "aboutVersion": "バージョン {version} · あなたのためのデザイン",
   "commonBrowserOpened": "ブラウザを開きました",
   "commonCancel": "キャンセル",
   "commonCanceled": "キャンセルしました",
@@ -84,7 +84,7 @@
   "importSourcesLabel": "ダウンロード元（1 行に 1 件）",
   "importSourcesPlaceholder": "magnet:?xt=urn:btih:… 1 行に 1 件",
   "importStartImmediately": "追加後すぐにダウンロードを開始",
-  "importSubtitle": "新しいコンテンツを Mac に。",
+  "importSubtitle": "新しいコンテンツをパソコンに。",
   "menuAbout": "Rivu について",
   "menuAdd": "ダウンロードを追加…",
   "menuBringToFront": "すべてを手前に移動",

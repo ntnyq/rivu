@@ -1,6 +1,6 @@
 {
   "@@locale": "zh-Hans",
-  "aboutVersion": "版本 {version} · 为你的 Mac 而设计",
+  "aboutVersion": "版本 {version} · 为你而设计",
   "commonBrowserOpened": "已打开浏览器",
   "commonCancel": "取消",
   "commonCanceled": "已取消",
@@ -84,7 +84,7 @@
   "importSourcesLabel": "下载来源，每行一个",
   "importSourcesPlaceholder": "magnet:?xt=urn:btih:… 每行一个来源",
   "importStartImmediately": "添加后立即开始下载",
-  "importSubtitle": "将新的内容，带到你的 Mac。",
+  "importSubtitle": "将新的内容，带到你的电脑。",
   "menuAbout": "关于 Rivu",
   "menuAdd": "添加下载…",
   "menuBringToFront": "全部置于前面",
