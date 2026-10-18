@@ -7,6 +7,7 @@ import (
 	"github.com/ntnyq/rivu/internal/files"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 )
@@ -155,8 +156,12 @@ func TestRemoveRetainsFilesAndTrashFailureIsRecoverable(t *testing.T) {
 	m.trash = func(string) error { return errors.New("denied") }
 	m.mu.Unlock()
 	_ = os.WriteFile(filepath.Join(dest, "payload.txt"), []byte("data"), 0o644)
-	st, _ := os.Stat(filepath.Join(dest, "payload.txt"))
-	identity, err := files.FileIdentity(st)
+	file, err := os.Open(filepath.Join(dest, "payload.txt"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	identity, err := files.FileIdentity(file)
+	file.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,5 +212,74 @@ func TestBatchResumeDoesNotClearOtherError(t *testing.T) {
 		if v.ID == b && v.Error != "disk missing" {
 			t.Fatal("unrelated hold cleared")
 		}
+	}
+}
+
+func TestTrashValidatesOwnedPathComponents(t *testing.T) {
+	for _, kind := range []string{"regular", "case alias", "symlink parent"} {
+		t.Run(kind, func(t *testing.T) {
+			if kind == "case alias" && runtime.GOOS != "windows" {
+				t.Skip("Windows path casing")
+			}
+			m, stateDir := manager(t)
+			id := add(t, m, "owned", false)
+			record := m.Snapshot().Tasks[0]
+			name, actual := "payload.txt", "payload.txt"
+			if kind == "case alias" {
+				actual = "Payload.txt"
+			}
+			if kind == "symlink parent" {
+				if err := os.Mkdir(filepath.Join(record.Destination, "real"), 0700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Symlink("real", filepath.Join(record.Destination, "link")); err != nil {
+					if runtime.GOOS == "windows" {
+						t.Skipf("symlink privilege unavailable: %v", err)
+					}
+					t.Fatal(err)
+				}
+				name, actual = "link/payload.txt", "real/payload.txt"
+			}
+			full := filepath.Join(record.Destination, filepath.FromSlash(actual))
+			if err := os.WriteFile(full, []byte("keep"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			file, err := os.Open(full)
+			if err != nil {
+				t.Fatal(err)
+			}
+			identity, err := files.FileIdentity(file)
+			file.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			metadata := filepath.Join(stateDir, "fixture.torrent")
+			if err := files.SaveOwnership(metadata+".files.json", map[string]string{name: identity}); err != nil {
+				t.Fatal(err)
+			}
+			called := 0
+			m.mu.Lock()
+			m.state.Tasks[0].Metadata = metadata
+			m.state.Tasks[0].Source.Files = []File{{Path: name, Size: 4, Priority: 1}}
+			m.trash = func(path string) error { called++; return os.Remove(path) }
+			m.mu.Unlock()
+			if err := m.Execute(t.Context(), Command{Kind: CommandRemove, IDs: []string{id}, Trash: true}); err != nil {
+				t.Fatal(err)
+			}
+			tasks := m.Snapshot().Tasks
+			m.mu.Lock()
+			calls := called
+			m.mu.Unlock()
+			if kind == "symlink parent" {
+				if len(tasks) != 1 || tasks[0].Error == "" || calls != 0 {
+					t.Fatalf("unsafe trash accepted: tasks=%v calls=%d", tasks, calls)
+				}
+				if data, err := os.ReadFile(full); err != nil || string(data) != "keep" {
+					t.Fatalf("linked payload changed: %q, %v", data, err)
+				}
+			} else if len(tasks) != 0 || calls != 1 {
+				t.Fatalf("owned payload removal failed: tasks=%v calls=%d", tasks, calls)
+			}
+		})
 	}
 }

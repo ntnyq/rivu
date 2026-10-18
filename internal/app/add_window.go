@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -75,9 +74,8 @@ func (d *addWindow) prepare() {
 	var free int64
 	var spaceError string
 	d.run(locales.ImportReadSources(), func(ctx context.Context) (string, error) {
-		home, _ := os.UserHomeDir()
-		if destination == filepath.Join(home, "Downloads", "Rivu") {
-			if err := os.MkdirAll(destination, 0o755); err != nil {
+		if config.IsDefaultDestination(destination) {
+			if err := files.CreateDownloadDirectory(destination); err != nil {
 				spaceError = err.Error()
 			}
 		}

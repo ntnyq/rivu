@@ -2,6 +2,7 @@ package app
 
 import (
 	"path/filepath"
+	"runtime"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -42,12 +43,9 @@ func (a *application) openWindow() *mainWindow {
 	w := newWindow(a.store)
 	w.app = a
 	w.snapshot = a.snapshot
-	w.win = mygo.NewWindow(mygo.WindowOptions{
-		Title: appName, Width: 1180, Height: 760, MinWidth: 880, MinHeight: 560, StateKey: "main",
-		TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 38,
-		TrafficLightPosition: &mygo.Point{X: 18, Y: 12},
-		Content:              ui.View(w.view),
-	})
+	opts := mainWindowOptions(runtime.GOOS)
+	opts.Content = ui.View(w.view)
+	w.win = mygo.NewWindow(opts)
 	w.desktop.Parent = w.win
 	w.win.OnClosed(w.close)
 	a.window = w

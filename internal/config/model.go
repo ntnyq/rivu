@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -51,8 +50,7 @@ type Settings struct {
 }
 
 func Default() Settings {
-	home, _ := os.UserHomeDir()
-	return Settings{ScheduleStart: 22 * 60, ScheduleEnd: 8 * 60, Version: 2, Theme: "system", Language: "system", Destination: filepath.Join(home, "Downloads", "Rivu"), Concurrent: 3, Restore: true, Tray: true, BackgroundLogin: true, NotifyComplete: true, NotifyError: true, ConfirmQuit: true, SeedRatio: 2, SlowDownload: 2000000, SlowUpload: 512000, DHT: true, PEX: true}
+	return Settings{ScheduleStart: 22 * 60, ScheduleEnd: 8 * 60, Version: 2, Theme: "system", Language: "system", Destination: DefaultDestination(), Concurrent: 3, Restore: true, Tray: true, BackgroundLogin: true, NotifyComplete: true, NotifyError: true, ConfirmQuit: true, SeedRatio: 2, SlowDownload: 2000000, SlowUpload: 512000, DHT: true, PEX: true}
 }
 func (s Settings) Validate() error {
 	if s.ScheduleStart < 0 || s.ScheduleStart >= 1440 || s.ScheduleEnd < 0 || s.ScheduleEnd >= 1440 || s.ScheduleEnabled && s.ScheduleStart == s.ScheduleEnd {

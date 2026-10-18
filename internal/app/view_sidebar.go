@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/locales"
@@ -91,7 +92,7 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 				glyph(c, "settings", 17, p.text)
 				ui.Text(c, locales.SettingsLabel()).FontSize(12)
 				ui.Spacer(c)
-				ui.Text(c, "⌘,").FontSize(11).TextColor(p.muted)
+				ui.Text(c, shortcutHint(runtime.GOOS, ",")).FontSize(11).TextColor(p.muted)
 			})
 			if settings.Clicked() && w.app != nil {
 				w.app.openSettings()

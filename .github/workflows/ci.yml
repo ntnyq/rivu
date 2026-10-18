@@ -42,3 +42,20 @@ jobs:
         with:
           name: desktop-builds
           path: build/
+
+  native-storage:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Verify native storage and session behavior
+        run: go test ./internal/files ./internal/config ./internal/storage ./internal/session ./internal/torrent
+      - name: Verify local swarm transfers
+        run: go test -tags integration ./internal/torrent -count=1 -timeout=60s

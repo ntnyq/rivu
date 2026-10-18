@@ -95,12 +95,8 @@ func TestOwnershipPublicationRecoversFromJournalFailure(t *testing.T) {
 			if _, err = f.Write([]byte("data")); err != nil {
 				t.Fatal(err)
 			}
-			stat, err := f.Stat()
-			if err != nil {
-				t.Fatal(err)
-			}
+			identity, err := files.FileIdentity(f)
 			f.Close()
-			identity, err := files.FileIdentity(stat)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -171,7 +167,12 @@ func TestEmptyFilesAreOwnedOnlyAfterAdmission(t *testing.T) {
 			if stat.Size() != 0 || !stat.Mode().IsRegular() {
 				t.Fatal("selected empty file missing or not empty")
 			}
-			identity, err := files.FileIdentity(stat)
+			file, err := root.Open("bundle/empty")
+			if err != nil {
+				t.Fatal(err)
+			}
+			identity, err := files.FileIdentity(file)
+			file.Close()
 			if err != nil {
 				t.Fatal(err)
 			}

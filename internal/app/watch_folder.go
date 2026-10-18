@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
-	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/egoist/mygo"
+	"github.com/ntnyq/rivu/internal/config"
+	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/session"
 	torrentengine "github.com/ntnyq/rivu/internal/torrent"
 	"github.com/ntnyq/rivu/internal/watchfolder"
@@ -27,9 +28,8 @@ func (a *application) watchFolder(ctx context.Context) {
 				continue
 			}
 			err := w.Scan(ctx, s.WatchFolder, func(ctx context.Context, path string, data []byte) error {
-				home, _ := os.UserHomeDir()
-				if s.Destination == filepath.Join(home, "Downloads", "Rivu") {
-					if err := os.MkdirAll(s.Destination, 0755); err != nil {
+				if config.IsDefaultDestination(s.Destination) {
+					if err := files.CreateDownloadDirectory(s.Destination); err != nil {
 						return err
 					}
 				}

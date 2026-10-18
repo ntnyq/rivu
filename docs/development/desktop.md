@@ -2,15 +2,25 @@
 
 ## Implemented paths
 
-- Native MyGo main/settings/add windows, with macOS titlebar controls supplied by the OS.
+- Native MyGo main/settings/add windows. macOS keeps its inset integrated titlebar; Windows/Linux use default native decorations with application controls below them.
 - Left-click menu bar flyout and temporary right-click menu. Linux falls back to a tray menu.
-- Dock activation reopens the main window. Closing windows retains the session.
+- Dock activation reopens the main window on macOS. Windows/Linux retain the session after closing windows only while a tray has been created; otherwise closing the last window uses the normal quit confirmation and save coordinator.
 - `.torrent` and `magnet` associations in `mygo.json`; early OS-open events are queued until initialization completes.
 - Second-instance arguments reuse import review. `--config` does not isolate application identity.
-- Login registration uses MyGo `SetOpenAtLogin`; current boolean status is read on opening settings. Quiet login preserves the application session without showing a window.
+- Login registration uses MyGo `SetOpenAtLogin`; current boolean status is read on opening settings. Quiet login preserves the application session without showing a window only when a Dock/tray recovery entry is available.
 - Notifications use task/completion-epoch IDs. Clicking routes to task selection. Successful display requests are not proof of delivery.
 - Suspend saves and quiesces; resume reconciles unchanged durable intent.
 - Quit confirmation and asynchronous saving also guard update restart.
+
+## Platform policies
+
+- Windows/Linux expose Settings, About and Quit in the File menu; shortcut hints use Control. Saving the tray preference applies immediately even when the language is unchanged. macOS keeps its existing application menu and Command hints.
+- New default destinations use Windows Known Folders or Linux XDG user directories. Saved destinations stay unchanged. Import review and watched-folder imports create only the current or legacy Rivu default under an existing downloads directory. They never recreate missing parents or redirected volumes.
+- Windows validates device names, reserved characters and control characters before admission. File ownership uses the volume serial and full 128-bit file ID queried from an open handle; filesystems without that query are rejected. Publication uses directory-relative NT rename with replacement disabled. Unix ownership journal IDs retain their existing format.
+- Payload and journal contents are flushed before publication. Windows has no equivalent to an unprivileged directory fsync, so metadata durability after power loss still depends on the filesystem.
+- `TestPlatformWindowDecorations` guards the platform options and unchanged macOS geometry. `TestNativeTitleBarContentBounds` covers all five languages at normal/minimum widths, with expanded/collapsed sidebars. Storage tests exercise stable identity, adoption, collision refusal, renamed-parent anchoring and missing-parent protection. Trash checks reuse component validation and handle identity rather than comparing canonical path spelling. CI runs storage/session and local-swarm tests on Windows/Linux as well as the macOS suite.
+
+Native acceptance must additionally cover Windows DPI changes between monitors, maximize/restore, Snap layouts, window icons, drag areas, modal focus, long/UNC paths and network volumes. On Linux, cover GNOME/KDE under Wayland/X11, left/right/no titlebar buttons, fractional scaling, missing AppIndicator support, tray restoration, desktop associations and installed-app integration. Tray creation does not prove that a Linux desktop is displaying the indicator; verify the desktop host/extension as well. Software snapshots and cross-compilation do not establish these behaviors.
 
 ## Local verification
 
@@ -31,7 +41,7 @@ On the development macOS arm64 host, the app bundle builds with ad-hoc signing, 
 
 MyGo v0.4.8 exposes boolean login observation and notification support, not every OS authorization state. Rivu reports observed values and original errors without inferring richer permission states. The detailed native status adapters proposed in the plan remain a release gap.
 
-Release packages target macOS, Windows, and Linux. Validate installation, startup, file associations, tray behavior, transfers, and clean exit on each OS before publishing the draft; cross-compilation alone does not cover these checks. The recorded native checks below were performed on macOS. Known Windows limitation: safe payload ownership and free-space adapters are still unavailable, so new downloads can be refused. Track this limitation in release review; producing an installer does not verify transfer behavior.
+Release packages target macOS, Windows, and Linux. Validate installation, startup, file associations, tray behavior, transfers, and clean exit on each OS before publishing the draft; cross-compilation alone does not cover these checks. The recorded native checks below were performed on macOS. Windows now has free-space, handle-based file identity and exclusive publication adapters. Native transfer and filesystem acceptance is still required; producing an installer does not verify transfer behavior.
 
 ## Visual parity checks
 
@@ -128,3 +138,12 @@ The empty library shows one instruction and no details panel; the details toggle
 is disabled without a selection. `TestDetailsRequireSelection` covers opening
 details on request and removing the selected task at regular and narrow widths.
 The native Chinese window capture is `snapshots/native-layout-main.png`.
+
+On October 18, 2026, the cross-platform window/storage pass preserved the macOS
+window geometry and added native Windows/Linux storage CI. A separate isolated
+macOS native check saved Tray enabled → disabled while the language stayed
+English; both changes immediately updated the native tray. The temporary smoke
+harness was removed after verification. A Windows-only removal test covers
+canonical filename casing, while shared tests reject symlinked parent paths and
+prevent automatic recreation of missing downloads parents. Windows/Linux native
+UI and filesystem acceptance remains required.

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"path/filepath"
+	"runtime"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -36,7 +37,9 @@ func (a *application) openSettings() {
 	w := newSettingsWindow(a.store)
 	w.app = a
 	w.loginStatus = locales.SettingsLoginStatusDetails(mygo.App.OpenAtLogin())
-	w.win = mygo.NewWindow(mygo.WindowOptions{Title: locales.SettingsTitle(), TitleBarStyle: mygo.TitleBarHiddenInset, TitleBarHeight: 50, Width: 750, Height: 630, MinWidth: 640, MinHeight: 520, Content: ui.View(w.settingsView)})
+	opts := settingsWindowOptions(runtime.GOOS)
+	opts.Content = ui.View(w.settingsView)
+	w.win = mygo.NewWindow(opts)
 	w.desktop.Parent = w.win
 	w.win.OnClosed(w.close)
 	a.settingsWindow = w

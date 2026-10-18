@@ -1,7 +1,6 @@
 package session
 
 import (
-	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -42,34 +41,21 @@ func (m *Manager) finishRemoval(i int) error {
 			if shared {
 				return problem.Message(problem.Conflict, locales.Messages.FilesShared, nil)
 			}
-			real, err := filepath.EvalSymlinks(full)
-			if err == nil {
-				if real != full {
-					return problem.Message(problem.Conflict, locales.Messages.FilesSymlinkReplaced, nil)
-				}
-				st, er := os.Lstat(full)
-				if er != nil {
-					return er
-				}
-				if !st.Mode().IsRegular() {
-					return problem.Message(problem.Conflict, locales.Messages.FilesRegularOwnedOnly, nil)
-				}
-				owners, er := files.ReadOwnership(r.Metadata + ".files.json")
-				if er != nil {
-					return er
-				}
-				identity, er := files.FileIdentity(st)
-				if er != nil {
-					return er
+			identities, err := files.InspectExisting(r.Destination, []string{f.Path}, true)
+			if err != nil {
+				return err
+			}
+			if identity, exists := identities[f.Path]; exists {
+				owners, err := files.ReadOwnership(r.Metadata + ".files.json")
+				if err != nil {
+					return err
 				}
 				if owners[f.Path] != identity {
 					return problem.Message(problem.Conflict, func(m locales.Messages) string { return m.FilesOwnershipChanged(f.Path) }, nil)
 				}
-				if err = m.trash(full); err != nil {
+				if err := m.trash(full); err != nil {
 					return err
 				}
-			} else if !os.IsNotExist(err) {
-				return err
 			}
 			r.Trashed = append(r.Trashed, f.Path)
 			next := cloneState(m.state)

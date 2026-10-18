@@ -6,6 +6,7 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -80,7 +81,12 @@ func TestRootedStorageRejectsSymlinkEscape(t *testing.T) {
 	target := filepath.Join(outside, "outside")
 	_ = os.WriteFile(target, []byte("safe"), 0o600)
 	rootDir := t.TempDir()
-	_ = os.Symlink(target, filepath.Join(rootDir, "payload.txt"))
+	if err := os.Symlink(target, filepath.Join(rootDir, "payload.txt")); err != nil {
+		if runtime.GOOS == "windows" {
+			t.Skipf("symlink privilege unavailable: %v", err)
+		}
+		t.Fatal(err)
+	}
 	root, _ := os.OpenRoot(rootDir)
 	defer root.Close()
 	st := &rootedStorage{root: root, allowed: true}

@@ -29,7 +29,7 @@ This is not a claim that every milestone's hardware acceptance gate has passed. 
 - Forced-termination injection across every persistence/Trash boundary remains to be expanded. Large-list profiling and regression benchmarks are recorded in [the refactor report](refactor-validation.md).
 - Upload totals can lag up to one checkpoint interval after a crash. Session error holds are runtime observations; durable user pauses survive restart, while environmental failures are detected again on admission.
 - Atomic replacement syncs the file and parent directory on macOS/Linux. A post-rename sync failure blocks further mutation pending reload; hard power-loss recovery still needs filesystem-specific acceptance.
-- Windows amd64 and Linux amd64 cross-compilation passed. These outputs are compilation checks only. Windows payload ownership/free-space adapters are unavailable and refuse download admission.
+- Windows amd64 and Linux amd64 cross-compilation passed. These outputs are compilation checks only. Windows now has handle-based ownership, free-space and exclusive publication adapters; native filesystem and transfer acceptance remains required. See [desktop acceptance](desktop.md).
 - DNS/website deployment, repository push and GitHub publishing have not been performed by this implementation task. No project license has been selected for Rivu's own code yet.
 
 See `desktop.md` and `releasing.md` before distributing to users.

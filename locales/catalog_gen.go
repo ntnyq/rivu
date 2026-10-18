@@ -86,6 +86,16 @@ func (msgs Messages) CommonChoose() string {
 	return Catalog.Format(msgs.locale, "commonChoose", nil)
 }
 
+// CommonClose says "Close"
+// in the language the app shows.
+func CommonClose() string { return In(i18n.Locale()).CommonClose() }
+
+// CommonClose says "Close"
+// in the language of msgs.
+func (msgs Messages) CommonClose() string {
+	return Catalog.Format(msgs.locale, "commonClose", nil)
+}
+
 // CommonConnections says "Connections"
 // in the language the app shows.
 func CommonConnections() string { return In(i18n.Locale()).CommonConnections() }
@@ -462,16 +472,6 @@ func (msgs Messages) FilesPrioritySkip() string {
 	return Catalog.Format(msgs.locale, "filesPrioritySkip", nil)
 }
 
-// FilesRegularOwnedOnly says "Only regular files owned by the transfer can be removed"
-// in the language the app shows.
-func FilesRegularOwnedOnly() string { return In(i18n.Locale()).FilesRegularOwnedOnly() }
-
-// FilesRegularOwnedOnly says "Only regular files owned by the transfer can be removed"
-// in the language of msgs.
-func (msgs Messages) FilesRegularOwnedOnly() string {
-	return Catalog.Format(msgs.locale, "filesRegularOwnedOnly", nil)
-}
-
 // FilesReplaced says "File replaced or not owned by this transfer: {path}"
 // in the language the app shows.
 func FilesReplaced(path string) string { return In(i18n.Locale()).FilesReplaced(path) }
@@ -560,16 +560,6 @@ func FilesSymlinkFolder() string { return In(i18n.Locale()).FilesSymlinkFolder()
 // in the language of msgs.
 func (msgs Messages) FilesSymlinkFolder() string {
 	return Catalog.Format(msgs.locale, "filesSymlinkFolder", nil)
-}
-
-// FilesSymlinkReplaced says "File has been replaced with a symbolic link"
-// in the language the app shows.
-func FilesSymlinkReplaced() string { return In(i18n.Locale()).FilesSymlinkReplaced() }
-
-// FilesSymlinkReplaced says "File has been replaced with a symbolic link"
-// in the language of msgs.
-func (msgs Messages) FilesSymlinkReplaced() string {
-	return Catalog.Format(msgs.locale, "filesSymlinkReplaced", nil)
 }
 
 // FilesTitle says "Files"

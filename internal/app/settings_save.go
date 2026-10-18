@@ -102,6 +102,7 @@ func (w *settingsWindow) saveSettings() {
 		applyTheme(w.settings.Theme)
 		if w.app != nil {
 			w.app.applyLanguage()
+			w.app.configureTray()
 		}
 		if w.app != nil {
 			if main := w.app.window; main != nil && !main.closed {

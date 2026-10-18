@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/ntnyq/rivu/internal/problem"
@@ -19,7 +20,7 @@ func ValidateMembers(names []string) error {
 			return fmt.Errorf("unsafe torrent path %q", name)
 		}
 		for _, part := range strings.Split(name, "/") {
-			if strings.TrimSpace(part) == "" || strings.HasSuffix(part, ".") || strings.HasSuffix(part, " ") {
+			if strings.TrimSpace(part) == "" || strings.HasSuffix(part, ".") || strings.HasSuffix(part, " ") || runtime.GOOS == "windows" && !validWindowsComponent(part) {
 				return fmt.Errorf("invalid filename %q", part)
 			}
 		}
@@ -37,6 +38,15 @@ func ValidateMembers(names []string) error {
 		}
 	}
 	return nil
+}
+
+// CreateDownloadDirectory creates the application folder without recreating a
+// missing downloads directory or an unmounted redirected volume.
+func CreateDownloadDirectory(dir string) error {
+	if err := os.Mkdir(dir, 0o755); err != nil && !os.IsExist(err) {
+		return err
+	}
+	return ValidateDestination(dir)
 }
 
 // ValidateDestination never creates missing external volumes. The caller must
@@ -97,7 +107,21 @@ func InspectExisting(dir string, names []string, allowExisting bool) (map[string
 				return nil, problem.Message(problem.Destination, func(m locales.Messages) string { return m.FilesUnsafeDestination(rel) }, nil)
 			}
 			if i == len(parts)-1 {
-				id, err := FileIdentity(st)
+				file, err := root.Open(rel)
+				if err != nil {
+					return nil, err
+				}
+				opened, err := file.Stat()
+				if err != nil {
+					file.Close()
+					return nil, err
+				}
+				if !os.SameFile(st, opened) {
+					file.Close()
+					return nil, fmt.Errorf("file changed while inspecting %q", rel)
+				}
+				id, err := FileIdentity(file)
+				file.Close()
 				if err != nil {
 					return nil, err
 				}
@@ -106,4 +130,26 @@ func InspectExisting(dir string, names []string, allowExisting bool) (map[string
 		}
 	}
 	return identities, nil
+}
+
+// Windows device names remain reserved even with extensions or superscript digits.
+func validWindowsComponent(part string) bool {
+	for _, ch := range part {
+		if ch < 32 || strings.ContainsRune(`<>:"/\\|?*`, ch) {
+			return false
+		}
+	}
+	base, _, _ := strings.Cut(part, ".")
+	base = strings.ToUpper(strings.TrimRight(base, " "))
+	switch base {
+	case "CON", "PRN", "AUX", "NUL", "CONIN$", "CONOUT$":
+		return false
+	}
+	if strings.HasPrefix(base, "COM") || strings.HasPrefix(base, "LPT") {
+		suffix := base[3:]
+		if len(suffix) == 1 && suffix[0] >= '1' && suffix[0] <= '9' || suffix == "¹" || suffix == "²" || suffix == "³" {
+			return false
+		}
+	}
+	return part != "" && !strings.HasSuffix(part, ".") && !strings.HasSuffix(part, " ")
 }

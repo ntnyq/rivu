@@ -1,4 +1,4 @@
-//go:build !darwin && !linux
+//go:build !darwin && !linux && !windows
 
 package files
 
@@ -7,6 +7,6 @@ import (
 	"os"
 )
 
-func FileIdentity(info os.FileInfo) (string, error) {
+func FileIdentity(file *os.File) (string, error) {
 	return "", fmt.Errorf("safe payload ownership is unavailable on this platform")
 }

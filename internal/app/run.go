@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
@@ -80,7 +81,11 @@ func Run() {
 			a.openWindow()
 		}
 	})
-	mygo.App.OnWindowAllClosed(func() {})
+	mygo.App.OnWindowAllClosed(func() {
+		if a.ready && !canRunInBackground(runtime.GOOS, a.tray != nil) {
+			mygo.App.Quit()
+		}
+	})
 	mygo.App.OnBeforeQuit(a.beforeQuit)
 	mygo.App.SetLocale(localePreference(store.Snapshot().Language))
 	mygo.App.OnLocaleChanged(func(string) {
@@ -111,7 +116,7 @@ func Run() {
 				a.observe()
 				mygo.App.SetMenu(a.menu())
 				a.configureTray()
-				if !mygo.App.WasOpenedAtLogin() || !store.Snapshot().BackgroundLogin || len(a.pending) > 0 || loadErr != nil || sessionErr != nil {
+				if !canRunInBackground(runtime.GOOS, a.tray != nil) || !mygo.App.WasOpenedAtLogin() || !store.Snapshot().BackgroundLogin || len(a.pending) > 0 || loadErr != nil || sessionErr != nil {
 					a.openWindow()
 				}
 				if loadErr != nil {

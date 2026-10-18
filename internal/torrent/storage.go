@@ -235,7 +235,7 @@ func (s *rootedStorage) openWrite(name string) (*os.File, error) {
 		f.Close()
 		return nil, err
 	}
-	id, err := files.FileIdentity(stat)
+	id, err := files.FileIdentity(f)
 	if err != nil {
 		f.Close()
 		return nil, err
@@ -276,11 +276,7 @@ func (s *rootedStorage) createOwned(name string) (_ *os.File, resultErr error) {
 		}
 		_ = parent.Remove(temporary)
 	}()
-	stat, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-	id, err := files.FileIdentity(stat)
+	id, err := files.FileIdentity(f)
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +309,7 @@ func (s *rootedStorage) createOwned(name string) (_ *os.File, resultErr error) {
 	if err = files.RenameExclusive(directory, temporary, path.Base(name)); err != nil {
 		return nil, err
 	}
-	if err = directory.Sync(); err != nil {
+	if err = files.SyncDirectory(directory); err != nil {
 		return nil, err
 	}
 	return f, nil

@@ -12,6 +12,7 @@
   "commonCancel": "Cancel",
   "commonCanceled": "Canceled",
   "commonChoose": "Choose…",
+  "commonClose": "Close",
   "commonConnections": "Connections",
   "commonCopied": "Copied",
   "commonCopy": "Copy",
@@ -77,7 +78,6 @@
   "filesPriorityMixed": "Mixed selection",
   "filesPriorityNormal": "Normal",
   "filesPrioritySkip": "Skip",
-  "filesRegularOwnedOnly": "Only regular files owned by the transfer can be removed",
   "filesReplaced": "File replaced or not owned by this transfer: {path}",
   "@filesReplaced": {
     "placeholders": {
@@ -94,7 +94,6 @@
   "filesShared": "Files are shared by other transfers and cannot be moved to Trash",
   "filesShowInFinder": "Show in Finder",
   "filesSymlinkFolder": "Choose a real folder, not a symbolic link",
-  "filesSymlinkReplaced": "File has been replaced with a symbolic link",
   "filesTitle": "Files",
   "filesTrashUnavailable": "System Trash is unavailable",
   "filesUnsafeDestination": "Destination exists or is unsafe. Choose another folder: {path}",

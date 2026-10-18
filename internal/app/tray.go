@@ -218,7 +218,7 @@ func (a *application) trayView(c *ui.Context) {
 			open := ui.Row(c).Grow(1).Gap(4).Focusable().Label(locales.TrayOpenWindow())
 			open.Children(func() {
 				ui.Text(c, locales.TrayOpenWindow()).FontSize(11).TextColor(p.blue)
-				ui.Text(c, "⌘ 1").FontSize(10).TextColor(p.muted)
+				ui.Text(c, shortcutHint(runtime.GOOS, "1")).FontSize(10).TextColor(p.muted)
 			})
 			if open.Clicked() {
 				a.closePanel()
