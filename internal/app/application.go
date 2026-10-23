@@ -22,6 +22,7 @@ type application struct {
 	settingsWindow                           *settingsWindow
 	add                                      *addWindow
 	tray                                     *mygo.Tray
+	cancelTrayClick                          func()
 	panel                                    *mygo.Window
 	snapshot                                 session.Snapshot
 	pending                                  []string

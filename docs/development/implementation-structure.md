@@ -12,6 +12,7 @@ rivu/
 │   ├── config/
 │   ├── desktop/
 │   ├── files/
+│   ├── netproxy/
 │   ├── problem/
 │   ├── session/
 │   ├── storage/
@@ -45,9 +46,9 @@ Application filenames below are relative to `internal/app/`; session and torrent
 | Preferences                | `settings.go`: rendering; `settings_inputs.go`: units, policy controls and automation; `settings_save.go`: validation/persistence; `settings_updates.go`: updater                                                                                           |
 | Desktop composition        | `menu.go`, `tray.go`, `capture.go`, `localization.go`, `presentation.go`, `theme.go`; `icons.go`: SVG parsing/cache; `controls.go`: UI controls                                                                                                             |
 | Session                    | `manager.go`: lifecycle/serialization; `model.go`, `types.go`: data contracts; `validation.go`, `commands.go`: validated mutations; `import.go`, `removal.go`, `persistence.go`, `recovery.go`, `observation.go`, `snapshot.go`, `scheduler.go`, `space.go` |
-| Torrent adapter            | `engine.go`, `source.go`, `storage.go`, `preview.go`, `diagnostics.go`                                                                                                                                                                                      |
+| Torrent adapter            | `engine.go`, `network.go`, `source.go`, `storage.go`, `preview.go`, `diagnostics.go`                                                                                                                                                                                      |
 | Automation                 | `internal/config/schedule.go`, `internal/watchfolder/watcher.go`, `internal/app/watch_folder.go`                                                                                                                                                            |
-| Supporting packages        | `internal/problem`, `config`, `files`, `storage`, `desktop`, `updater`; `internal/windowtask` manages cancellable window jobs, separate from transfers                                                                                                      |
+| Supporting packages        | `internal/problem`, `config`, `files`, `storage`, `desktop`, `updater`; `internal/netproxy` shares system-proxy resolution and TCP tunnels; `internal/windowtask` manages cancellable window jobs, separate from transfers                                                                                                      |
 | Resources and localization | `resources/embed.go`: embedded artwork and relative-path reads; `locales`: MyGo catalogs and generated accessors                                                                                                                                            |
 
 Tests remain beside implementations, including application tests in `internal/app/`. `resources` contains shipped assets, `tools/genicon` generates icons, `snapshots` and `build` contain generated output. The native application has no web runtime. The VitePress documentation in `docs` uses a separate pnpm toolchain.
@@ -55,3 +56,5 @@ Tests remain beside implementations, including application tests in `internal/ap
 `go run .` and MyGo dev/build commands still use the root entry. `make snapshots` targets `internal/app`; the release workflow updates the version in `internal/app/run.go`.
 
 See [architecture](architecture.md) for ownership and persistence contracts, [validation report](refactor-validation.md) for feature behavior, and [desktop acceptance](desktop.md) before release. The [October 12 proposed tree](../history/implementation-structure-2026-10-12.md) is retained as historical design, not current implementation documentation.
+
+Tracker diagnostics consume the pinned engine’s structured announce events under a separate lock. They do not read `Client.WriteStatus`, whose timer snapshot is unsafe during announces. Only redacted rows for attached torrents are retained; a successful tracker’s interval provides an estimated next announce time, while failed announces leave that time unknown. HTTP and UDP integration tests guard the event contract and run with the race detector in CI.

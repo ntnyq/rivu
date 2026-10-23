@@ -26,8 +26,8 @@ jobs:
           make i18n
           make generate
           git diff --exit-code -- locales/catalog_gen.go
-      - name: Local swarm integration
-        run: make integration
+      - name: Local swarm integration with race detector
+        run: go test -race -tags integration ./internal/torrent -count=1 -timeout=60s
       - name: Vet Go and native UI
         run: |
           go vet ./...
@@ -55,7 +55,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - name: Verify native storage, session and update networking
-        run: go test ./internal/files ./internal/config ./internal/storage ./internal/session ./internal/torrent ./internal/updater
+      - name: Verify native storage, session and networking
+        run: go test ./internal/files ./internal/config ./internal/storage ./internal/session ./internal/torrent ./internal/netproxy ./internal/updater
       - name: Verify local swarm transfers
         run: go test -tags integration ./internal/torrent -count=1 -timeout=60s

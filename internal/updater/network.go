@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"github.com/ntnyq/rivu/internal/netproxy"
 )
 
 type updateTransportKey struct{}
@@ -40,7 +42,7 @@ func init() {
 
 func updateNetworkContext(ctx context.Context) (context.Context, func()) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.Proxy = updateProxy
+	transport.Proxy = netproxy.ForRequest
 	transport.DialContext = (&net.Dialer{Timeout: 5 * time.Second, KeepAlive: 30 * time.Second}).DialContext
 	transport.TLSHandshakeTimeout = 5 * time.Second
 	transport.ResponseHeaderTimeout = 10 * time.Second

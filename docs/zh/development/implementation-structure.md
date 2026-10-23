@@ -12,6 +12,7 @@ rivu/
 │   ├── config/
 │   ├── desktop/
 │   ├── files/
+│   ├── netproxy/
 │   ├── problem/
 │   ├── session/
 │   ├── storage/
@@ -45,9 +46,9 @@ rivu/
 | 设置         | `settings.go`：渲染；`settings_inputs.go`：单位、策略与自动化；`settings_save.go`：验证和保存；`settings_updates.go`：更新器                                                                                                        |
 | 桌面组合     | `menu.go`、`tray.go`、`capture.go`、`localization.go`、`presentation.go`、`theme.go`；`icons.go`：SVG 解析与缓存；`controls.go`：UI 控件                                                                                            |
 | 会话         | `manager.go`：生命周期与串行化；`model.go`、`types.go`：数据契约；`validation.go`、`commands.go`：验证修改；`import.go`、`removal.go`、`persistence.go`、`recovery.go`、`observation.go`、`snapshot.go`、`scheduler.go`、`space.go` |
-| 种子适配器   | `engine.go`、`source.go`、`storage.go`、`preview.go`、`diagnostics.go`                                                                                                                                                              |
+| 种子适配器   | `engine.go`、`network.go`、`source.go`、`storage.go`、`preview.go`、`diagnostics.go`                                                                                                                                                              |
 | 自动化       | `internal/config/schedule.go`、`internal/watchfolder/watcher.go`、`internal/app/watch_folder.go`                                                                                                                                    |
-| 支撑包       | `internal/problem`、`config`、`files`、`storage`、`desktop`、`updater`；`internal/windowtask` 管理可取消的窗口作业，与传输任务分离                                                                                                  |
+| 支撑包       | `internal/problem`、`config`、`files`、`storage`、`desktop`、`updater`；`internal/netproxy` 共用系统代理解析和 TCP 隧道；`internal/windowtask` 管理可取消的窗口作业，与传输任务分离                                                                                                  |
 | 资源与本地化 | `resources/embed.go`：资源嵌入和相对路径读取；`locales`：MyGo 词条和生成函数                                                                                                                                                        |
 
 测试与实现同目录，应用测试位于 `internal/app/`。`resources` 放置应用资源，`tools/genicon` 生成图标，`snapshots` 与 `build` 存放生成输出。原生应用不使用 Web 运行时；`docs` 下的 VitePress 站点独立使用 pnpm 构建。
@@ -55,3 +56,5 @@ rivu/
 `go run .` 和 MyGo 开发、构建命令继续使用根入口。`make snapshots` 针对 `internal/app` 运行，发布工作流更新 `internal/app/run.go` 中的版本号。
 
 状态归属与持久化契约见[架构](architecture.md)，功能行为见[验证报告](refactor-validation.md)，发布前阅读[桌面验收](desktop.md)。[10 月 12 日目录规划](../history/implementation-structure-2026-10-12.md)保留为历史设计，不代表当前文件布局。
+
+Tracker 诊断通过独立的锁收集固定版本引擎的结构化公告事件，不再读取公告期间存在定时器竞态的 `Client.WriteStatus`。只保留已附加任务的脱敏状态；成功公告按 Tracker 返回的间隔估算下次公告时间，失败公告不推测重试时间。HTTP 和 UDP 集成测试验证事件约定，并在 CI 中启用竞态检测。

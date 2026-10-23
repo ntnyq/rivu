@@ -4,6 +4,7 @@
 
 - Native MyGo main/settings/add windows. macOS keeps its inset integrated titlebar; Windows/Linux use default native decorations with application controls below them.
 - Left-click menu bar flyout and temporary right-click menu. Linux falls back to a tray menu.
+- Windows tray double-click restores and focuses the main window, or recreates it if closed. Single-click opens the flyout after the system double-click interval; right-click cancels the pending single-click action. Disabling or recreating the tray also cancels pending clicks.
 - Dock activation reopens the main window on macOS. Windows/Linux retain the session after closing windows only while a tray has been created; otherwise closing the last window uses the normal quit confirmation and save coordinator.
 - `.torrent` and `magnet` associations in `mygo.json`; early OS-open events are queued until initialization completes.
 - Second-instance arguments reuse import review. `--config` does not isolate application identity.
@@ -15,6 +16,7 @@
 ## Platform policies
 
 - Windows/Linux expose Settings, About and Quit in the File menu; shortcut hints use Control. Saving the tray preference applies immediately even when the language is unchanged. macOS keeps its existing application menu and Command hints.
+- `internal/netproxy` shares environment/Windows system-proxy selection between updates and transfers. HTTP trackers and TCP peers resolve new routes without restarting; TCP uses CONNECT or SOCKS5, while DHT/UDP trackers retain OS routing. Local proxy-only swarm tests verify peer discovery and complete payload transfer. Native Windows system-proxy/TUN switching and proxy-provider BT policies still require acceptance checks.
 - New default destinations use Windows Known Folders or Linux XDG user directories. Saved destinations stay unchanged. Import review and watched-folder imports create only the current or legacy Rivu default under an existing downloads directory. They never recreate missing parents or redirected volumes.
 - Windows validates device names, reserved characters and control characters before admission. File ownership uses the volume serial and full 128-bit file ID queried from an open handle; filesystems without that query are rejected. Publication uses directory-relative NT rename with replacement disabled. Unix ownership journal IDs retain their existing format.
 - Payload and journal contents are flushed before publication. Windows has no equivalent to an unprivileged directory fsync, so metadata durability after power loss still depends on the filesystem.

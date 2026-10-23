@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"runtime"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -15,10 +16,7 @@ func (a *application) configureTray() {
 		if a.panel != nil {
 			a.panel.Close()
 		}
-		if a.tray != nil {
-			a.tray.Destroy()
-			a.tray = nil
-		}
+		a.destroyTray()
 		return
 	}
 	if a.tray != nil {
@@ -34,8 +32,27 @@ func (a *application) configureTray() {
 	if runtime.GOOS == "linux" {
 		tray.SetMenu(menu)
 	} else {
-		tray.OnClick(a.togglePanel)
+		click := a.togglePanel
+		cancelClick := func() {}
+		if interval := trayDoubleClickInterval(); interval > 0 {
+			gesture := &trayClickGesture{
+				interval: interval,
+				single:   a.togglePanel,
+				double: func() {
+					a.closePanel()
+					a.openWindow()
+				},
+				after: func(delay time.Duration, fn func()) func() {
+					timer := time.AfterFunc(delay, func() { mygo.RunOnMain(fn) })
+					return func() { timer.Stop() }
+				},
+			}
+			click, cancelClick = gesture.click, gesture.cancel
+		}
+		a.cancelTrayClick = cancelClick
+		tray.OnClick(click)
 		tray.OnRightClick(func() {
+			cancelClick()
 			if a.panel != nil {
 				a.panel.Close()
 			}
@@ -43,6 +60,17 @@ func (a *application) configureTray() {
 			defer tray.SetMenu(nil)
 			tray.PopUpMenu()
 		})
+	}
+}
+
+func (a *application) destroyTray() {
+	if a.cancelTrayClick != nil {
+		a.cancelTrayClick()
+		a.cancelTrayClick = nil
+	}
+	if a.tray != nil {
+		a.tray.Destroy()
+		a.tray = nil
 	}
 }
 

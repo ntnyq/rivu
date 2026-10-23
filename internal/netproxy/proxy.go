@@ -1,9 +1,10 @@
-package updater
+package netproxy
 
 import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"strings"
 	"time"
@@ -42,11 +43,18 @@ func lookupProxy(ctx context.Context, target *url.URL, resolve func(*url.URL) (*
 	}
 }
 
-func updateProxy(request *http.Request) (*url.URL, error) {
+// ForRequest resolves each request afresh, preferring environment settings over
+// the current Windows system proxy. A nil route uses the OS network (including TUN).
+func ForRequest(request *http.Request) (*url.URL, error) {
 	return proxyForRequest(request, httpproxy.FromEnvironment(), systemProxy)
 }
 
 func proxyForRequest(request *http.Request, environment *httpproxy.Config, system func(context.Context, *url.URL) (*url.URL, error)) (*url.URL, error) {
+	// Wildcard listener addresses refer to this host, never a remote proxy's
+	// host. The engine's local-client peering helper advertises these addresses.
+	if address, err := netip.ParseAddr(request.URL.Hostname()); err == nil && address.IsUnspecified() {
+		return nil, nil
+	}
 	// Explicit environment settings take precedence, including NO_PROXY.
 	if (request.URL.Scheme == "http" && environment.HTTPProxy != "") ||
 		(request.URL.Scheme == "https" && environment.HTTPSProxy != "") {

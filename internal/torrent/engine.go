@@ -3,15 +3,16 @@ package torrent
 import (
 	"bytes"
 	"errors"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
 
-	alog "github.com/anacrolix/log"
 	bt "github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/files"
+	"github.com/ntnyq/rivu/internal/netproxy"
 	"github.com/ntnyq/rivu/internal/problem"
 	"github.com/ntnyq/rivu/internal/session"
 	"github.com/ntnyq/rivu/locales"
@@ -19,16 +20,16 @@ import (
 )
 
 type handle struct {
-	torrent  *bt.Torrent
-	storage  *rootedStorage
-	raw      string
-	started  bool
-	metadata bool
+	torrent        *bt.Torrent
+	storage        *rootedStorage
+	raw            string
+	started        bool
+	metadata       bool
+	diagnosticHash string
 }
 type Engine struct {
 	settings         config.Settings
-	diagnostics      map[string][]session.TrackerStatus
-	diagnosticAt     time.Time
+	diagnostics      trackerDiagnostics
 	client, metadata *bt.Client
 	handles          map[string]*handle
 	down, up         *rate.Limiter
@@ -54,6 +55,8 @@ func (e *Engine) getClient(metadata bool) (*bt.Client, error) {
 	cfg.NoDefaultPortForwarding = true
 	cfg.DisableWebtorrent = true
 	cfg.DisableWebseeds = true
+	cfg.HTTPProxy = netproxy.ForRequest
+	cfg.DialForPeerConns = false // Install route-aware wrappers after construction.
 	cfg.NoDHT = !e.settings.DHT || metadata
 	cfg.DisablePEX = !e.settings.PEX || metadata
 	if metadata {
@@ -61,10 +64,10 @@ func (e *Engine) getClient(metadata bool) (*bt.Client, error) {
 	}
 	cfg.DownloadRateLimiter = e.down
 	cfg.UploadRateLimiter = e.up
-	cfg.Logger = alog.NewLogger("rivu")
-	cfg.Logger.SetHandlers()
+	cfg.Slogger = slog.New(trackerDiagnosticHandler{store: &e.diagnostics})
 	c, err := bt.NewClient(cfg)
 	if err == nil {
+		configurePeerRoutes(c)
 		*ptr = c
 	}
 	return c, err
@@ -127,16 +130,24 @@ func (e *Engine) Attach(r session.Record) error {
 	spec.DisallowDataUpload = true
 	spec.Sources = nil
 	spec.Webseeds = nil // Never fetch arbitrary metadata URLs from a magnet.
+	hash := spec.InfoHash
+	if hash == (metainfo.Hash{}) && spec.InfoHashV2.Ok {
+		hash = *spec.InfoHashV2.Value.ToShort()
+	}
+	diagnosticHash := hash.HexString()
+	e.diagnostics.retain(diagnosticHash)
 	t, fresh, err := addSpec(c, spec)
 	if err != nil {
+		e.diagnostics.release(diagnosticHash)
 		root.Close()
 		return err
 	}
 	if !fresh {
+		e.diagnostics.release(diagnosticHash)
 		root.Close()
 		return problem.Message(problem.Engine, locales.Messages.TorrentAlreadyRunning, nil)
 	}
-	e.handles[r.ID] = &handle{torrent: t, storage: st, raw: r.Source.Raw, metadata: metadata}
+	e.handles[r.ID] = &handle{torrent: t, storage: st, raw: r.Source.Raw, metadata: metadata, diagnosticHash: diagnosticHash}
 	return nil
 }
 func (e *Engine) Start(id string, policy []session.File) error {
@@ -183,6 +194,7 @@ func (e *Engine) Stop(id string) error {
 	h.torrent.DisallowDataUpload()
 	h.torrent.DisallowDataDownload()
 	h.torrent.Drop()
+	e.diagnostics.release(h.diagnosticHash)
 	delete(e.handles, id)
 	return h.storage.root.Close()
 }
@@ -192,8 +204,7 @@ func (e *Engine) Observe(id string) session.Observation {
 		return session.Observation{}
 	}
 	t := h.torrent
-	e.refreshDiagnostics()
-	o := session.Observation{Phase: session.PhaseMetadata, Diagnostics: e.diagnostics[t.InfoHash().HexString()]}
+	o := session.Observation{Phase: session.PhaseMetadata, Diagnostics: e.diagnostics.snapshot(h.diagnosticHash)}
 	if err := h.storage.failure(); err != nil {
 		o.Failure = err
 		o.Error = err.Error()

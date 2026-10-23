@@ -1,4 +1,4 @@
-package updater
+package netproxy
 
 import (
 	"context"
@@ -48,7 +48,7 @@ func TestWindowsProxySelection(t *testing.T) {
 	}
 }
 
-func TestUpdateProxyPrecedence(t *testing.T) {
+func TestProxyPrecedence(t *testing.T) {
 	for _, test := range []struct {
 		name        string
 		environment httpproxy.Config
@@ -85,7 +85,7 @@ func TestUpdateProxyPrecedence(t *testing.T) {
 	}
 }
 
-func TestUpdateUsesSystemProxy(t *testing.T) {
+func TestHTTPUsesSystemProxy(t *testing.T) {
 	var calls atomic.Int32
 	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
@@ -100,19 +100,18 @@ func TestUpdateUsesSystemProxy(t *testing.T) {
 		_, _ = io.WriteString(w, "manifest from proxy")
 	}))
 	defer proxy.Close()
-	ctx, closeNetwork := updateNetworkContext(context.Background())
-	defer closeNetwork()
-	transport := ctx.Value(updateTransportKey{}).(*http.Transport)
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	defer transport.CloseIdleConnections()
 	transport.Proxy = func(request *http.Request) (*url.URL, error) {
 		return proxyForRequest(request, &httpproxy.Config{}, func(context.Context, *url.URL) (*url.URL, error) {
 			return url.Parse(proxy.URL)
 		})
 	}
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://update.invalid/manifest", nil)
+	request, err := http.NewRequest(http.MethodGet, "http://update.invalid/manifest", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	response, err := http.DefaultClient.Do(request)
+	response, err := (&http.Client{Transport: transport}).Do(request)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,5 +145,39 @@ func TestProxyLookupCancellationAndConcurrency(t *testing.T) {
 	})
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("queued lookup did not cancel: %v", err)
+	}
+}
+
+func TestUnspecifiedPeerAddressesStayLocal(t *testing.T) {
+	for _, host := range []string{"0.0.0.0:6881", "[::]:6881"} {
+		request, err := http.NewRequest(http.MethodConnect, "https://"+host, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		route, err := proxyForRequest(request, &httpproxy.Config{HTTPSProxy: "http://proxy.invalid:8080"}, func(context.Context, *url.URL) (*url.URL, error) {
+			t.Fatal("local wildcard address reached system proxy lookup")
+			return nil, nil
+		})
+		if err != nil || route != nil {
+			t.Fatalf("local peer %s sent to proxy: %v %v", host, route, err)
+		}
+	}
+}
+
+func TestProxyEnvironmentChangesTakeEffect(t *testing.T) {
+	for _, name := range []string{"http_proxy", "https_proxy", "NO_PROXY", "no_proxy"} {
+		t.Setenv(name, "")
+	}
+	request, _ := http.NewRequest(http.MethodGet, "https://tracker.invalid/announce", nil)
+	for _, endpoint := range []string{"http://127.0.0.1:7890", "socks5://127.0.0.1:1080"} {
+		t.Setenv("HTTPS_PROXY", endpoint)
+		route, err := ForRequest(request)
+		if err != nil || route == nil || route.String() != endpoint {
+			t.Fatalf("stale proxy route: %v %v", route, err)
+		}
+	}
+	t.Setenv("NO_PROXY", "tracker.invalid")
+	if route, err := ForRequest(request); err != nil || route != nil {
+		t.Fatalf("new bypass was ignored: %v %v", route, err)
 	}
 }

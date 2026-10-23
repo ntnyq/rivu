@@ -97,9 +97,7 @@ func Run() {
 		if a.cancel != nil {
 			a.cancel()
 		}
-		if a.tray != nil {
-			a.tray.Destroy()
-		}
+		a.destroyTray()
 		if a.window != nil {
 			a.window.close()
 		}

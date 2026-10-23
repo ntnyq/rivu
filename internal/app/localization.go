@@ -63,9 +63,6 @@ func (a *application) refreshLanguage() {
 	// A tray menu is captured by its native right-click handler. Recreate it so
 	// every entry, including Linux's persistent menu, uses the new language.
 	a.closePanel()
-	if a.tray != nil {
-		a.tray.Destroy()
-		a.tray = nil
-	}
+	a.destroyTray()
 	a.configureTray()
 }

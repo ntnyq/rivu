@@ -125,17 +125,34 @@ func TestLocalPreviewAndAdoptedRepair(t *testing.T) {
 }
 
 func TestLocalHTTPTrackerDiagnostics(t *testing.T) {
+	for _, failure := range []bool{false, true} {
+		t.Run(fmt.Sprintf("failure=%t", failure), func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				response := map[string]any{"interval": int64(60), "peers": ""}
+				if failure {
+					response = map[string]any{"failure reason": "secret passkey rejected"}
+				}
+				data, _ := bencode.Marshal(response)
+				_, _ = w.Write(data)
+			}))
+			defer server.Close()
+			want := "ok"
+			if failure {
+				want = "failed"
+			}
+			checkLocalTrackerDiagnostics(t, server.URL+"/private-passkey?token=secret", want)
+		})
+	}
+}
+
+func checkLocalTrackerDiagnostics(t *testing.T, trackerURL, want string) {
+	t.Helper()
 	_, meta, _ := fixture(t)
-	tracker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data, _ := bencode.Marshal(map[string]any{"interval": int64(60), "peers": ""})
-		_, _ = w.Write(data)
-	}))
-	defer tracker.Close()
 	mi, err := metainfo.Load(bytes.NewReader(meta))
 	if err != nil {
 		t.Fatal(err)
 	}
-	mi.Announce = tracker.URL + "/private-passkey?token=secret"
+	mi.Announce = trackerURL
 	mi.AnnounceList = nil
 	var data bytes.Buffer
 	if err = mi.Write(&data); err != nil {
@@ -164,21 +181,21 @@ func TestLocalHTTPTrackerDiagnostics(t *testing.T) {
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
 	for {
-		engine.diagnosticAt = time.Time{}
 		obs := engine.Observe(r.ID)
 		for _, row := range obs.Diagnostics {
-			if row.State == "ok" {
-				if row.Next.IsZero() || strings.Contains(fmt.Sprint(row), "secret") || strings.Contains(fmt.Sprint(row), "passkey") {
+			if row.State == want {
+				if (want == "ok" && row.Next.IsZero()) || strings.Contains(fmt.Sprint(row), "secret") || strings.Contains(fmt.Sprint(row), "passkey") {
 					t.Fatal("invalid diagnostic", row)
+				}
+				if want == "failed" && row.Detail != "announce" {
+					t.Fatalf("wrong failure category: %+v", row)
 				}
 				return
 			}
 		}
 		select {
 		case <-ctx.Done():
-			var raw bytes.Buffer
-			engine.client.WriteStatus(&raw)
-			t.Fatalf("tracker diagnostics absent: %s", raw.String())
+			t.Fatalf("tracker diagnostics absent: %+v", obs.Diagnostics)
 		case <-time.After(20 * time.Millisecond):
 		}
 	}

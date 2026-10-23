@@ -36,6 +36,9 @@ func newWindow(store *config.Store) *mainWindow {
 }
 func (a *application) openWindow() *mainWindow {
 	if a.window != nil && !a.window.closed {
+		if a.window.win.IsMinimized() {
+			a.window.win.Restore()
+		}
 		a.window.win.Show()
 		a.window.win.Focus()
 		return a.window

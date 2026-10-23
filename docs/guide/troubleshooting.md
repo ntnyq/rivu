@@ -20,6 +20,8 @@ Waiting does not necessarily indicate an error. Open **Connections** and check p
 
 Diagnostics refresh every five seconds. Tracker rows hide credentials, but review any diagnostics before sharing them.
 
+On Windows, check whether your proxy client is using a system proxy or TUN. HTTP/HTTPS trackers and TCP peers can use the system proxy, while UDP trackers and DHT require an available OS route or a TUN that carries UDP. See [system proxy and TUN](settings.md#system-proxy-and-tun). A task with no progress for 90 seconds yields its download slot and waits one minute before retrying, so **Waiting for peers** can temporarily change to **Queued**.
+
 ## A destination contains existing files
 
 For a new download, choose a location without conflicting payload files. To reuse existing data, enable **Adopt and verify existing files** in the add-download sheet. Rivu verifies those files when the task runs and repairs missing pieces.
