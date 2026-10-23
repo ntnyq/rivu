@@ -1,6 +1,6 @@
 # 当前源码结构
 
-结构记录更新于 2026 年 10 月 17 日。当前 `go.mod` 固定 Go 1.27.2 和 MyGo v0.5.5；早期验证记录使用 MyGo v0.4.8。根目录 `main.go` 调用 `internal/app.Run`，原生应用组合代码保持在单一包中，业务逻辑保留现有边界。
+结构记录更新于 2026 年 10 月 23 日。当前 `go.mod` 固定 Go 1.27.2 和 MyGo v0.6.3；早期验证记录使用 MyGo v0.4.8。根目录 `main.go` 调用 `internal/app.Run`，原生应用组合代码保持在单一包中，业务逻辑保留现有边界。
 
 ```text
 rivu/
@@ -46,9 +46,9 @@ rivu/
 | 设置         | `settings.go`：渲染；`settings_inputs.go`：单位、策略与自动化；`settings_save.go`：验证和保存；`settings_updates.go`：更新器                                                                                                        |
 | 桌面组合     | `menu.go`、`tray.go`、`capture.go`、`localization.go`、`presentation.go`、`theme.go`；`icons.go`：SVG 解析与缓存；`controls.go`：UI 控件                                                                                            |
 | 会话         | `manager.go`：生命周期与串行化；`model.go`、`types.go`：数据契约；`validation.go`、`commands.go`：验证修改；`import.go`、`removal.go`、`persistence.go`、`recovery.go`、`observation.go`、`snapshot.go`、`scheduler.go`、`space.go` |
-| 种子适配器   | `engine.go`、`network.go`、`source.go`、`storage.go`、`preview.go`、`diagnostics.go`                                                                                                                                                              |
+| 种子适配器   | `engine.go`、`network.go`、`source.go`、`storage.go`、`preview.go`、`diagnostics.go`                                                                                                                                                |
 | 自动化       | `internal/config/schedule.go`、`internal/watchfolder/watcher.go`、`internal/app/watch_folder.go`                                                                                                                                    |
-| 支撑包       | `internal/problem`、`config`、`files`、`storage`、`desktop`、`updater`；`internal/netproxy` 共用系统代理解析和 TCP 隧道；`internal/windowtask` 管理可取消的窗口作业，与传输任务分离                                                                                                  |
+| 支撑包       | `internal/problem`、`config`、`files`、`storage`、`desktop`、`updater`；`internal/netproxy` 共用系统代理解析和 TCP 隧道；`internal/windowtask` 管理可取消的窗口作业，与传输任务分离                                                 |
 | 资源与本地化 | `resources/embed.go`：资源嵌入和相对路径读取；`locales`：MyGo 词条和生成函数                                                                                                                                                        |
 
 测试与实现同目录，应用测试位于 `internal/app/`。`resources` 放置应用资源，`tools/genicon` 生成图标，`snapshots` 与 `build` 存放生成输出。原生应用不使用 Web 运行时；`docs` 下的 VitePress 站点独立使用 pnpm 构建。

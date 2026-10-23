@@ -6,7 +6,7 @@
 
 原生应用支持在 macOS、Windows 和 Linux 上使用 Go 1.27.2 或更高版本开发。MyGo 及其 CLI 工具由 `go.mod` 固定，无需 Node.js 包管理器即可构建应用。发布包面向 macOS（Apple Silicon 与 Intel）、Windows x64 和 Linux x64。Linux 原生窗口需要 GTK 3，托盘集成需要 AppIndicator。Windows 未安装 Make 时可直接使用 `go run .` 和 `go tool mygo build`。平台验证与当前限制见[桌面验收](desktop.md)。
 
-当前 `go.mod` 固定 MyGo v0.5.5，以及 anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e。Torrent 与 dht/v2 使用固定开发提交 `d913b30f520e` 和 `a9c967f9d68b`，以 Go 伪版本记录。它们兼容 missinggo/v2 v2.11.0 的 roaring/v2 位图，并移除了旧 DHT 对 `stm` 迭代器 API 的依赖。
+当前 `go.mod` 固定 MyGo v0.6.3，以及 anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e。Torrent 与 dht/v2 使用固定开发提交 `d913b30f520e` 和 `a9c967f9d68b`，以 Go 伪版本记录。它们兼容 missinggo/v2 v2.11.0 的 roaring/v2 位图，并移除了旧 DHT 对 `stm` 迭代器 API 的依赖。
 
 以下命令均从仓库根目录运行。
 

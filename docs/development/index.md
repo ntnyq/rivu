@@ -6,7 +6,7 @@
 
 Use Go 1.27.2 or later on macOS, Windows, or Linux. The project pins MyGo and its CLI tool in `go.mod`; no Node.js package manager is needed for the native app. The documentation site has its own Node.js toolchain. Release packages target macOS (Apple Silicon and Intel), Windows x64, and Linux x64. Linux native windows need GTK 3 and tray integration needs AppIndicator. On Windows, use `go run .` and `go tool mygo build` directly if Make is not installed. See [desktop acceptance](desktop.md) for platform verification and current limitations.
 
-MyGo v0.5.5 and anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e are pinned in `go.mod`. Torrent and dht/v2 use fixed development commits (`d913b30f520e` and `a9c967f9d68b`), recorded as Go pseudo-versions rather than release tags. Together they support `missinggo/v2` v2.11.0's roaring/v2 bitmap and remove the old DHT dependency on `stm`'s iterator API.
+MyGo v0.6.3 and anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e are pinned in `go.mod`. Torrent and dht/v2 use fixed development commits (`d913b30f520e` and `a9c967f9d68b`), recorded as Go pseudo-versions rather than release tags. Together they support `missinggo/v2` v2.11.0's roaring/v2 bitmap and remove the old DHT dependency on `stm`'s iterator API.
 
 Run the following commands from the repository root.
 

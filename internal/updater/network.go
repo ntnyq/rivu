@@ -27,7 +27,7 @@ func (r updateTransportRouter) CloseIdleConnections() {
 }
 
 func init() {
-	// MyGo v0.5.5 uses http.DefaultClient with no client option. Install this
+	// MyGo v0.6.3 uses http.DefaultClient with no client option. Install this
 	// adapter before workers start; only explicitly marked update contexts
 	// use our transport. Other HTTP requests retain their original behavior,
 	// and http.DefaultTransport stays available to clients that clone it.

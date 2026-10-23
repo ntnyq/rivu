@@ -67,7 +67,7 @@ Rivu supports **macOS, Windows, and Linux** and is in active development. Downlo
 
 Current macOS downloads do not have Apple Developer ID signing or Apple notarization. If macOS blocks the first launch, follow [Open Rivu when macOS blocks it](https://rivu.ntnyq.dev/guide/getting-started.html#open-rivu-when-macos-blocks-it). New release builds support signed updates from GitHub Releases; see [update settings](https://rivu.ntnyq.dev/guide/settings.html#updates).
 
-The project pins **MyGo v0.5.5** and its CLI tool in `go.mod`; no separate MyGo installation is needed.
+The project pins **MyGo v0.6.3** and its CLI tool in `go.mod`; no separate MyGo installation is needed.
 
 To build from source, install Go 1.27.2 or later on your system and run:
 

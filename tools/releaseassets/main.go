@@ -111,7 +111,7 @@ func collectAssets(config releaseConfig, target, source, out string) error {
 	if size <= 0 || size != manifest.Size {
 		return fmt.Errorf("%s: archive size %d does not match manifest size %d", archiveName, size, manifest.Size)
 	}
-	// MyGo v0.5.5 signs the archive's SHA-256 digest with Ed25519.
+	// MyGo v0.6.3 signs the archive's SHA-256 digest with Ed25519.
 	signature, err := base64.StdEncoding.DecodeString(manifest.Signature)
 	if err != nil || !ed25519.Verify(publicKey, digest.Sum(nil), signature) {
 		return fmt.Errorf("%s: invalid update signature", archiveName)
