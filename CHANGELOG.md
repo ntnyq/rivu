@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.0.4 (2026-10-23)
+
+- fix: recover interrupted Windows update checks (23b32f9)
+- fix: support proxy downloads and restore windows from tray (3759848)
+
+[Full Changelog](https://github.com/ntnyq/rivu/compare/v0.0.3...v0.0.4)
+
 ## 0.0.3 (2026-10-18)
 
 - feat: add feedback button to update settings (9e20fe3)
