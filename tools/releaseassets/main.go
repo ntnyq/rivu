@@ -63,9 +63,9 @@ func collectAssets(config releaseConfig, target, source, out string) error {
 	var installers []string
 	switch target {
 	case "darwin-universal":
-		installers = []string{"Rivu " + config.Version + ".dmg"}
+		installers = []string{"rivu-" + config.Version + ".dmg"}
 	case "windows-amd64":
-		installers = []string{"Rivu Setup " + config.Version + " amd64.exe"}
+		installers = []string{"rivu-setup-" + config.Version + "-amd64.exe"}
 	case "linux-amd64":
 		installers = []string{"rivu_" + config.Version + "_amd64.deb", "install.sh"}
 	default:
@@ -111,7 +111,7 @@ func collectAssets(config releaseConfig, target, source, out string) error {
 	if size <= 0 || size != manifest.Size {
 		return fmt.Errorf("%s: archive size %d does not match manifest size %d", archiveName, size, manifest.Size)
 	}
-	// MyGo v0.6.3 signs the archive's SHA-256 digest with Ed25519.
+	// MyGo v0.7.1 signs the archive's SHA-256 digest with Ed25519.
 	signature, err := base64.StdEncoding.DecodeString(manifest.Signature)
 	if err != nil || !ed25519.Verify(publicKey, digest.Sum(nil), signature) {
 		return fmt.Errorf("%s: invalid update signature", archiveName)

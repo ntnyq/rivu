@@ -53,10 +53,10 @@ func TestRejectInvalidRelease(t *testing.T) {
 			}
 		}, "update-darwin-universal.json"},
 		{"missing installer", func(t *testing.T, _ *releaseConfig, source string) {
-			if err := os.Remove(filepath.Join(source, "Rivu 0.0.2.dmg")); err != nil {
+			if err := os.Remove(filepath.Join(source, "rivu-0.0.2.dmg")); err != nil {
 				t.Fatal(err)
 			}
-		}, "Rivu 0.0.2.dmg"},
+		}, "rivu-0.0.2.dmg"},
 		{"wrong public key", func(t *testing.T, config *releaseConfig, _ string) {
 			publicKey, _, err := ed25519.GenerateKey(nil)
 			if err != nil {
@@ -123,7 +123,7 @@ func releaseFixture(t *testing.T, target string) (releaseConfig, string) {
 	}
 	writeFixture(t, filepath.Join(source, "rivu-0.0.2-"+target+".tar.gz"), archive)
 	writeFixture(t, filepath.Join(source, "update-"+target+".json"), manifestJSON)
-	for _, name := range []string{"Rivu 0.0.2.dmg", "Rivu Setup 0.0.2 amd64.exe", "rivu_0.0.2_amd64.deb", "install.sh", "unrelated-file"} {
+	for _, name := range []string{"rivu-0.0.2.dmg", "rivu-setup-0.0.2-amd64.exe", "rivu_0.0.2_amd64.deb", "install.sh", "unrelated-file"} {
 		writeFixture(t, filepath.Join(source, name), []byte("installer"))
 	}
 	return config, source

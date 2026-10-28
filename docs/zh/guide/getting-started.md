@@ -9,7 +9,7 @@ Rivu 支持 **macOS 12 及以上版本、Windows 10 / 11 和 Linux**。从项目
 | 系统                     | 安装包                                                  | 安装方式                                                                           |
 | ------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | macOS                    | Apple Silicon 与 Intel 通用 `.dmg`                      | 打开磁盘映像，将 **Rivu.app** 拖入**应用程序**文件夹，再从该文件夹打开。           |
-| Windows                  | x64 `Rivu Setup <version> amd64.exe`                    | 运行安装程序，随后从开始菜单启动 Rivu。                                            |
+| Windows                  | x64 `rivu-setup-<version>-amd64.exe`                    | 运行安装程序，随后从开始菜单启动 Rivu。                                            |
 | Linux（Debian / Ubuntu） | x64 `rivu_<version>_amd64.deb`                          | 使用下载文件的实际名称，运行 `sudo apt install ./rivu_<version>_amd64.deb`。       |
 | 其他 Linux 发行版        | x64 `rivu-<version>-linux-amd64.tar.gz` 和 `install.sh` | 将两者下载到同一目录，运行 `sh install.sh`，为当前用户安装到 `~/.local/rivu.app`。 |
 
@@ -38,7 +38,7 @@ Linux 原生窗口需要 GTK 3；系统托盘还需要 `libayatana-appindicator3
 
 ## 从源码构建
 
-如果希望自行构建，请安装 **Go 1.27.2 或更高版本**，然后运行：
+如果希望自行构建，请安装 **Go 1.27.3 或更高版本**，然后运行：
 
 ```sh
 git clone https://github.com/ntnyq/rivu.git

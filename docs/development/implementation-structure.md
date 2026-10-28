@@ -1,6 +1,6 @@
 # Current implementation structure
 
-Structure recorded October 23, 2026. The current `go.mod` pins Go 1.27.2 and MyGo v0.6.3; earlier verification records used MyGo v0.4.8. The root `main.go` delegates to `internal/app.Run`. Native application composition stays in one package, while business logic retains its existing boundaries.
+Structure recorded October 28, 2026. The current `go.mod` pins Go 1.27.3 and MyGo v0.7.1; earlier verification records used MyGo v0.4.8. The root `main.go` delegates to `internal/app.Run`. Native application composition stays in one package, while business logic retains its existing boundaries.
 
 ```text
 rivu/

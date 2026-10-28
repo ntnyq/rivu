@@ -9,7 +9,7 @@ Rivu supports **macOS 12 or later, Windows 10 / 11, and Linux**. Download the pa
 | System                    | Package                                                  | Installation                                                                                                     |
 | ------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | macOS                     | Universal `.dmg` for Apple Silicon and Intel             | Open the disk image and drag **Rivu.app** to **Applications**, then open it from there.                          |
-| Windows                   | x64 `Rivu Setup <version> amd64.exe`                     | Run the installer, then launch Rivu from the Start menu.                                                         |
+| Windows                   | x64 `rivu-setup-<version>-amd64.exe`                     | Run the installer, then launch Rivu from the Start menu.                                                         |
 | Linux (Debian / Ubuntu)   | x64 `rivu_<version>_amd64.deb`                           | Run `sudo apt install ./rivu_<version>_amd64.deb`, using the downloaded file name.                               |
 | Other Linux distributions | x64 `rivu-<version>-linux-amd64.tar.gz` and `install.sh` | Download both into one folder and run `sh install.sh`. It installs Rivu for your user under `~/.local/rivu.app`. |
 
@@ -38,7 +38,7 @@ See [Apple's instructions for opening downloaded apps](https://support.apple.com
 
 ## Build from source
 
-To build Rivu yourself, install **Go 1.27.2 or later** and run:
+To build Rivu yourself, install **Go 1.27.3 or later** and run:
 
 ```sh
 git clone https://github.com/ntnyq/rivu.git
