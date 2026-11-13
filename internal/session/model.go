@@ -92,6 +92,7 @@ type Snapshot struct {
 	Quiesced         bool
 }
 type Command struct {
+	Epoch               uint64
 	FileIndices         []int
 	Destination         string
 	Tags                []string

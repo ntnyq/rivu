@@ -3,6 +3,9 @@ package session
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -66,21 +69,148 @@ func TestConnectedStallYields(t *testing.T) {
 		t.Fatal("queued payload starves while first task has a peer but receives zero bytes")
 	}
 }
-func TestContinueHonorsLoadError(t *testing.T) {
+func TestMaintenanceReleaseHonorsLoadError(t *testing.T) {
 	m := observedManager(t, Observation{Phase: "metadata"})
 	a := add(t, m, "a", true)
-	_ = m.stop(a)
+	release, err := m.Quiesce()
+	if err != nil {
+		t.Fatal(err)
+	}
 	m.loadErr = errors.New("uncertain commit requires reload")
 	m.barrier = true
-	m.Continue()
+	release()
 	if m.active[a] || !m.barrier {
-		t.Fatal("Continue bypassed persistence recovery barrier")
+		t.Fatal("release bypassed persistence recovery barrier")
 	}
 	if err := m.Reload(); err != nil {
 		t.Fatal(err)
 	}
 	if !m.active[a] {
 		t.Fatal("explicit reload did not restore admission")
+	}
+}
+
+func TestReloadRetainsMaintenanceBarrier(t *testing.T) {
+	m := observedManager(t, Observation{Phase: PhaseMetadata})
+	id := add(t, m, "maintenance", true)
+	release, err := m.Quiesce()
+	defer release()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if !m.Snapshot().Quiesced || m.active[id] {
+		t.Fatal("reload released another operation's maintenance hold")
+	}
+	release()
+	if m.Snapshot().Quiesced || !m.active[id] {
+		t.Fatal("last maintenance release did not restore admission")
+	}
+}
+
+func TestMaintenanceHoldsReleaseIndependently(t *testing.T) {
+	for _, reload := range []bool{false, true} {
+		t.Run(fmt.Sprintf("reload=%t", reload), func(t *testing.T) {
+			m := observedManager(t, Observation{Phase: PhaseMetadata})
+			id := add(t, m, "held", true)
+			update, err := m.Quiesce()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer update()
+			sleep, err := m.Quiesce()
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer sleep()
+			if reload {
+				if err := m.Reload(); err != nil {
+					t.Fatal(err)
+				}
+			}
+			sleep()
+			sleep() // A duplicate OS callback must not release the update's hold.
+			if !m.Snapshot().Quiesced || m.active[id] {
+				t.Fatal("waking released the update's maintenance hold")
+			}
+			if err := m.Execute(t.Context(), Command{Kind: CommandResume, IDs: []string{id}}); err == nil {
+				t.Fatal("command admitted during maintenance")
+			}
+			if _, err := m.Import(t.Context(), Import{Source: Source{Identity: m.state.Tasks[0].Source.Identity}}); err == nil {
+				t.Fatal("import admitted during maintenance")
+			}
+			update()
+			if m.Snapshot().Quiesced || !m.active[id] {
+				t.Fatal("last hold release did not restore admission")
+			}
+		})
+	}
+}
+
+func TestFailedQuiesceNeedsReloadAfterRelease(t *testing.T) {
+	m := observedManager(t, Observation{Phase: PhaseMetadata})
+	id := add(t, m, "save-failure", true)
+	path := m.path
+	m.path = filepath.Join(t.TempDir(), "blocked", "session.json")
+	if err := os.WriteFile(filepath.Dir(m.path), []byte("file"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	release, err := m.Quiesce()
+	if err == nil {
+		t.Fatal("expected save failure")
+	}
+	m.path = path
+	release()
+	if !m.Snapshot().Quiesced || m.active[id] {
+		t.Fatal("release bypassed a failed save")
+	}
+	if err := m.Reload(); err != nil {
+		t.Fatal(err)
+	}
+	if m.Snapshot().Quiesced || !m.active[id] {
+		t.Fatal("reload did not recover the failed save")
+	}
+}
+
+func TestRejectedNotificationDoesNotPublish(t *testing.T) {
+	m := observedManager(t, Observation{Phase: PhaseMetadata})
+	id := add(t, m, "notification", false)
+	changes, off := m.Watch()
+	defer off()
+	release, err := m.Quiesce()
+	defer release()
+	if err != nil {
+		t.Fatal(err)
+	}
+	<-changes
+	if err := m.Execute(t.Context(), Command{Kind: CommandNotified, IDs: []string{id}}); !errors.Is(err, ErrQuiesced) {
+		t.Fatalf("notification acknowledgement did not defer maintenance: %v", err)
+	}
+	select {
+	case <-changes:
+		t.Fatal("rejected acknowledgement republished itself")
+	default:
+	}
+}
+
+func TestNotificationAcknowledgesOnlyDisplayedEpoch(t *testing.T) {
+	m := observedManager(t, Observation{})
+	id := add(t, m, "two-completions", false)
+	m.state.Tasks[0].Epoch = 2
+	m.publish()
+	if err := m.Execute(t.Context(), Command{Kind: CommandNotified, IDs: []string{id}, Epoch: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if got := m.Snapshot().Tasks[0].Notified; got != 1 {
+		t.Fatalf("old callback acknowledged a newer completion: %d", got)
+	}
+	if err := m.Execute(t.Context(), Command{Kind: CommandNotified, IDs: []string{id}}); err != nil {
+		t.Fatal(err)
+	}
+	if got := m.Snapshot().Tasks[0].Notified; got != 2 {
+		t.Fatalf("legacy current-epoch acknowledgement changed: %d", got)
 	}
 }
 func TestFailedRehashClearsCompleted(t *testing.T) {

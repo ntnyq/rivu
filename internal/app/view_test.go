@@ -5,6 +5,7 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	"time"
 
@@ -61,6 +62,36 @@ func TestFilterSelectionAndEmptyState(t *testing.T) {
 	w.selectOnly("3")
 	if len(w.ids()) != 1 {
 		t.Fatal("selection failed")
+	}
+}
+
+func TestDroppedFilesJoinPendingFIFO(t *testing.T) {
+	store, err := config.Open(filepath.Join(t.TempDir(), "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	f := newAddQueueFixture()
+	w := newWindow(store)
+	w.app = f.a
+	tt := ui.NewTester(w.view, 1180, 760)
+	tt.Frame()
+	f.a.receive([]string{"B.torrent"}) // Deferred delivery is waiting for its UI turn.
+	if !tt.DropFiles(250, 100, "C.torrent", "D.torrent") {
+		t.Fatal("main view did not accept the dropped files")
+	}
+	tt.Frame()
+	tt.Frame() // Further frames must not deliver the same drop again.
+	want := []string{"B.torrent", "C.torrent", "D.torrent"}
+	if len(f.batches) != 0 || len(f.posted) != 1 || !slices.Equal(f.a.pending, want) {
+		t.Fatalf("drop bypassed deferred FIFO: shown=%v pending=%v posts=%d", f.batches, f.a.pending, len(f.posted))
+	}
+	f.drain()
+	if len(f.batches) != 1 || !slices.Equal(f.batches[0], want) {
+		t.Fatalf("drop was lost or reordered: %v", f.batches)
+	}
+	f.drain()
+	if len(f.batches) != 1 {
+		t.Fatal("drop delivered more than once")
 	}
 }
 

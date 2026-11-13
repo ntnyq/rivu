@@ -2,6 +2,7 @@ package torrent
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/metainfo"
 	"os"
@@ -158,6 +159,49 @@ func TestMetadataGeometryValidation(t *testing.T) {
 			st := &rootedStorage{}
 			if _, err = st.OpenTorrent(t.Context(), &info, mi.HashInfoBytes()); (err == nil) != tc.valid {
 				t.Fatalf("OpenTorrent: valid=%t, error=%v", tc.valid, err)
+			}
+		})
+	}
+}
+
+func TestMetadataPieceBudget(t *testing.T) {
+	// A v2 root can describe far more pieces than a 16 MiB v1 hash array.
+	// Exercise both admission paths without constructing the engine's piece array.
+	const limit = int64(maxMetadata / 20)
+	for _, tc := range []struct {
+		name    string
+		lengths []int64
+		valid   bool
+	}{
+		{"at limit", []int64{limit * 16384}, true},
+		{"one byte over", []int64{limit*16384 + 1}, false},
+		{"aggregate files", []int64{limit / 2 * 16384, (limit/2 + 1) * 16384}, false},
+		{"per-file alignment", []int64{(limit/2-1)*16384 + 1, (limit/2-1)*16384 + 1, 1}, false},
+		{"huge file", []int64{1 << 50}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			info := metainfo.Info{Name: "bundle", PieceLength: 16384, MetaVersion: 2,
+				FileTree: metainfo.FileTree{Dir: map[string]metainfo.FileTree{}}}
+			for i, length := range tc.lengths {
+				info.FileTree.Dir[fmt.Sprint(i)] = metainfo.FileTree{
+					File: metainfo.FileTreeFile{Length: length, PiecesRoot: string(make([]byte, 32))},
+				}
+			}
+			encoded, err := bencode.Marshal(&info)
+			if err != nil {
+				t.Fatal(err)
+			}
+			mi := metainfo.MetaInfo{InfoBytes: encoded}
+			var data bytes.Buffer
+			if err := mi.Write(&data); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := parseMeta(data.Bytes()); (err == nil) != tc.valid {
+				t.Errorf("local metadata: valid=%t, error=%v", tc.valid, err)
+			}
+			storage := &rootedStorage{}
+			if _, err := storage.OpenTorrent(t.Context(), &info, mi.HashInfoBytes()); (err == nil) != tc.valid {
+				t.Errorf("received metadata: valid=%t, error=%v", tc.valid, err)
 			}
 		})
 	}

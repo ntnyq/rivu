@@ -17,7 +17,13 @@ type command struct {
 func (a *application) commands() []command {
 	return []command{
 		{"add", locales.MenuAdd(), "CmdOrCtrl+N", func() { a.openAdd(nil) }},
-		{"open", locales.MenuOpenTorrent(), "CmdOrCtrl+O", func() { a.openAdd(nil); a.add.pickTorrents() }},
+		{"open", locales.MenuOpenTorrent(), "CmdOrCtrl+O", func() {
+			if a.quitting || a.shutdownReady {
+				return
+			}
+			a.openAdd(nil)
+			a.add.pickTorrents()
+		}},
 		{"pauseAll", locales.MenuPauseAll(), "", func() { a.execute(session.Command{Kind: session.CommandPauseAll}) }},
 		{"resumeBatch", locales.TransferResumeBatch(), "", func() { a.execute(session.Command{Kind: session.CommandResumeBatch}) }},
 		{"slow", locales.MenuToggleSpeedLimit(), "", a.slowMode},

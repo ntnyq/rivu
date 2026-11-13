@@ -10,7 +10,7 @@ func (w *mainWindow) view(c *ui.Context) {
 	c.Root().Background(p.surface)
 	root := ui.Column(c).Fill()
 	if paths := root.DroppedFiles(); len(paths) > 0 && w.app != nil {
-		w.app.openAdd(paths)
+		w.app.receive(paths)
 	}
 	root.Children(func() {
 		ui.Row(c).Grow(1).MinHeight(0).AlignItems(ui.Stretch).Children(func() {

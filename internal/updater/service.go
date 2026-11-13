@@ -3,6 +3,7 @@ package updater
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -14,9 +15,15 @@ import (
 
 type Session interface {
 	Idle() bool
-	Quiesce() error
-	Continue()
+	Quiesce() (func(), error)
 }
+
+type installer interface {
+	Install(context.Context, func(int64, int64)) error
+}
+
+var errBusy = errors.New("update operation already running")
+
 type Snapshot struct {
 	State, Version, Notes, Error string
 	Downloaded, Total            int64
@@ -27,14 +34,59 @@ type Service struct {
 	store    *config.Store
 	session  Session
 	snapshot Snapshot
-	update   *mygo.Update
+	update   installer
 	busy     bool
+	stopped  bool
+	cancel   context.CancelFunc
+	done     chan struct{}
 }
 
 func New(store *config.Store, session Session) *Service {
 	return &Service{store: store, session: session, snapshot: Snapshot{State: "idle", LastSuccess: store.Snapshot().LastCheck}}
 }
 func (s *Service) Snapshot() Snapshot { s.mu.Lock(); defer s.mu.Unlock(); return s.snapshot }
+
+// Stop prevents new checks/installs, cancels the current operation, and waits
+// for its cleanup (including context-insensitive replacement) to finish.
+func (s *Service) Stop() {
+	s.mu.Lock()
+	s.stopped = true
+	cancel, done := s.cancel, s.done
+	s.mu.Unlock()
+	if cancel != nil {
+		cancel()
+	}
+	if done != nil {
+		<-done
+	}
+}
+
+// Resume is used when quitting failed and the application remains open.
+func (s *Service) Resume() { s.mu.Lock(); s.stopped = false; s.mu.Unlock() }
+
+func (s *Service) begin(ctx context.Context) (context.Context, func(), error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := ctx.Err(); err != nil {
+		return nil, nil, err
+	}
+	if s.stopped {
+		return nil, nil, context.Canceled
+	}
+	if s.busy {
+		return nil, nil, errBusy
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
+	s.busy, s.cancel, s.done = true, cancel, done
+	return ctx, func() {
+		cancel()
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		s.busy, s.cancel, s.done = false, nil, nil
+		close(done)
+	}, nil
+}
 func Due(p config.Settings, now time.Time) bool {
 	return p.AutoCheck && now.Sub(p.LastCheck) >= 24*time.Hour && now.Sub(p.LastAttempt) >= 24*time.Hour+7*time.Minute
 }
@@ -47,16 +99,18 @@ func (s *Service) Scheduled(ctx context.Context) {
 	}
 }
 func (s *Service) Check(ctx context.Context) error {
-	s.mu.Lock()
-	if s.busy {
-		s.mu.Unlock()
+	ctx, finish, err := s.begin(ctx)
+	if errors.Is(err, errBusy) {
 		return nil
 	}
-	s.busy = true
+	if err != nil {
+		return err
+	}
+	defer finish()
+	s.mu.Lock()
 	s.snapshot.State = "checking"
 	s.snapshot.Error = ""
 	s.mu.Unlock()
-	defer func() { s.mu.Lock(); s.busy = false; s.mu.Unlock() }()
 	if !mygo.Updater.Enabled() {
 		s.mu.Lock()
 		s.snapshot.State = "unavailable"
@@ -64,7 +118,7 @@ func (s *Service) Check(ctx context.Context) error {
 		s.mu.Unlock()
 		return nil
 	}
-	err := s.store.Update(func(p *config.Settings) { p.LastAttempt = time.Now() })
+	err = s.store.Update(func(p *config.Settings) { p.LastAttempt = time.Now() })
 	if err != nil {
 		return s.fail("failed", err)
 	}
@@ -81,10 +135,11 @@ func (s *Service) Check(ctx context.Context) error {
 		return s.fail("failed", err)
 	}
 	s.mu.Lock()
-	s.update = up
+	s.update = nil
 	s.snapshot.LastSuccess = now
 	s.snapshot.State = "upToDate"
 	if up != nil {
+		s.update = up
 		s.snapshot.State = "available"
 		s.snapshot.Version = up.Version
 		s.snapshot.Notes = up.Notes
@@ -100,22 +155,28 @@ func (s *Service) fail(state string, err error) error {
 	return err
 }
 func (s *Service) Install(ctx context.Context, automatic bool) error {
-	s.mu.Lock()
-	if s.busy || s.update == nil {
-		s.mu.Unlock()
+	ctx, finish, err := s.begin(ctx)
+	if errors.Is(err, errBusy) {
 		return fmt.Errorf("%s", locales.UpdatesNothingToInstall())
 	}
-	s.busy = true
+	if err != nil {
+		return err
+	}
+	defer finish()
+	s.mu.Lock()
 	up := s.update
 	s.mu.Unlock()
-	defer func() { s.mu.Lock(); s.busy = false; s.mu.Unlock() }()
+	if up == nil {
+		return fmt.Errorf("%s", locales.UpdatesNothingToInstall())
+	}
 	if automatic && !s.session.Idle() {
 		return nil
 	}
-	if err := s.session.Quiesce(); err != nil {
+	release, err := s.session.Quiesce()
+	defer release()
+	if err != nil {
 		return s.fail("installFailed", err)
 	}
-	defer s.session.Continue()
 	// The barrier prevents admissions; durable queued intent also counts as activity.
 	if automatic && !s.session.Idle() {
 		return nil
@@ -125,7 +186,7 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 	s.mu.Unlock()
 	ctx, closeNetwork := updateNetworkContext(ctx)
 	defer closeNetwork()
-	err := up.Install(ctx, func(done, total int64) {
+	err = up.Install(ctx, func(done, total int64) {
 		s.mu.Lock()
 		s.snapshot.Downloaded = done
 		s.snapshot.Total = total

@@ -40,13 +40,14 @@ type addWindow struct {
 }
 
 func (a *application) openAdd(sources []string) {
+	if a.quitting || a.shutdownReady {
+		a.receive(sources)
+		return
+	}
 	if a.add != nil && !a.add.closed {
 		a.add.win.Show()
 		a.add.win.Focus()
-		if len(sources) > 0 {
-			a.add.input = strings.Join(sources, "\n")
-			a.add.prepare()
-		}
+		a.receive(sources)
 		return
 	}
 	parent := a.openWindow()
@@ -54,13 +55,19 @@ func (a *application) openAdd(sources []string) {
 	d.app = a
 	d.win = mygo.NewWindow(mygo.WindowOptions{Title: locales.TransferAdd(), Width: 550, Height: 660, MinWidth: 500, MinHeight: 500, Parent: parent.win, Modal: true, Content: ui.View(d.view)})
 	d.desktop.Parent = d.win
-	d.win.OnClosed(d.close)
+	d.win.OnClosed(func() { a.addClosed(d) })
 	a.add = d
 	d.input = strings.Join(sources, "\n")
 	if len(sources) > 0 {
 		d.prepare()
 	}
 }
+
+func (a *application) addClosed(d *addWindow) {
+	d.close()
+	a.scheduleAdd()
+}
+
 func (d *addWindow) prepare() {
 	if d.task.Running() {
 		return

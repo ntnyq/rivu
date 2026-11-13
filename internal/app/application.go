@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -17,7 +16,7 @@ type application struct {
 	settingsMu                               sync.Mutex
 	store                                    *config.Store
 	session                                  *session.Manager
-	updater                                  *updater.Service
+	updater                                  updateService
 	window                                   *mainWindow
 	settingsWindow                           *settingsWindow
 	add                                      *addWindow
@@ -26,10 +25,33 @@ type application struct {
 	panel                                    *mygo.Window
 	snapshot                                 session.Snapshot
 	pending                                  []string
+	addScheduled                             bool
+	post                                     func(func())
+	showAdd                                  func([]string)
 	ready, quitting, shutdownReady, relaunch bool
 	cancel                                   context.CancelFunc
-	notifying                                map[string]bool
+	powerDone                                <-chan struct{}
+	powerResume                              func()
+	completions                              completionNotifications
 	errorsSeen                               map[string]string
+}
+
+func newApplication(store *config.Store) *application {
+	a := &application{store: store, errorsSeen: map[string]string{}}
+	// RunOnMain runs inline on the UI thread. Enter it from a worker so queue
+	// delivery waits until the current native close cascade has returned.
+	a.post = func(fn func()) { go mygo.RunOnMain(fn) }
+	a.showAdd = a.openAdd
+	return a
+}
+
+type updateService interface {
+	Snapshot() updater.Snapshot
+	Scheduled(context.Context)
+	Check(context.Context) error
+	Install(context.Context, bool) error
+	Stop()
+	Resume()
 }
 
 func (a *application) report(err error) {
@@ -41,11 +63,37 @@ func (a *application) receive(sources []string) {
 	if len(sources) == 0 {
 		return
 	}
-	if !a.ready {
-		a.pending = append(a.pending, sources...)
+	a.pending = append(a.pending, sources...)
+	a.scheduleAdd()
+}
+
+// Sources opened externally wait for the current draft to finish, preserving
+// its file choices even when a preview or submission is still running.
+func (a *application) nextAddSources() []string {
+	if !a.ready || a.quitting || a.shutdownReady || a.add != nil && !a.add.closed {
+		return nil
+	}
+	sources := a.pending
+	a.pending = nil
+	return sources
+}
+
+func (a *application) scheduleAdd() {
+	if a.addScheduled || len(a.pending) == 0 || !a.ready || a.quitting || a.shutdownReady || a.add != nil && !a.add.closed {
 		return
 	}
-	a.openAdd(sources)
+	a.addScheduled = true
+	a.post(func() {
+		a.addScheduled = false
+		if sources := a.nextAddSources(); len(sources) > 0 {
+			a.showAdd(sources)
+		}
+	})
+}
+
+func (a *application) quitFailed() {
+	a.quitting = false
+	a.scheduleAdd()
 }
 func (a *application) observe() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -56,38 +104,86 @@ func (a *application) observe() {
 		defer off()
 		ticker := time.NewTicker(time.Minute)
 		defer ticker.Stop()
+		observeSession(ctx, ch, ticker.C, a.updater.Scheduled, func() {
+			snap := a.session.Snapshot()
+			mygo.RunOnMain(func() {
+				previousPanelHeight := presentTray(a.snapshot).height()
+				a.snapshot = snap
+				if a.window != nil && !a.window.closed {
+					a.window.dispatch(func() { a.window.snapshot = snap })
+				}
+				if a.panel != nil {
+					if height := presentTray(snap).height(); height != previousPanelHeight {
+						a.panel.SetSize(trayWidth, height)
+					}
+					a.panel.Update(func() {})
+				}
+				if a.settingsWindow != nil && !a.settingsWindow.closed {
+					a.settingsWindow.dispatch(func() {})
+				}
+				a.notifications(snap)
+			})
+		})
+	}()
+	a.snapshot = a.session.Snapshot()
+}
+
+func observeSession(ctx context.Context, changes <-chan struct{}, ticks <-chan time.Time, scheduled func(context.Context), changed func()) {
+	ctx, cancel := context.WithCancel(ctx)
+	done := make(chan struct{})
+	defer func() { cancel(); <-done }()
+	go func() {
+		defer close(done)
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case _, ok := <-ch:
+			case _, ok := <-ticks:
 				if !ok {
 					return
 				}
-				snap := a.session.Snapshot()
-				mygo.RunOnMain(func() {
-					previousPanelHeight := presentTray(a.snapshot).height()
-					a.snapshot = snap
-					if a.window != nil && !a.window.closed {
-						a.window.dispatch(func() { a.window.snapshot = snap })
-					}
-					if a.panel != nil {
-						if height := presentTray(snap).height(); height != previousPanelHeight {
-							a.panel.SetSize(trayWidth, height)
-						}
-						a.panel.Update(func() {})
-					}
-					if a.settingsWindow != nil && !a.settingsWindow.closed {
-						a.settingsWindow.dispatch(func() {})
-					}
-					a.notifications(snap)
-				})
-			case <-ticker.C:
-				a.updater.Scheduled(ctx)
+				if ctx.Err() != nil {
+					return
+				}
+				scheduled(ctx)
 			}
 		}
 	}()
-	a.snapshot = a.session.Snapshot()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case _, ok := <-changes:
+			if !ok {
+				return
+			}
+			changed()
+		}
+	}
+}
+
+// setSuspended is called on the UI thread. Chain workers in event order so a
+// quick wake cannot overtake a suspend that is still saving on another worker.
+func (a *application) setSuspended(suspended bool) {
+	previous := a.powerDone
+	done := make(chan struct{})
+	a.powerDone = done
+	go func() {
+		defer close(done)
+		if previous != nil {
+			<-previous
+		}
+		if suspended && a.powerResume == nil {
+			release, err := a.session.Quiesce()
+			a.powerResume = release
+			if err != nil {
+				mygo.RunOnMain(func() { a.report(err) })
+			}
+		} else if !suspended && a.powerResume != nil {
+			a.powerResume()
+			a.powerResume = nil
+		}
+	}()
 }
 func (a *application) execute(cmd session.Command) {
 	cmd.IDs = append([]string(nil), cmd.IDs...)
@@ -99,38 +195,6 @@ func (a *application) execute(cmd session.Command) {
 			mygo.RunOnMain(func() { a.report(err) })
 		}
 	}()
-}
-func (a *application) notifications(s session.Snapshot) {
-	settings := a.store.Snapshot()
-	for _, t := range s.Tasks {
-		if t.Epoch > t.Notified && !a.notifying[t.ID] {
-			a.notifying[t.ID] = true
-			go func() {
-				if settings.NotifyComplete {
-					n := mygo.NewNotification(mygo.NotificationOptions{ID: fmt.Sprintf("rivu-%s-%d", t.ID, t.Epoch), Title: locales.NotificationComplete(), Body: t.Source.Name})
-					n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.selectOnly(t.ID) }) })
-					if err := n.Show(); err != nil {
-						mygo.RunOnMain(func() { a.report(messageError{locales.NotificationDeliveryFailed(err), err}) })
-					}
-				}
-				err := a.session.Execute(context.Background(), session.Command{Kind: session.CommandNotified, IDs: []string{t.ID}})
-				mygo.RunOnMain(func() {
-					delete(a.notifying, t.ID)
-					if err != nil {
-						a.report(err)
-					}
-				})
-			}()
-		}
-		if settings.NotifyError && t.Error != "" && a.errorsSeen[t.ID] != t.Error {
-			a.errorsSeen[t.ID] = t.Error
-			go func() {
-				n := mygo.NewNotification(mygo.NotificationOptions{ID: "rivu-error-" + t.ID, Title: locales.NotificationAttention(), Body: t.Source.Name + "：" + taskError(t)})
-				n.OnClick(func() { w := a.openWindow(); w.dispatch(func() { w.filter = 5; w.selectOnly(t.ID) }) })
-				_ = n.Show()
-			}()
-		}
-	}
 }
 func (a *application) beforeQuit(e *mygo.QuitEvent) {
 	if a.shutdownReady {
@@ -156,13 +220,14 @@ func (a *application) shutdown() {
 	}
 	a.quitting = true
 	go func() {
-		err := a.session.Close()
+		err := a.closeSession()
 		mygo.RunOnMain(func() {
-			a.quitting = false
 			if err != nil {
 				a.report(messageError{locales.QuitSaveFailed(err), err})
+				a.quitFailed()
 				return
 			}
+			a.quitting = false
 			a.shutdownReady = true
 			if a.cancel != nil {
 				a.cancel()
@@ -174,6 +239,24 @@ func (a *application) shutdown() {
 			}
 		})
 	}()
+}
+
+func (a *application) closeSession() error {
+	// Retain an outer hold while updater cleanup releases its own hold, so
+	// transfers cannot restart between cancellation and the final close.
+	release, err := a.session.Quiesce()
+	defer release()
+	if err != nil {
+		return err
+	}
+	if a.updater != nil {
+		a.updater.Stop()
+	}
+	err = a.session.Close()
+	if err != nil && a.updater != nil {
+		a.updater.Resume()
+	}
+	return err
 }
 func (a *application) slowMode() {
 	go func() {

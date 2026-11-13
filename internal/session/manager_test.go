@@ -73,7 +73,9 @@ func TestBatchPauseRecoveryAndManualIntent(t *testing.T) {
 			t.Fatalf("wrong run for %s", task.ID)
 		}
 	}
-	if err := m.Quiesce(); err != nil {
+	release, err := m.Quiesce()
+	defer release()
+	if err != nil {
 		t.Fatal(err)
 	}
 	restored, err := Open(dir, &fakeEngine{running: map[string]bool{}}, config.Default(), nil)

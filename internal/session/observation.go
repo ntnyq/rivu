@@ -15,7 +15,7 @@ type sample struct {
 }
 
 func (m *Manager) tick() {
-	if m.closed || m.barrier || m.loadErr != nil {
+	if m.closed || m.quiesced() || m.loadErr != nil {
 		return
 	}
 	changed := false
@@ -148,13 +148,13 @@ func (m *Manager) tick() {
 		if m.state.Tasks[i].Removing {
 			if err := m.finishRemoval(i); err != nil {
 				m.holds[m.state.Tasks[i].ID] = problem.From(err)
-				if m.barrier || m.loadErr != nil {
+				if m.quiesced() || m.loadErr != nil {
 					break
 				}
 			}
 		}
 	}
-	if m.barrier || m.loadErr != nil {
+	if m.quiesced() || m.loadErr != nil {
 		m.publish()
 		return
 	}

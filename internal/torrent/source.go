@@ -19,6 +19,10 @@ import (
 
 const maxMetadata = 16 << 20
 
+// Bound the engine's per-piece allocations for v2 as well as v1. A v1 torrent
+// cannot carry more hashes than this within the existing metadata budget.
+const maxPieces = maxMetadata / 20
+
 type Parser struct{}
 
 func (Parser) Parse(raw string) (session.Source, error) {
@@ -151,20 +155,31 @@ func validateInfo(info *metainfo.Info) error {
 	if len(members) == 0 || len(members) > 100000 {
 		return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedFileCount, nil)
 	}
-	var total int64
+	var total, pieces int64
 	for _, f := range members {
 		if f.Length < 0 || f.Length > (1<<50)-total {
 			return problem.Message(problem.Metadata, locales.Messages.TorrentInvalidFileSize, nil)
 		}
 		total += f.Length
+		if info.HasV2() {
+			// V2 files are independently piece-aligned, including short tails.
+			count := f.Length / info.PieceLength
+			if f.Length%info.PieceLength != 0 {
+				count++
+			}
+			if count > maxPieces-pieces {
+				return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedStructure, nil)
+			}
+			pieces += count
+		}
+	}
+	if !info.HasV2() {
+		pieces = (total + info.PieceLength - 1) / info.PieceLength
+	}
+	if pieces > maxPieces {
+		return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedStructure, nil)
 	}
 	if info.HasV1() {
-		pieces := (total + info.PieceLength - 1) / info.PieceLength
-		if info.HasV2() {
-			// Hybrid storage uses the v2 geometry, but the engine indexes the
-			// v1 hash array once for every v2 piece.
-			pieces = int64(info.NumPieces())
-		}
 		if int64(len(info.Pieces)/20) != pieces {
 			return problem.Message(problem.Metadata, locales.Messages.TorrentUnsupportedStructure, nil)
 		}

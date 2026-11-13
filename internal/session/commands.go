@@ -14,16 +14,16 @@ import (
 func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	defer m.publish()
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if m.closed || m.barrier {
-		return problem.Message(problem.Persistence, locales.Messages.SessionSaving, nil)
+	if m.closed || m.quiesced() {
+		return problem.Message(problem.Persistence, locales.Messages.SessionSaving, ErrQuiesced)
 	}
 	if m.loadErr != nil {
 		return m.loadErr
 	}
+	defer m.publish()
 	if err := cmd.validate(m.state.Tasks); err != nil {
 		return err
 	}
@@ -116,7 +116,11 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 			r.Reason = PauseVerify
 			stopIDs = append(stopIDs, r.ID)
 		case CommandNotified:
-			r.Notified = r.Epoch
+			epoch := cmd.Epoch
+			if epoch == 0 { // Preserve existing callers that acknowledge the current epoch.
+				epoch = r.Epoch
+			}
+			r.Notified = max(r.Notified, min(epoch, r.Epoch))
 		}
 	}
 	// A pause must remain safe even when its intent cannot be saved.

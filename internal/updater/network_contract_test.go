@@ -109,4 +109,24 @@ func TestMyGoUpdateNetwork(t *testing.T) {
 			}
 		})
 	}
+	t.Run("up-to-date check leaves no installer", func(t *testing.T) {
+		respond.Store(func(w http.ResponseWriter, _ *http.Request) {
+			fmt.Fprint(w, `{"version":"1.0.0","url":"https://example.test/update.tar.gz","size":1,"signature":"test"}`)
+		})
+		ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
+		defer cancel()
+		command := exec.CommandContext(ctx, executable, filepath.Join(t.TempDir(), "settings.json"), "5s", "install")
+		command.Env = append(os.Environ(), "APPIMAGE=")
+		output, err := command.Output()
+		if err == nil {
+			t.Fatal("install succeeded without an available update")
+		}
+		var snapshot Snapshot
+		if err := json.Unmarshal(output, &snapshot); err != nil {
+			t.Fatalf("no-update handling did not return normally: %v, output=%s", err, output)
+		}
+		if snapshot.State != "upToDate" || snapshot.LastSuccess.IsZero() {
+			t.Fatalf("incorrect no-update state: %+v", snapshot)
+		}
+	})
 }

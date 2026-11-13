@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/ntnyq/rivu/internal/problem"
 	"os"
 	"path/filepath"
@@ -12,6 +13,10 @@ import (
 
 	"github.com/ntnyq/rivu/internal/config"
 )
+
+// ErrQuiesced allows background bookkeeping to defer work during maintenance
+// without reporting an expected pause as an application failure.
+var ErrQuiesced = errors.New("session is quiesced")
 
 // Manager serializes all mutations and engine calls; rendering reads atomic snapshots.
 type Manager struct {
@@ -27,6 +32,7 @@ type Manager struct {
 	snapshot            atomic.Pointer[Snapshot]
 	loadErr, errorState error
 	barrier, closed     bool
+	maintenance         int
 	cancel              context.CancelFunc
 	done                chan struct{}
 	lastSave            time.Time
@@ -71,7 +77,7 @@ func (m *Manager) loop(ctx context.Context) {
 			return
 		case <-ticker.C:
 			m.mu.Lock()
-			if !m.closed && !m.barrier && m.loadErr == nil {
+			if !m.closed && !m.quiesced() && m.loadErr == nil {
 				m.tick()
 			}
 			m.mu.Unlock()
@@ -92,34 +98,47 @@ func (m *Manager) Configure(s config.Settings) error {
 	return nil
 }
 
-func (m *Manager) Quiesce() error {
+// quiesced is called under mu; persistence recovery and maintenance have
+// independent lifetimes. Reload may clear only the former.
+func (m *Manager) quiesced() bool { return m.barrier || m.maintenance > 0 }
+
+// Quiesce acquires an independent maintenance hold and saves/stops the session.
+// The caller must release its hold even on error. Release is idempotent and
+// never clears a persistence recovery barrier or another caller's hold.
+func (m *Manager) Quiesce() (release func(), err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.barrier = true
+	m.maintenance++
+	var once sync.Once
+	release = func() {
+		once.Do(func() {
+			m.mu.Lock()
+			defer m.mu.Unlock()
+			m.maintenance--
+			m.tick()
+			m.publish()
+		})
+	}
+	defer m.publish()
 	for id := range m.active {
-		if err := m.stop(id); err != nil {
-			return err
+		if stopErr := m.stop(id); stopErr != nil {
+			err = errors.Join(err, stopErr)
 		}
 	}
-	err := m.save(m.state)
+	if err == nil {
+		err = m.save(m.state)
+	}
 	if err != nil {
+		m.barrier = true
 		m.errorState = problem.New(problem.Persistence, "save session", err)
 	}
-	m.publish()
-	return err
-}
-
-func (m *Manager) Continue() {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if !m.closed && m.loadErr == nil {
-		m.barrier = false
-		m.tick()
-	}
+	return release, err
 }
 
 func (m *Manager) Close() error {
-	if err := m.Quiesce(); err != nil {
+	release, err := m.Quiesce()
+	defer release()
+	if err != nil {
 		return err
 	}
 	m.mu.Lock()
@@ -127,10 +146,12 @@ func (m *Manager) Close() error {
 		m.mu.Unlock()
 		return nil
 	}
-	err := m.engine.Close()
+	err = m.engine.Close()
 	if err == nil {
 		m.closed = true
 		m.cancel()
+	} else {
+		m.barrier = true
 	}
 	m.mu.Unlock()
 	if err == nil {

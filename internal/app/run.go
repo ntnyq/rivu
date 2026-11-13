@@ -59,7 +59,8 @@ func Run() {
 	if !mygo.App.RequestSingleInstanceLock() {
 		return
 	}
-	a := &application{store: store, pending: opts.sources, notifying: map[string]bool{}, errorsSeen: map[string]string{}}
+	a := newApplication(store)
+	a.pending = opts.sources
 	mygo.App.OnOpenFile(func(path string) { mygo.RunOnMain(func() { a.receive([]string{path}) }) })
 	mygo.App.OnOpenURL(func(raw string) { mygo.RunOnMain(func() { a.receive([]string{raw}) }) })
 	mygo.App.OnSecondInstance(func(args []string, cwd string) {
@@ -123,17 +124,9 @@ func Run() {
 				if sessionErr != nil {
 					a.report(sessionErr)
 				}
-				sources := a.pending
-				a.pending = nil
-				a.receive(sources)
-				mygo.Power.OnSuspend(func() {
-					go func() {
-						if err := a.session.Quiesce(); err != nil {
-							mygo.RunOnMain(func() { a.report(err) })
-						}
-					}()
-				})
-				mygo.Power.OnResume(func() { go a.session.Continue() })
+				a.scheduleAdd()
+				mygo.Power.OnSuspend(func() { a.setSuspended(true) })
+				mygo.Power.OnResume(func() { a.setSuspended(false) })
 				if a.window != nil {
 					a.window.captureIfRequested()
 				}

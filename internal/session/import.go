@@ -107,7 +107,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
-	if m.closed || m.barrier {
+	if m.closed || m.quiesced() {
 		return "", problem.Message(problem.Engine, locales.Messages.SessionSavingRetry, nil)
 	}
 	if m.loadErr != nil {
