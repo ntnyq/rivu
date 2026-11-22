@@ -257,7 +257,7 @@
   "trackerDnsFailed": "DNS 조회 실패",
   "trackerError": "Tracker 오류",
   "trackerFailed": "알림 실패",
-  "trackerNextAnnounce": "다음 알림: {time}",
+  "trackerNextAnnounce": "다음 알림 예상 시각: {time}",
   "trackerNoObservations": "트래커 정보가 아직 없습니다",
   "trackerPrivacyHint": "Tracker 인증 정보는 숨겨집니다. 진단은 5초마다 갱신됩니다.",
   "trackerRefused": "연결 거부됨",

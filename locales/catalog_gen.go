@@ -2627,11 +2627,11 @@ func (msgs Messages) TrackerFailed() string {
 	return Catalog.Format(msgs.locale, "trackerFailed", nil)
 }
 
-// TrackerNextAnnounce says "Next announce: {time}"
+// TrackerNextAnnounce says "Estimated next announce: {time}"
 // in the language the app shows.
 func TrackerNextAnnounce(time_ string) string { return In(i18n.Locale()).TrackerNextAnnounce(time_) }
 
-// TrackerNextAnnounce says "Next announce: {time}"
+// TrackerNextAnnounce says "Estimated next announce: {time}"
 // in the language of msgs.
 func (msgs Messages) TrackerNextAnnounce(time_ string) string {
 	return Catalog.Format(msgs.locale, "trackerNextAnnounce", map[string]any{"time": time_})

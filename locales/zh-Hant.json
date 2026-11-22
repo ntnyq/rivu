@@ -257,7 +257,7 @@
   "trackerDnsFailed": "網域解析失敗",
   "trackerError": "Tracker 傳回錯誤",
   "trackerFailed": "公告失敗",
-  "trackerNextAnnounce": "下次公告：{time}",
+  "trackerNextAnnounce": "預計下次公告：{time}",
   "trackerNoObservations": "尚無 Tracker 觀測",
   "trackerPrivacyHint": "Tracker 位址已隱藏憑證；診斷每 5 秒重新整理。",
   "trackerRefused": "連線遭拒",

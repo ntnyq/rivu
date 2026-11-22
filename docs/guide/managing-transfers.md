@@ -4,7 +4,7 @@
 
 Use the sidebar to filter downloading, seeding, completed, paused, or attention-needed tasks. Search and sort the queue, or use the tag filter to narrow it further.
 
-Select a task to inspect its progress, file tree, and connections. The Connections tab shows peer count, tracker announce results, failures, and the next announce time when the engine provides one. Diagnostics refresh every five seconds.
+Select a task to inspect its progress, file tree, and connections. The Connections tab shows peer count, Tracker announce results, and failures. After a successful announce, it estimates the next announce time from the interval returned by the Tracker.
 
 ## Pause and resume
 

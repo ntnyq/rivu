@@ -257,7 +257,7 @@
   "trackerDnsFailed": "DNS 解決失敗",
   "trackerError": "Tracker エラー",
   "trackerFailed": "通知失敗",
-  "trackerNextAnnounce": "次回通知：{time}",
+  "trackerNextAnnounce": "次回通知の予定：{time}",
   "trackerNoObservations": "トラッカー情報はまだありません",
   "trackerPrivacyHint": "Tracker の認証情報は非表示です。診断は 5 秒ごとに更新します。",
   "trackerRefused": "接続が拒否されました",

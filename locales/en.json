@@ -414,7 +414,7 @@
   "trackerDnsFailed": "DNS lookup failed",
   "trackerError": "Tracker returned an error",
   "trackerFailed": "Announce failed",
-  "trackerNextAnnounce": "Next announce: {time}",
+  "trackerNextAnnounce": "Estimated next announce: {time}",
   "@trackerNextAnnounce": {
     "placeholders": {
       "time": {
