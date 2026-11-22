@@ -13,3 +13,4 @@ dist/
 *.prof
 coverage.out
 mygo-update.key
+.torrent.db

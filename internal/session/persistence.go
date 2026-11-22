@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/ntnyq/rivu/internal/files"
@@ -17,9 +18,11 @@ import (
 )
 
 type diskState struct {
-	Version  int      `json:"version"`
-	Revision uint64   `json:"revision"`
-	Tasks    []Record `json:"tasks"`
+	Version              int             `json:"version"`
+	Revision             uint64          `json:"revision"`
+	Tasks                []Record        `json:"tasks"`
+	Watched              map[string]bool `json:"watched,omitempty"`
+	WatchJournalMigrated bool            `json:"watchJournalMigrated,omitempty"`
 }
 
 func (m *Manager) validate() error {
@@ -30,7 +33,8 @@ func (m *Manager) validate() error {
 		return fmt.Errorf("unsupported session schema %d", m.state.Version)
 	}
 	seen := map[string]bool{}
-	for _, r := range m.state.Tasks {
+	for i := range m.state.Tasks {
+		r := &m.state.Tasks[i]
 		id, err := hex.DecodeString(r.ID)
 		if err != nil || len(id) != 16 || seen[r.ID] {
 			return fmt.Errorf("invalid task ID")
@@ -41,6 +45,11 @@ func (m *Manager) validate() error {
 		}
 		if r.Metadata != "" && r.Metadata != filepath.Join(filepath.Dir(m.path), "metadata", r.ID+".torrent") {
 			return fmt.Errorf("invalid metadata reference")
+		}
+		// Resolved torrents always have members. Older builds could checkpoint
+		// a metadata path for an unresolved magnet before finishing the write.
+		if r.Metadata != "" && len(r.Source.Files) == 0 && strings.HasPrefix(strings.ToLower(r.Source.Raw), "magnet:") {
+			r.Metadata = ""
 		}
 		if err := files.ValidateMembers(names(r.Source.Files)); err != nil {
 			return err

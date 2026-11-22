@@ -126,6 +126,13 @@ func magnet(t session.Task) string {
 	for _, tr := range t.Source.Trackers {
 		v.Add("tr", tr)
 	}
+	if original, err := url.Parse(t.Source.Raw); err == nil && original.Scheme == "magnet" {
+		for _, peer := range original.Query()["x.pe"] {
+			if peer != "" {
+				v.Add("x.pe", peer)
+			}
+		}
+	}
 	return "magnet:?" + v.Encode()
 }
 

@@ -27,7 +27,7 @@ Session schema 1 is read and migrated to schema 2. Existing pause intent, task I
 
 Adoption grants permission to verify and repair the selected existing files; it does not grant permission to Trash them. The device/inode recorded at confirmation must still match before a write. New files retain the existing creation journal and exclusive-publication path. Relocation is a reference change: original files stay where they are, new-location observations are reset, and the next execution verifies the new location. If users want to move files, they move them externally and then select the new parent directory.
 
-Watch-folder input is local and explicit. The watcher passes the exact stable bytes it read to the parser, bounds reads at 16 MiB, ignores symlinks/non-regular files, and does not automatically adopt existing payload. Invalid files are reported without blocking valid neighbors. The atomic watch ledger preserves decisions across restarts; a failed session save is retried and a corrupt ledger is never overwritten.
+Watch-folder input is local and explicit. The watcher passes the exact stable bytes it read to the parser, bounds reads at 16 MiB, ignores symlinks/non-regular files, and does not automatically adopt existing payload. Invalid files are reported without blocking valid neighbors. The session commits the task and watch fingerprint together and retries failed saves. The [architecture guide](architecture.md) describes migration from the original separate ledger.
 
 Structured error messages retain their translation key and arguments, not a language-specific formatted string. Session snapshots clone mutable slices, maps and error arguments. Changing tags does not clear an unrelated recovery hold.
 

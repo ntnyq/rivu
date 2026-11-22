@@ -49,6 +49,9 @@ func Open(dir string, e Engine, s config.Settings, trash func(string) error) (*M
 		}
 	} else if os.IsNotExist(err) {
 		err = nil
+		// An old journal shared through --config belongs to an existing
+		// session. A new data directory starts with a clean ledger.
+		m.state.WatchJournalMigrated = true
 	}
 	if err != nil {
 		m.state = diskState{Version: 2}

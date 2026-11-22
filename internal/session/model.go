@@ -104,6 +104,7 @@ type Command struct {
 	Trash               bool
 }
 type Import struct {
+	WatchKey         string
 	AdoptExisting    bool
 	Tags             []string
 	SeedLimitSeconds int64

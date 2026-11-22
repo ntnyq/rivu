@@ -5,36 +5,20 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/ntnyq/rivu/internal/storage"
 )
 
 type Watcher struct {
-	Journal  string
 	previous map[string]string
 }
 
-// Scan requires the same content in two scans. The durable ledger prevents a
-// removed task from being re-imported on restart; changed torrent files are new input.
-func (w *Watcher) Scan(ctx context.Context, folder string, submit func(context.Context, string, []byte) error) error {
-	ledger := map[string]bool{}
-	data, err := os.ReadFile(w.Journal)
-	if err == nil {
-		err = json.Unmarshal(data, &ledger)
-	}
-	if err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("read watch journal: %w", err)
-	}
-	if ledger == nil {
-		return fmt.Errorf("invalid watch journal")
-	}
+// Scan submits stable files with a path and content key for durable deduplication.
+func (w *Watcher) Scan(ctx context.Context, folder string, submit func(context.Context, string, string, []byte) error) error {
 	entries, err := os.ReadDir(folder)
 	if err != nil {
 		return err
@@ -57,14 +41,19 @@ func (w *Watcher) Scan(ctx context.Context, folder string, submit func(context.C
 		path := filepath.Join(folder, entry.Name())
 		stat, err := entry.Info()
 		if err != nil {
-			return err
+			if !errors.Is(err, os.ErrNotExist) {
+				failures = append(failures, err)
+			}
+			continue
 		}
 		if !stat.Mode().IsRegular() || stat.Size() > 16<<20 {
 			continue
 		}
 		file, err := root.Open(entry.Name())
 		if err != nil {
-			failures = append(failures, err)
+			if !errors.Is(err, os.ErrNotExist) {
+				failures = append(failures, err)
+			}
 			continue
 		}
 		current, err := file.Stat()
@@ -86,23 +75,11 @@ func (w *Watcher) Scan(ctx context.Context, folder string, submit func(context.C
 		fingerprint := hex.EncodeToString(hash[:])
 		next[path] = fingerprint
 		key := path + ":" + fingerprint
-		if ledger[key] || w.previous[path] != fingerprint {
+		if w.previous[path] != fingerprint {
 			continue
 		}
-		if err := submit(ctx, path, data); err != nil {
+		if err := submit(ctx, path, key, data); err != nil {
 			failures = append(failures, fmt.Errorf("%s: %w", entry.Name(), err))
-			continue
-		}
-		ledger[key] = true
-		encoded, err := json.Marshal(ledger)
-		if err != nil {
-			return err
-		}
-		if err = os.MkdirAll(filepath.Dir(w.Journal), 0700); err != nil {
-			return err
-		}
-		if err = storage.WriteFile(w.Journal, encoded, 0600); err != nil {
-			return err
 		}
 	}
 	return errors.Join(failures...)

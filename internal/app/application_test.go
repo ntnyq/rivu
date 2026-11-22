@@ -4,14 +4,32 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/session"
+	torrentengine "github.com/ntnyq/rivu/internal/torrent"
 	"github.com/ntnyq/rivu/internal/updater"
 )
+
+func TestCopiedMagnetRetainsExplicitPeer(t *testing.T) {
+	raw := "magnet:?xt=urn:btih:" + strings.Repeat("1", 40) + "&x.pe=127.0.0.1%3A6881"
+	parser := torrentengine.Parser{}
+	source, err := parser.Parse(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	copied := magnet(session.Task{Record: session.Record{Source: source}})
+	if _, err := parser.Parse(copied); err != nil {
+		t.Fatalf("copied magnet no longer bootstraps: %v", err)
+	}
+	if !strings.Contains(copied, "x.pe=127.0.0.1%3A6881") {
+		t.Fatalf("explicit peer missing from %q", copied)
+	}
+}
 
 func TestScheduledUpdateDoesNotBlockSessionObservations(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())

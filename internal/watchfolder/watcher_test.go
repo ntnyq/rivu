@@ -15,9 +15,9 @@ func TestInvalidFileDoesNotBlockOtherImports(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	w := Watcher{Journal: filepath.Join(t.TempDir(), "ledger.json")}
+	var w Watcher
 	count := 0
-	submit := func(_ context.Context, path string, data []byte) error {
+	submit := func(_ context.Context, path, _ string, data []byte) error {
 		if filepath.Base(path) == "a.torrent" {
 			return errors.New("invalid torrent")
 		}
@@ -35,20 +35,23 @@ func TestInvalidFileDoesNotBlockOtherImports(t *testing.T) {
 	}
 }
 
-func TestStableImportLedgerAndRetry(t *testing.T) {
+func TestStableContentAndRetry(t *testing.T) {
 	dir := t.TempDir()
 	source := filepath.Join(dir, "test.torrent")
 	if err := os.WriteFile(source, []byte("first"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	w := Watcher{Journal: filepath.Join(t.TempDir(), "ledger.json")}
-	count := 0
+	var w Watcher
+	var keys []string
 	fail := false
-	submit := func(context.Context, string, []byte) error {
+	submit := func(_ context.Context, path, key string, _ []byte) error {
 		if fail {
 			return errors.New("save failed")
 		}
-		count++
+		if path != source || key == "" {
+			t.Fatalf("invalid watched input %q, %q", path, key)
+		}
+		keys = append(keys, key)
 		return nil
 	}
 	scan := func() {
@@ -58,18 +61,12 @@ func TestStableImportLedgerAndRetry(t *testing.T) {
 		}
 	}
 	scan()
-	if count != 0 {
+	if len(keys) != 0 {
 		t.Fatal("imported before stable")
 	}
 	scan()
-	if count != 1 {
+	if len(keys) != 1 {
 		t.Fatal("not imported")
-	}
-	w = Watcher{Journal: w.Journal}
-	scan()
-	scan()
-	if count != 1 {
-		t.Fatal("reimported after restart")
 	}
 	if err := os.WriteFile(source, []byte("second"), 0600); err != nil {
 		t.Fatal(err)
@@ -81,13 +78,7 @@ func TestStableImportLedgerAndRetry(t *testing.T) {
 	}
 	fail = false
 	scan()
-	if count != 2 {
-		t.Fatal("failed import not retried")
-	}
-	if err := os.WriteFile(w.Journal, []byte("broken"), 0600); err != nil {
-		t.Fatal(err)
-	}
-	if w.Scan(t.Context(), dir, submit) == nil {
-		t.Fatal("corrupt journal overwritten")
+	if len(keys) != 2 || keys[0] == keys[1] {
+		t.Fatal("changed content did not get a distinct key after retry")
 	}
 }

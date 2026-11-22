@@ -44,19 +44,8 @@ func (m *Manager) checkDestination(s Source, dir string, except string, adopt bo
 	if _, err := files.InspectExisting(dir, names(s.Files), adopt); err != nil {
 		return err
 	}
-	for _, r := range m.state.Tasks {
-		if r.ID == except {
-			continue
-		}
-		for _, a := range r.Source.Files {
-			for _, b := range s.Files {
-				left := strings.ToLower(filepath.Join(r.Destination, filepath.FromSlash(a.Path)))
-				right := strings.ToLower(filepath.Join(dir, filepath.FromSlash(b.Path)))
-				if left == right || strings.HasPrefix(left, right+string(filepath.Separator)) || strings.HasPrefix(right, left+string(filepath.Separator)) {
-					return problem.Message(problem.Engine, locales.Messages.FilesDestinationConflict, nil)
-				}
-			}
-		}
+	if m.destinationConflict(s.Files, dir, except) {
+		return problem.Message(problem.Engine, locales.Messages.FilesDestinationConflict, nil)
 	}
 	free, err := files.FreeSpace(dir)
 	if err != nil {
@@ -86,15 +75,53 @@ func (m *Manager) checkDestination(s Source, dir string, except string, adopt bo
 	return nil
 }
 
+func (m *Manager) destinationConflict(incoming []File, dir, except string) bool {
+	if len(incoming) == 0 || len(m.state.Tasks) == 0 {
+		return false
+	}
+	paths := make([]string, 0, len(incoming))
+	for _, f := range incoming {
+		paths = append(paths, strings.ToLower(filepath.Join(dir, filepath.FromSlash(f.Path))))
+	}
+	slices.Sort(paths)
+	for _, r := range m.state.Tasks {
+		if r.ID == except {
+			continue
+		}
+		for _, f := range r.Source.Files {
+			path := strings.ToLower(filepath.Join(r.Destination, filepath.FromSlash(f.Path)))
+			// Descendants follow path plus the separator, even when other
+			// filenames sort between path and that prefix.
+			prefix := path + string(filepath.Separator)
+			i, _ := slices.BinarySearch(paths, prefix)
+			if i < len(paths) && strings.HasPrefix(paths[i], prefix) {
+				return true
+			}
+			for {
+				if _, found := slices.BinarySearch(paths, path); found {
+					return true
+				}
+				parent := filepath.Dir(path)
+				if parent == path {
+					break
+				}
+				path = parent
+			}
+		}
+	}
+	return false
+}
+
 func (m *Manager) metadata(r *Record, s Source) error {
 	dir := filepath.Join(filepath.Dir(m.path), "metadata")
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return err
 	}
-	r.Metadata = filepath.Join(dir, r.ID+".torrent")
-	if err := storage.WriteFile(r.Metadata, s.Meta, 0o600); err != nil {
+	path := filepath.Join(dir, r.ID+".torrent")
+	if err := storage.WriteFile(path, s.Meta, 0o600); err != nil {
 		return err
 	}
+	r.Metadata = path
 	s.Meta = nil
 	r.Source = s
 	return nil
@@ -113,8 +140,18 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 	if m.loadErr != nil {
 		return "", m.loadErr
 	}
+	if m.state.Watched[in.WatchKey] {
+		return "", nil
+	}
 	for _, r := range m.state.Tasks {
 		if r.Source.Identity.Matches(in.Source.Identity) {
+			if in.WatchKey != "" {
+				next := cloneState(m.state)
+				next.markWatched(in.WatchKey)
+				if err := m.save(next); err != nil {
+					return "", err
+				}
+			}
 			return r.ID, nil
 		}
 	}
@@ -172,6 +209,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 	}
 	next := cloneState(m.state)
 	next.Tasks = append(next.Tasks, r)
+	next.markWatched(in.WatchKey)
 	if err := m.save(next); err != nil {
 		return "", err
 	}

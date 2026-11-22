@@ -51,7 +51,7 @@ Windows 上请确认代理客户端使用的是系统代理还是 TUN。HTTP/HTT
 
 应用数据默认位置因系统而异：macOS 为 `~/Library/Application Support/Rivu`，Windows 为 `%AppData%\Rivu`，Linux 为 `$XDG_CONFIG_HOME/Rivu`（未设置时为 `~/.config/Rivu`）。详见[数据保存位置](settings.md#数据保存位置)。
 
-其中包含 `settings.json`、`session.json`、不可变种子元数据和文件归属日志。文件夹监视账本位于配置文件旁边；下载内容独立保存在各任务的目标目录。
+其中包含 `settings.json`、`session.json`、不可变种子元数据和文件归属日志。文件夹监视账本保存在 `session.json` 中，下载内容独立保存在各任务的目标目录。
 
 备份前先退出 Rivu，再复制应用数据目录，以及存放在其他位置的配置文件。需要继续原有传输时，也要保留下载文件。
 

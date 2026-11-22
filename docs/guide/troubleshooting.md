@@ -51,7 +51,7 @@ Check that the destination disk is available and writable, then follow the repor
 
 The default application-data directory depends on your system: `~/Library/Application Support/Rivu` on macOS, `%AppData%\Rivu` on Windows, and `$XDG_CONFIG_HOME/Rivu` (or `~/.config/Rivu`) on Linux. See [data locations](settings.md#where-your-data-lives).
 
-It contains `settings.json`, `session.json`, immutable torrent metadata, and file-ownership journals. The watch-folder ledger is stored beside the configured settings file. Download payload lives separately in each task's destination.
+It contains `settings.json`, `session.json`, immutable torrent metadata, and file-ownership journals. The watch-folder ledger is part of `session.json`. Download payload lives separately in each task's destination.
 
 Quit Rivu before making a backup and copy the application-data directory along with any settings file stored elsewhere. Keep downloaded files if you want to continue those transfers later.
 

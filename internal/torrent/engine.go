@@ -10,6 +10,7 @@ import (
 
 	bt "github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
+	btstorage "github.com/anacrolix/torrent/storage"
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/files"
 	"github.com/ntnyq/rivu/internal/netproxy"
@@ -50,6 +51,7 @@ func (e *Engine) getClient(metadata bool) (*bt.Client, error) {
 		return *ptr, nil
 	}
 	cfg := bt.NewDefaultClientConfig()
+	cfg.DefaultStorage = btstorage.NewFileWithCompletion("", btstorage.NewMapPieceCompletion())
 	cfg.ListenPort = e.settings.ListenPort
 	cfg.Seed = true
 	cfg.NoDefaultPortForwarding = true
@@ -218,12 +220,12 @@ func (e *Engine) Observe(id string) session.Observation {
 		return o
 	}
 	mi := t.Metainfo()
-	var b bytes.Buffer
-	if err := mi.Write(&b); err != nil {
-		o.Error = err.Error()
-		return o
-	}
 	if h.metadata {
+		var b bytes.Buffer
+		if err := mi.Write(&b); err != nil {
+			o.Error = err.Error()
+			return o
+		}
 		s, err := parseMeta(b.Bytes())
 		if err != nil {
 			o.Error = err.Error()
