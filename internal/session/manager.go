@@ -91,14 +91,31 @@ func (m *Manager) loop(ctx context.Context) {
 func (m *Manager) Configure(s config.Settings) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	defer m.publish()
+	return m.configure(s)
+}
+
+func (m *Manager) configure(s config.Settings) error {
 	if err := s.Validate(); err != nil {
 		return err
 	}
 	m.settings = s
 	d, u := s.LimitsAt(time.Now())
 	m.engine.Limits(d, u)
-	m.publish()
 	return nil
+}
+
+// TryCheckpoint is used when the OS can end the process as soon as the native
+// callback returns. If busy, the last durable checkpoint remains available.
+func (m *Manager) TryCheckpoint() error {
+	if !m.mu.TryLock() {
+		return nil
+	}
+	defer m.mu.Unlock()
+	if m.closed || m.quiesced() || m.loadErr != nil {
+		return nil
+	}
+	return m.save(m.state)
 }
 
 // quiesced is called under mu; persistence recovery and maintenance have
@@ -163,11 +180,11 @@ func (m *Manager) Close() error {
 	return err
 }
 
-func (m *Manager) Idle() bool {
+func (m *Manager) HasPendingRunIntent() bool {
 	for _, t := range m.Snapshot().Tasks {
 		if t.Run && !t.Removing {
-			return false
+			return true
 		}
 	}
-	return true
+	return false
 }

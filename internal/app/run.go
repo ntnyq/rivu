@@ -65,6 +65,9 @@ func Run() {
 	mygo.App.OnOpenURL(func(raw string) { mygo.RunOnMain(func() { a.receive([]string{raw}) }) })
 	mygo.App.OnSecondInstance(func(args []string, cwd string) {
 		mygo.RunOnMain(func() {
+			if a.shutdownReady {
+				return
+			}
 			if len(args) > 0 {
 				args = args[1:]
 			}
@@ -78,7 +81,7 @@ func Run() {
 		})
 	})
 	mygo.App.OnActivate(func(visible bool) {
-		if a.ready && !visible {
+		if a.ready && !a.shutdownReady && !visible {
 			a.openWindow()
 		}
 	})
@@ -109,8 +112,11 @@ func Run() {
 			engine := torrentengine.New(store.Snapshot())
 			manager, sessionErr := session.Open(opts.dataDir, engine, store.Snapshot(), mygo.Shell.TrashItem)
 			mygo.RunOnMain(func() {
+				if a.shutdownReady {
+					return
+				}
 				a.session = manager
-				a.updater = updater.New(store, manager)
+				a.updater = updater.New(store, manager, func() bool { return a.work.drained() != nil })
 				a.ready = true
 				a.observe()
 				mygo.App.SetMenu(a.menu())

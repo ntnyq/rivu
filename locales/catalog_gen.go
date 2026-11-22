@@ -207,16 +207,6 @@ func (msgs Messages) CommonRemove() string {
 	return Catalog.Format(msgs.locale, "commonRemove", nil)
 }
 
-// CommonSaved says "Saved"
-// in the language the app shows.
-func CommonSaved() string { return In(i18n.Locale()).CommonSaved() }
-
-// CommonSaved says "Saved"
-// in the language of msgs.
-func (msgs Messages) CommonSaved() string {
-	return Catalog.Format(msgs.locale, "commonSaved", nil)
-}
-
 // CommonWebsite says "Website"
 // in the language the app shows.
 func CommonWebsite() string { return In(i18n.Locale()).CommonWebsite() }

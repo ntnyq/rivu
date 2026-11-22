@@ -1,7 +1,6 @@
 package app
 
 import (
-	"context"
 	"runtime"
 
 	"github.com/egoist/mygo"
@@ -31,22 +30,14 @@ func (a *application) commands() []command {
 		{"settings", locales.MenuSettings(), "CmdOrCtrl+,", a.openSettings},
 		{"reload", locales.MenuReloadAfterRepair(), "", func() {
 			w := a.openWindow()
-			w.run(locales.CommonReload(), func(context.Context) (string, error) {
-				a.settingsMu.Lock()
-				defer a.settingsMu.Unlock()
+			w.runCommitted(locales.CommonReload(), func() (string, error) {
 				if err := a.store.Reload(); err != nil {
 					return "", err
 				}
-				if err := a.session.Reload(); err != nil {
-					return "", err
-				}
-				return locales.CommonReloaded(), a.session.Configure(a.store.Snapshot())
-			}, func() {
-				w.settings = a.store.Snapshot()
-				applyTheme(w.settings.Theme)
-				a.applyLanguage()
-				a.configureTray()
-			})
+				err := a.session.ReloadWithSettings(a.store.Snapshot())
+				mygo.RunOnMain(a.applySettings)
+				return locales.CommonReloaded(), err
+			}, nil)
 		}},
 		{"quit", locales.MenuQuit(), "CmdOrCtrl+Q", mygo.App.Quit},
 	}

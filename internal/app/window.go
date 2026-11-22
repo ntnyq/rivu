@@ -29,6 +29,7 @@ type mainWindow struct {
 	relocateID, relocatePath                                                  string
 	relocateOpen                                                              bool
 	inspector, paletteOpen, removeOpen, trashFiles, quitConfirm, rememberQuit bool
+	quitRestart                                                               bool
 	removeIDs                                                                 []string
 }
 
@@ -70,7 +71,11 @@ func (w *mainWindow) refreshDisk() {
 			free, total, err = files.DiskSpace(filepath.Dir(destination))
 		}
 		if err == nil {
-			w.dispatch(func() { w.diskFree = free; w.diskTotal = total })
+			w.dispatch(func() {
+				if w.settings.Destination == destination {
+					w.diskFree, w.diskTotal = free, total
+				}
+			})
 		}
 	}()
 }

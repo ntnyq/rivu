@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/files"
 )
 
@@ -258,9 +259,70 @@ func TestMetadataLimitSurvivesPriorityChange(t *testing.T) {
 	_ = add(t, m, "a", true)
 	_ = add(t, m, "b", true)
 	c := add(t, m, "c", true)
-	exec(t, m, "first", c)
+	exec(t, m, CommandStartFirst, c)
 	if got := m.engine.(*observedEngine).peak; got > 2 {
 		t.Fatalf("priority change left %d active metadata handles; limit is two", got)
+	}
+}
+
+func TestReloadUsesUpdatedRestorePreference(t *testing.T) {
+	m := observedManager(t, Observation{Phase: PhaseMetadata})
+	id := add(t, m, "pending", true)
+	settings := config.Default()
+	settings.Restore = false
+	if err := m.ReloadWithSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+	if m.active[id] || !m.HasPendingRunIntent() {
+		t.Fatal("reload with automatic restore disabled started or lost the pending task")
+	}
+	settings.Restore = true
+	if err := m.ReloadWithSettings(settings); err != nil {
+		t.Fatal(err)
+	}
+	if !m.active[id] {
+		t.Fatal("reload with automatic restore enabled did not start pending work")
+	}
+}
+
+func TestStartFirstClearsPauseBatchAndOverridesSeedingLimit(t *testing.T) {
+	m := observedManager(t, Observation{})
+	id := add(t, m, "batch", true)
+	exec(t, m, CommandPauseAll)
+	exec(t, m, CommandStartFirst, id)
+	if task := m.Snapshot().Tasks[0]; !task.Run || task.Batch || task.Reason != "" {
+		t.Fatalf("start first kept the previous batch state: %+v", task.Record)
+	}
+	exec(t, m, CommandRemove, id)
+
+	m.engine.(*observedEngine).observation = Observation{Phase: PhaseSeeding, Files: []File{{Size: 10, Done: 10}}}
+	id = addPayload(t, m, "retired")
+	if err := m.Execute(t.Context(), Command{Kind: CommandSeedRatio, IDs: []string{id}, Ratio: 0}); err != nil {
+		t.Fatal(err)
+	}
+	if m.state.Tasks[0].Run {
+		t.Fatal("fixture did not stop at its seeding limit")
+	}
+	exec(t, m, CommandStartFirst, id)
+	m.tick()
+	if r := m.state.Tasks[0]; !r.Run || !r.SeedOverride || r.Reason != "" {
+		t.Fatalf("start first did not resume the completed transfer: %+v", r)
+	}
+}
+
+func TestSeedPolicyUpdatesPreserveOtherField(t *testing.T) {
+	m := observedManager(t, Observation{})
+	id := add(t, m, "seed", false)
+	for _, command := range []Command{
+		{Kind: CommandSeedRatio, IDs: []string{id}, Ratio: 3},
+		{Kind: CommandSeedDuration, IDs: []string{id}, SeedLimitSeconds: 7200},
+	} {
+		if err := m.Execute(t.Context(), command); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if task := m.Snapshot().Tasks[0]; task.SeedRatio != 3 || task.SeedLimitSeconds != 7200 {
+		t.Fatalf("queued seeding policy edits interfered: %+v", task.Record)
 	}
 }
 
@@ -337,7 +399,7 @@ func TestRepeatedPrioritizationSurvivesReload(t *testing.T) {
 	b := addPayload(t, m, "b")
 	c := addPayload(t, m, "c")
 	for _, id := range []string{a, b, a, c, b} {
-		exec(t, m, "first", id)
+		exec(t, m, CommandStartFirst, id)
 		if len(m.active) != 1 || !m.active[id] {
 			t.Fatalf("latest priority %s not admitted: %v", id, m.active)
 		}

@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 
-	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/updater"
 	"github.com/ntnyq/rivu/locales"
@@ -47,8 +46,7 @@ func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 				}, nil)
 			}
 			if s.State == "restartRequired" && actionButton(c, "refresh", locales.UpdatesSaveAndRestart(), true).FontSize(11).Clicked() {
-				w.app.relaunch = true
-				mygo.App.Quit()
+				w.app.requestQuit(true)
 			}
 		})
 	})
@@ -60,7 +58,7 @@ func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 		w.settings.AutoInstall = false
 	}
 	ui.Row(c).Gap(8).Wrap().Justify(ui.SpaceBetween).Children(func() {
-		if actionButton(c, "refresh", locales.UpdatesCheck(), false).FontSize(11).Disabled(!available || w.task.Running()).Clicked() {
+		if actionButton(c, "refresh", locales.UpdatesCheck(), false).FontSize(11).Disabled(!available || w.task.Running() || s.State == "restartRequired").Clicked() {
 			w.run(locales.UpdatesCheck(), func(ctx context.Context) (string, error) {
 				return locales.UpdatesCheckComplete(), w.app.updater.Check(ctx)
 			}, nil)

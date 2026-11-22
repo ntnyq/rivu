@@ -8,6 +8,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/ntnyq/rivu/internal/config"
 )
 
 type installFunc func(context.Context, func(int64, int64)) error
@@ -20,14 +22,14 @@ type heldSession struct {
 	holds    atomic.Int32
 	released atomic.Int32
 	err      error
-	idle     func() bool
+	pending  func() bool
 }
 
-func (s *heldSession) Idle() bool {
-	if s.idle != nil {
-		return s.idle()
+func (s *heldSession) HasPendingRunIntent() bool {
+	if s.pending != nil {
+		return s.pending()
 	}
-	return true
+	return false
 }
 func (s *heldSession) Quiesce() (func(), error) {
 	s.holds.Add(1)
@@ -84,9 +86,11 @@ func TestStopWaitsForInstallCleanupAndPreventsNewWork(t *testing.T) {
 			}
 			service.Stop() // Stopping an idle service remains safe.
 			service.Resume()
-			service.update = installFunc(func(context.Context, func(int64, int64)) error { return nil })
-			if err := service.Install(t.Context(), false); err != nil {
-				t.Fatalf("failed-quit recovery did not reopen updates: %v", err)
+			if installErr != nil {
+				service.update = installFunc(func(context.Context, func(int64, int64)) error { return nil })
+				if err := service.Install(t.Context(), false); err != nil {
+					t.Fatalf("failed-quit recovery did not reopen updates: %v", err)
+				}
 			}
 		})
 	}
@@ -124,7 +128,7 @@ func TestCanceledInstallDoesNotAcquireHold(t *testing.T) {
 
 func TestAutomaticInstallRechecksIdleAfterQuiescing(t *testing.T) {
 	checks := 0
-	session := &heldSession{idle: func() bool { checks++; return checks == 1 }}
+	session := &heldSession{pending: func() bool { checks++; return checks > 1 }}
 	session.holds.Store(1)
 	service := &Service{session: session, update: installFunc(func(context.Context, func(int64, int64)) error {
 		t.Error("automatic install ignored new durable run intent")
@@ -135,5 +139,51 @@ func TestAutomaticInstallRechecksIdleAfterQuiescing(t *testing.T) {
 	}
 	if checks != 2 || session.holds.Load() != 1 || session.released.Load() != 1 {
 		t.Fatal("idle recheck did not release only its own maintenance hold")
+	}
+}
+
+func TestAutomaticInstallWaitsForQueuedWork(t *testing.T) {
+	session := &heldSession{}
+	service := &Service{
+		session:    session,
+		queuedWork: func() bool { return true },
+		update: installFunc(func(context.Context, func(int64, int64)) error {
+			t.Error("automatic install began while user work was still queued")
+			return nil
+		}),
+	}
+	if err := service.Install(t.Context(), true); err != nil {
+		t.Fatal(err)
+	}
+	if session.released.Load() != 0 {
+		t.Fatal("automatic install acquired a maintenance hold before the queue drained")
+	}
+}
+
+func TestSuccessfulInstallStaysReadyToRestart(t *testing.T) {
+	store, err := config.Open(t.TempDir() + "/settings.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Update(func(p *config.Settings) { p.AutoCheck, p.AutoInstall = true, true }); err != nil {
+		t.Fatal(err)
+	}
+	service := New(store, &heldSession{}, nil)
+	service.update = installFunc(func(context.Context, func(int64, int64)) error { return nil })
+	if err := service.Install(t.Context(), false); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.Check(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	service.Scheduled(t.Context())
+	if got := service.Snapshot().State; got != "restartRequired" {
+		t.Fatalf("check replaced pending restart: %s", got)
+	}
+	if service.update != nil || service.Install(t.Context(), false) == nil {
+		t.Fatal("installed update remained eligible for installation")
+	}
+	if !store.Snapshot().LastAttempt.IsZero() {
+		t.Fatal("pending restart performed a network check")
 	}
 }

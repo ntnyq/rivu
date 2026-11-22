@@ -24,7 +24,7 @@ func main() {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	service := updater.New(store, nil)
+	service := updater.New(store, nil, nil)
 	err = service.Check(ctx)
 	if err == nil && len(os.Args) > 3 && os.Args[3] == "install" {
 		err = service.Install(ctx, false)

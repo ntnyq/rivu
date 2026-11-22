@@ -159,7 +159,7 @@ func (w *mainWindow) taskRow(c *ui.Context, t session.Task, visible []session.Ta
 			w.app.execute(session.Command{Kind: session.CommandVerify, IDs: []string{t.ID}})
 		}
 		if m.Item(locales.TransferStartFirst()).Chosen() {
-			w.app.execute(session.Command{Kind: session.CommandFirst, IDs: []string{t.ID}})
+			w.app.execute(session.Command{Kind: session.CommandStartFirst, IDs: []string{t.ID}})
 		}
 		m.Separator()
 		if m.Item(locales.TransferRemoveMenu()).Chosen() {

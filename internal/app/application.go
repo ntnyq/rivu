@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"sync"
+	"log/slog"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -13,27 +13,28 @@ import (
 )
 
 type application struct {
-	settingsMu                               sync.Mutex
-	store                                    *config.Store
-	session                                  *session.Manager
-	updater                                  updateService
-	window                                   *mainWindow
-	settingsWindow                           *settingsWindow
-	add                                      *addWindow
-	tray                                     *mygo.Tray
-	cancelTrayClick                          func()
-	panel                                    *mygo.Window
-	snapshot                                 session.Snapshot
-	pending                                  []string
-	addScheduled                             bool
-	post                                     func(func())
-	showAdd                                  func([]string)
-	ready, quitting, shutdownReady, relaunch bool
-	cancel                                   context.CancelFunc
-	powerDone                                <-chan struct{}
-	powerResume                              func()
-	completions                              completionNotifications
-	errorsSeen                               map[string]string
+	work                           workQueue
+	store                          *config.Store
+	session                        *session.Manager
+	updater                        updateService
+	window                         *mainWindow
+	settingsWindow                 *settingsWindow
+	settingsSaving, reopenSettings bool
+	add                            *addWindow
+	tray                           *mygo.Tray
+	cancelTrayClick                func()
+	panel                          *mygo.Window
+	snapshot                       session.Snapshot
+	pending                        []string
+	addScheduled                   bool
+	post                           func(func())
+	showAdd                        func([]string)
+	ready, quitting, shutdownReady bool
+	cancel                         context.CancelFunc
+	powerDone                      <-chan struct{}
+	powerResume                    func()
+	completions                    completionNotifications
+	errorsSeen                     map[string]string
 }
 
 func newApplication(store *config.Store) *application {
@@ -55,7 +56,7 @@ type updateService interface {
 }
 
 func (a *application) report(err error) {
-	if err != nil {
+	if err != nil && !a.shutdownReady {
 		a.openWindow().report(locales.CommonOperationFailed(), err)
 	}
 }
@@ -107,6 +108,9 @@ func (a *application) observe() {
 		observeSession(ctx, ch, ticker.C, a.updater.Scheduled, func() {
 			snap := a.session.Snapshot()
 			mygo.RunOnMain(func() {
+				if a.shutdownReady {
+					return
+				}
 				previousPanelHeight := presentTray(a.snapshot).height()
 				a.snapshot = snap
 				if a.window != nil && !a.window.closed {
@@ -186,59 +190,102 @@ func (a *application) setSuspended(suspended bool) {
 	}()
 }
 func (a *application) execute(cmd session.Command) {
+	if a.quitting || a.shutdownReady {
+		return
+	}
 	cmd.IDs = append([]string(nil), cmd.IDs...)
 	cmd.FileIndices = append([]int(nil), cmd.FileIndices...)
 	cmd.Tags = append([]string(nil), cmd.Tags...)
-	go func() {
+	a.work.enqueue(func() {
 		err := a.session.Execute(context.Background(), cmd)
 		if err != nil {
 			mygo.RunOnMain(func() { a.report(err) })
 		}
-	}()
+	})
 }
 func (a *application) beforeQuit(e *mygo.QuitEvent) {
 	if a.shutdownReady {
 		return
 	}
+	if e.SessionEnding {
+		a.shutdownReady = true
+		if a.cancel != nil {
+			a.cancel()
+		}
+		if a.session != nil {
+			if err := a.session.TryCheckpoint(); err != nil {
+				slog.Error("save session at system shutdown", "error", err)
+			}
+		}
+		return
+	}
 	e.PreventDefault()
-	if a.quitting {
-		return
-	}
-	if a.session == nil {
-		return
-	}
-	if a.store.Snapshot().ConfirmQuit && !a.session.Idle() {
-		w := a.openWindow()
-		w.dispatch(func() { w.quitConfirm = true })
-		return
-	}
-	a.shutdown()
+	a.requestQuit(false)
 }
-func (a *application) shutdown() {
-	if a.quitting {
+
+func (a *application) requestQuit(restart bool) {
+	if a.quitting || a.shutdownReady || a.session == nil {
+		return
+	}
+	if a.store.Snapshot().ConfirmQuit && (a.work.drained() != nil || a.session.HasPendingRunIntent()) {
+		w := a.openWindow()
+		w.dispatch(func() {
+			if !w.quitConfirm || w.quitRestart != restart {
+				w.rememberQuit = false
+			}
+			w.quitRestart = restart
+			w.quitConfirm = true
+		})
+		return
+	}
+	a.shutdown(restart, false)
+}
+func (a *application) shutdown(restart, remember bool) {
+	if a.quitting || a.shutdownReady {
 		return
 	}
 	a.quitting = true
 	go func() {
+		if done := a.work.drained(); done != nil {
+			<-done
+		}
+		if remember {
+			if err := a.store.Update(func(p *config.Settings) { p.ConfirmQuit = false }); err != nil {
+				mygo.RunOnMain(func() {
+					a.finishShutdown(restart, messageError{locales.SettingsSaveQuitPreference() + " · " + err.Error(), err})
+				})
+				return
+			}
+		}
 		err := a.closeSession()
 		mygo.RunOnMain(func() {
 			if err != nil {
-				a.report(messageError{locales.QuitSaveFailed(err), err})
-				a.quitFailed()
-				return
+				err = messageError{locales.QuitSaveFailed(err), err}
 			}
-			a.quitting = false
-			a.shutdownReady = true
-			if a.cancel != nil {
-				a.cancel()
-			}
-			if a.relaunch {
-				mygo.App.Relaunch()
-			} else {
-				mygo.App.Quit()
-			}
+			a.finishShutdown(restart, err)
 		})
 	}()
+}
+
+func (a *application) finishShutdown(restart bool, err error) {
+	if a.shutdownReady {
+		return
+	}
+	if err != nil {
+		a.report(err)
+		a.quitFailed()
+		return
+	}
+	a.quitting = false
+	a.shutdownReady = true
+	if a.cancel != nil {
+		a.cancel()
+	}
+	if restart {
+		mygo.App.Relaunch()
+	} else {
+		mygo.App.Quit()
+	}
 }
 
 func (a *application) closeSession() error {
@@ -259,9 +306,10 @@ func (a *application) closeSession() error {
 	return err
 }
 func (a *application) slowMode() {
-	go func() {
-		a.settingsMu.Lock()
-		defer a.settingsMu.Unlock()
+	if a.quitting || a.shutdownReady {
+		return
+	}
+	a.work.enqueue(func() {
 		err := a.store.Update(func(s *config.Settings) { s.SlowMode = !s.SlowMode })
 		if err == nil {
 			err = a.session.Configure(a.store.Snapshot())
@@ -269,5 +317,5 @@ func (a *application) slowMode() {
 		if err != nil {
 			mygo.RunOnMain(func() { a.report(err) })
 		}
-	}()
+	})
 }

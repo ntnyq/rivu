@@ -29,9 +29,16 @@ func newSettingsWindow(store *config.Store) *settingsWindow {
 	return w
 }
 func (a *application) openSettings() {
+	if a.quitting || a.shutdownReady {
+		return
+	}
 	if a.settingsWindow != nil && !a.settingsWindow.closed {
 		a.settingsWindow.win.Show()
 		a.settingsWindow.win.Focus()
+		return
+	}
+	if a.settingsSaving {
+		a.reopenSettings = true
 		return
 	}
 	w := newSettingsWindow(a.store)

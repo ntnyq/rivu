@@ -14,7 +14,7 @@ import (
 )
 
 type Session interface {
-	Idle() bool
+	HasPendingRunIntent() bool
 	Quiesce() (func(), error)
 }
 
@@ -23,6 +23,7 @@ type installer interface {
 }
 
 var errBusy = errors.New("update operation already running")
+var errRestartRequired = errors.New("restart required")
 
 type Snapshot struct {
 	State, Version, Notes, Error string
@@ -30,19 +31,20 @@ type Snapshot struct {
 	LastSuccess                  time.Time
 }
 type Service struct {
-	mu       sync.Mutex
-	store    *config.Store
-	session  Session
-	snapshot Snapshot
-	update   installer
-	busy     bool
-	stopped  bool
-	cancel   context.CancelFunc
-	done     chan struct{}
+	mu         sync.Mutex
+	store      *config.Store
+	session    Session
+	snapshot   Snapshot
+	queuedWork func() bool
+	update     installer
+	busy       bool
+	stopped    bool
+	cancel     context.CancelFunc
+	done       chan struct{}
 }
 
-func New(store *config.Store, session Session) *Service {
-	return &Service{store: store, session: session, snapshot: Snapshot{State: "idle", LastSuccess: store.Snapshot().LastCheck}}
+func New(store *config.Store, session Session, queuedWork func() bool) *Service {
+	return &Service{store: store, session: session, queuedWork: queuedWork, snapshot: Snapshot{State: "idle", LastSuccess: store.Snapshot().LastCheck}}
 }
 func (s *Service) Snapshot() Snapshot { s.mu.Lock(); defer s.mu.Unlock(); return s.snapshot }
 
@@ -76,6 +78,9 @@ func (s *Service) begin(ctx context.Context) (context.Context, func(), error) {
 	if s.busy {
 		return nil, nil, errBusy
 	}
+	if s.snapshot.State == "restartRequired" {
+		return nil, nil, errRestartRequired
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	done := make(chan struct{})
 	s.busy, s.cancel, s.done = true, cancel, done
@@ -90,17 +95,21 @@ func (s *Service) begin(ctx context.Context) (context.Context, func(), error) {
 func Due(p config.Settings, now time.Time) bool {
 	return p.AutoCheck && now.Sub(p.LastCheck) >= 24*time.Hour && now.Sub(p.LastAttempt) >= 24*time.Hour+7*time.Minute
 }
+func (s *Service) canAutoInstall() bool {
+	return (s.queuedWork == nil || !s.queuedWork()) && !s.session.HasPendingRunIntent()
+}
+
 func (s *Service) Scheduled(ctx context.Context) {
 	if Due(s.store.Snapshot(), time.Now()) {
 		_ = s.Check(ctx)
 	}
-	if s.store.Snapshot().AutoInstall && s.Snapshot().State == "available" && s.session.Idle() {
+	if s.store.Snapshot().AutoInstall && s.Snapshot().State == "available" && s.canAutoInstall() {
 		_ = s.Install(ctx, true)
 	}
 }
 func (s *Service) Check(ctx context.Context) error {
 	ctx, finish, err := s.begin(ctx)
-	if errors.Is(err, errBusy) {
+	if errors.Is(err, errBusy) || errors.Is(err, errRestartRequired) {
 		return nil
 	}
 	if err != nil {
@@ -108,8 +117,8 @@ func (s *Service) Check(ctx context.Context) error {
 	}
 	defer finish()
 	s.mu.Lock()
-	s.snapshot.State = "checking"
-	s.snapshot.Error = ""
+	s.update = nil
+	s.snapshot = Snapshot{State: "checking", LastSuccess: s.snapshot.LastSuccess}
 	s.mu.Unlock()
 	if !mygo.Updater.Enabled() {
 		s.mu.Lock()
@@ -154,7 +163,7 @@ func (s *Service) fail(state string, err error) error {
 }
 func (s *Service) Install(ctx context.Context, automatic bool) error {
 	ctx, finish, err := s.begin(ctx)
-	if errors.Is(err, errBusy) {
+	if errors.Is(err, errBusy) || errors.Is(err, errRestartRequired) {
 		return fmt.Errorf("%s", locales.UpdatesNothingToInstall())
 	}
 	if err != nil {
@@ -167,7 +176,7 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 	if up == nil {
 		return fmt.Errorf("%s", locales.UpdatesNothingToInstall())
 	}
-	if automatic && !s.session.Idle() {
+	if automatic && !s.canAutoInstall() {
 		return nil
 	}
 	release, err := s.session.Quiesce()
@@ -176,11 +185,13 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 		return s.fail("installFailed", err)
 	}
 	// The barrier prevents admissions; durable queued intent also counts as activity.
-	if automatic && !s.session.Idle() {
+	if automatic && !s.canAutoInstall() {
 		return nil
 	}
 	s.mu.Lock()
 	s.snapshot.State = "installing"
+	s.snapshot.Error = ""
+	s.snapshot.Downloaded, s.snapshot.Total = 0, 0
 	s.mu.Unlock()
 	err = up.Install(ctx, func(done, total int64) {
 		s.mu.Lock()
@@ -192,6 +203,7 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 		return s.fail("installFailed", err)
 	}
 	s.mu.Lock()
+	s.update = nil
 	s.snapshot.State = "restartRequired"
 	s.mu.Unlock()
 	return nil

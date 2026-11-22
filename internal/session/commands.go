@@ -30,7 +30,7 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 	next := cloneState(m.state)
 	stopIDs := []string{}
 	selectedIDs := []string{}
-	if cmd.Kind == CommandFirst {
+	if cmd.Kind == CommandStartFirst {
 		prioritize(next.Tasks, cmd.IDs)
 	}
 	for i := range next.Tasks {
@@ -53,8 +53,8 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 			r.Reason = PauseManual
 			r.Batch = cmd.Kind == CommandPauseAll
 			stopIDs = append(stopIDs, r.ID)
-		case CommandResume, CommandResumeBatch:
-			if r.Completed && (r.Reason == PauseRatio || r.Reason == PauseDuration) && cmd.Kind == CommandResume {
+		case CommandResume, CommandResumeBatch, CommandStartFirst:
+			if r.Completed && (r.Reason == PauseRatio || r.Reason == PauseDuration) && cmd.Kind != CommandResumeBatch {
 				r.SeedOverride = true
 			}
 			r.Run = true
@@ -65,8 +65,6 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 			stopIDs = append(stopIDs, r.ID)
 			r.Run = true
 			r.Reason = PauseVerify
-		case CommandFirst:
-			r.Run = true
 		case CommandPriority:
 			indices := cmd.FileIndices
 			if len(indices) == 0 {
@@ -83,8 +81,10 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 				return err
 			}
 			stopIDs = append(stopIDs, r.ID)
-		case CommandSeed:
+		case CommandSeedRatio:
 			r.SeedRatio = cmd.Ratio
+			r.SeedOverride = false
+		case CommandSeedDuration:
 			r.SeedLimitSeconds = cmd.SeedLimitSeconds
 			r.SeedOverride = false
 		case CommandRemove:
@@ -137,7 +137,9 @@ func (m *Manager) Execute(ctx context.Context, cmd Command) error {
 		return err
 	}
 	for _, id := range selectedIDs {
-		if cmd.Kind != CommandTags && cmd.Kind != CommandSeed && cmd.Kind != CommandNotified {
+		switch cmd.Kind {
+		case CommandTags, CommandSeedRatio, CommandSeedDuration, CommandNotified:
+		default:
 			delete(m.holds, id)
 		}
 		if cmd.Kind == CommandRelocate {

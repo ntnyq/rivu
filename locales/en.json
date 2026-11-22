@@ -24,7 +24,6 @@
   "commonReload": "Reload",
   "commonReloaded": "Reloaded",
   "commonRemove": "Remove",
-  "commonSaved": "Saved",
   "commonWebsite": "Website",
   "configAbsoluteDestination": "Download destination must be an absolute path",
   "configAutoInstallRequiresCheck": "Automatic installation requires automatic checks",

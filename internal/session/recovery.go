@@ -5,12 +5,28 @@ import (
 	"fmt"
 	"github.com/ntnyq/rivu/internal/problem"
 	"os"
+
+	"github.com/ntnyq/rivu/internal/config"
 )
 
 func (m *Manager) Reload() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	defer m.publish()
+	return m.reload()
+}
+
+func (m *Manager) ReloadWithSettings(s config.Settings) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	defer m.publish()
+	if err := m.configure(s); err != nil {
+		return err
+	}
+	return m.reload()
+}
+
+func (m *Manager) reload() error {
 	if m.closed {
 		return fmt.Errorf("session closed")
 	}

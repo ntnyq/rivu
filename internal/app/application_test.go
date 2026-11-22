@@ -9,11 +9,52 @@ import (
 	"testing"
 	"time"
 
+	"github.com/egoist/mygo"
 	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/internal/session"
 	torrentengine "github.com/ntnyq/rivu/internal/torrent"
 	"github.com/ntnyq/rivu/internal/updater"
 )
+
+func TestSystemEndingSkipsConfirmationAndCancelsObservers(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	a := &application{cancel: cancel}
+	a.beforeQuit(&mygo.QuitEvent{SessionEnding: true})
+	if !a.shutdownReady || !errors.Is(ctx.Err(), context.Canceled) {
+		t.Fatal("forced system quit left work eligible to reopen application windows")
+	}
+	a.applySettings() // A callback queued before shutdown must be harmless.
+	a.finishShutdown(true, nil)
+}
+
+func TestUserCommandsRunInAdmissionOrder(t *testing.T) {
+	m, err := session.Open(t.TempDir(), lifecycleEngine{}, config.Default(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer m.Close()
+	if _, err := m.Import(t.Context(), session.Import{Source: session.Source{Identity: session.Identity{V1: "queued"}}, Destination: t.TempDir(), Run: true}); err != nil {
+		t.Fatal(err)
+	}
+	a := &application{session: m}
+	started, unblock := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(unblock) })
+	defer release()
+	a.work.enqueue(func() { close(started); <-unblock })
+	waitSignal(t, started)
+	a.execute(session.Command{Kind: session.CommandPauseAll})
+	a.execute(session.Command{Kind: session.CommandResumeBatch})
+	done := a.work.drained()
+	if !m.HasPendingRunIntent() {
+		t.Fatal("a command overtook the current work")
+	}
+	release()
+	waitSignal(t, done)
+	if !m.HasPendingRunIntent() || m.Snapshot().Tasks[0].Batch {
+		t.Fatal("resume batch did not follow pause all")
+	}
+}
 
 func TestCopiedMagnetRetainsExplicitPeer(t *testing.T) {
 	raw := "magnet:?xt=urn:btih:" + strings.Repeat("1", 40) + "&x.pe=127.0.0.1%3A6881"

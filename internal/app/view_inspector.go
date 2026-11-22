@@ -109,7 +109,7 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 							ratio float64
 						}{{locales.SeedingStopOnCompletion(), 0}, {locales.SeedingRatioTwo(), 2}, {locales.SeedingForever(), -1}} {
 							if m.Item(v.label).Chosen() {
-								w.app.execute(session.Command{Kind: session.CommandSeed, IDs: []string{t.ID}, Ratio: v.ratio, SeedLimitSeconds: t.SeedLimitSeconds})
+								w.app.execute(session.Command{Kind: session.CommandSeedRatio, IDs: []string{t.ID}, Ratio: v.ratio})
 							}
 						}
 					})
@@ -125,7 +125,7 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 								label = locales.SeedingDurationLimit(float64(hours))
 							}
 							if m.Item(label).Checked(t.SeedLimitSeconds == hours*3600).Chosen() {
-								w.app.execute(session.Command{Kind: session.CommandSeed, IDs: []string{t.ID}, Ratio: t.SeedRatio, SeedLimitSeconds: hours * 3600})
+								w.app.execute(session.Command{Kind: session.CommandSeedDuration, IDs: []string{t.ID}, SeedLimitSeconds: hours * 3600})
 							}
 						}
 					})

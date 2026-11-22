@@ -28,7 +28,7 @@ func (c Command) validate(records []Record) error {
 			return fmt.Errorf("batch commands do not take task IDs")
 		}
 		return nil
-	case CommandPause, CommandResume, CommandVerify, CommandPriority, CommandRemove, CommandSeed, CommandFirst, CommandNotified, CommandRelocate, CommandTags:
+	case CommandPause, CommandResume, CommandVerify, CommandPriority, CommandRemove, CommandSeedRatio, CommandSeedDuration, CommandStartFirst, CommandNotified, CommandRelocate, CommandTags:
 	default:
 		return fmt.Errorf("unknown command %q", c.Kind)
 	}
@@ -62,7 +62,8 @@ func (c Command) validate(records []Record) error {
 			return fmt.Errorf("relocation requires one task with metadata and an absolute destination")
 		}
 	}
-	if c.Kind == CommandSeed && (math.IsNaN(c.Ratio) || math.IsInf(c.Ratio, 0) || c.Ratio < -1 || c.SeedLimitSeconds < 0) {
+	if c.Kind == CommandSeedRatio && (math.IsNaN(c.Ratio) || math.IsInf(c.Ratio, 0) || c.Ratio < -1) ||
+		c.Kind == CommandSeedDuration && c.SeedLimitSeconds < 0 {
 		return fmt.Errorf("invalid seeding policy")
 	}
 	if c.Kind == CommandTags {

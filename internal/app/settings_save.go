@@ -1,13 +1,12 @@
 package app
 
 import (
-	"context"
 	"fmt"
+	"runtime"
 	"strconv"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/i18n"
-	"github.com/ntnyq/rivu/internal/config"
 	"github.com/ntnyq/rivu/locales"
 )
 
@@ -74,10 +73,22 @@ func (w *settingsWindow) saveSettings() {
 	if language == "" {
 		language = i18n.Match(mygo.App.PreferredLanguages(), locales.Catalog.Languages())
 	}
-	w.run(locales.SettingsSave(), func(context.Context) (string, error) {
-		if w.app != nil {
-			w.app.settingsMu.Lock()
-			defer w.app.settingsMu.Unlock()
+	a := w.app
+	started := w.runCommitted(locales.SettingsSave(), func() (string, error) {
+		committed := false
+		if a != nil {
+			defer func() {
+				mygo.RunOnMain(func() {
+					if committed {
+						a.applySettings()
+					}
+					a.settingsSaving = false
+					if a.reopenSettings {
+						a.reopenSettings = false
+						a.openSettings()
+					}
+				})
+			}()
 		}
 		old := w.store.Snapshot()
 		if old.Login != s.Login {
@@ -91,29 +102,37 @@ func (w *settingsWindow) saveSettings() {
 			}
 			return "", err
 		}
-		if w.app != nil {
-			if err := w.app.session.Configure(w.store.Snapshot()); err != nil {
+		committed = true
+		if a != nil {
+			if err := a.session.Configure(w.store.Snapshot()); err != nil {
 				return "", err
 			}
 		}
 		return locales.In(language).SettingsSaved(), nil
 	}, func() {
 		w.settings = w.store.Snapshot()
-		applyTheme(w.settings.Theme)
-		if w.app != nil {
-			w.app.applyLanguage()
-			w.app.configureTray()
-		}
-		if w.app != nil {
-			if main := w.app.window; main != nil && !main.closed {
-				main.dispatch(func() { main.settings = w.settings; main.refreshDisk() })
-			}
-		}
 		w.loginStatus = locales.SettingsLoginStatus(mygo.App.OpenAtLogin())
 	})
+	if started && a != nil {
+		a.settingsSaving = true
+	}
 }
-func (w *mainWindow) saveQuitPreference() {
-	w.run(locales.SettingsSaveQuitPreference(), func(context.Context) (string, error) {
-		return locales.CommonSaved(), w.store.Update(func(p *config.Settings) { p.ConfirmQuit = false })
-	}, w.app.shutdown)
+
+func (a *application) applySettings() {
+	if a.shutdownReady {
+		return
+	}
+	s := a.store.Snapshot()
+	applyTheme(s.Theme)
+	a.applyLanguage()
+	a.configureTray()
+	if w := a.window; w != nil && !w.closed {
+		w.dispatch(func() {
+			w.settings = s
+			w.refreshDisk()
+		})
+	}
+	if !a.quitting && !a.reopenSettings && !canRunInBackground(runtime.GOOS, a.tray != nil) && len(mygo.Windows()) == 0 {
+		a.openWindow()
+	}
 }

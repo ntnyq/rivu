@@ -29,20 +29,21 @@ func (w *mainWindow) confirmations(c *ui.Context) {
 	if w.quitConfirm {
 		ui.DialogBase(c, &w.quitConfirm, func(_, p ui.Element) {
 			p.Width(430).Padding(24).Gap(16).Children(func() {
-				ui.Text(c, locales.QuitTitle()).FontSize(20).Bold()
+				title, confirm := locales.QuitTitle(), locales.QuitSaveAndQuit()
+				if w.quitRestart {
+					title = locales.UpdatesRestartRequired()
+					confirm = locales.UpdatesSaveAndRestart()
+				}
+				ui.Text(c, title).FontSize(20).Bold()
 				ui.Text(c, locales.QuitHint())
 				ui.Checkbox(c, &w.rememberQuit, locales.QuitDontAsk())
 				ui.Row(c).Gap(10).Children(func() {
 					if actionButton(c, "play", locales.QuitKeepDownloading(), false).Clicked() {
 						w.quitConfirm = false
 					}
-					if actionButton(c, "check", locales.QuitSaveAndQuit(), true).Clicked() {
+					if actionButton(c, "check", confirm, true).Clicked() {
 						w.quitConfirm = false
-						if w.rememberQuit {
-							w.saveQuitPreference()
-						} else {
-							w.app.shutdown()
-						}
+						w.app.shutdown(w.quitRestart, w.rememberQuit)
 					}
 				})
 			})
