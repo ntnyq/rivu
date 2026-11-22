@@ -30,6 +30,8 @@ HTTP proxies cannot carry UDP. DHT, UDP trackers, and incoming connections conti
 
 In **Updates & About**, choose **Check for Updates** to check the latest published stable GitHub Release. New release builds verify downloaded update archives with an embedded public key before replacing the app. Draft releases are not offered.
 
+When a manual check finds a release, a separate update window shows its notes, download progress, and restart action.
+
 Automatic checking and automatic installation are both off by default. Enable automatic checking and save to check approximately once a day. Automatic installation is a separate opt-in and waits until the transfer session is idle, including no active seeding. After installation, choose **Save and Restart**; Rivu does not automatically restart during transfers.
 
 Use an installed app in a writable location: on macOS, copy Rivu to Applications rather than running it from the DMG. Linux DEB installations should be updated with the package manager; the per-user `install.sh` installation supports in-app updates when writable. Development mode and older builds without update configuration report **unavailable**, which does not mean the build is current. Install an update-enabled release manually once to migrate an older build.

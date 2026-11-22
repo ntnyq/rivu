@@ -29,8 +29,10 @@ type Source struct {
 	Private     bool     `json:"private"`
 	Trackers    []string `json:"trackers,omitempty"`
 	Meta        []byte   `json:"-"`
+	HasWebSeeds bool     `json:"-"`
 }
 type Record struct {
+	AllowWebSeeds    bool              `json:"allowWebSeeds,omitempty"`
 	Adopted          map[string]string `json:"adopted,omitempty"`
 	Tags             []string          `json:"tags,omitempty"`
 	SeedSeconds      int64             `json:"seedSeconds,omitempty"`
@@ -137,6 +139,7 @@ type Command struct {
 	Trash               bool
 }
 type Import struct {
+	AllowWebSeeds    bool
 	WatchKey         string
 	AdoptExisting    bool
 	Tags             []string

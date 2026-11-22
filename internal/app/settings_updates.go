@@ -25,11 +25,8 @@ func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 	settingGroup(c, func() {
 		ui.Column(c).Padding(17, 0).Gap(11).Children(func() {
 			ui.Text(c, labels[s.State]).FontSize(12).Bold()
-			if s.Error != "" {
+			if s.Error != "" && s.State != "installFailed" {
 				ui.Text(c, s.Error).FontSize(11).TextColor(p.muted)
-			}
-			if s.Notes != "" {
-				ui.Text(c, s.Notes).FontSize(11).TextColor(p.muted).MaxLines(5)
 			}
 			if s.State == "idle" {
 				ui.Text(c, locales.UpdatesCheckHint()).FontSize(11).TextColor(p.muted)
@@ -37,16 +34,8 @@ func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 			if !s.LastSuccess.IsZero() {
 				ui.Text(c, locales.UpdatesLastChecked(s.LastSuccess.Format("2006-01-02 15:04"))).FontSize(10).TextColor(p.muted)
 			}
-			if s.State == "installing" && s.Total > 0 {
-				progressTrack(c, float64(s.Downloaded)/float64(s.Total), p.blue, p.track, 3)
-			}
-			if (s.State == "available" || s.State == "installFailed") && actionButton(c, "download", locales.UpdatesDownloadAndInstall(), true).FontSize(11).Disabled(w.task.Running()).Clicked() {
-				w.run(locales.UpdatesInstall(), func(ctx context.Context) (string, error) {
-					return locales.UpdatesInstalled(), w.app.updater.Install(ctx, false)
-				}, nil)
-			}
-			if s.State == "restartRequired" && actionButton(c, "refresh", locales.UpdatesSaveAndRestart(), true).FontSize(11).Clicked() {
-				w.app.requestQuit(true)
+			if hasUpdateDetails(s.State) && actionButton(c, "download", locales.UpdatesView(), true).FontSize(11).Disabled(w.task.Running()).Clicked() {
+				w.app.openUpdateWindow()
 			}
 		})
 	})
@@ -58,10 +47,14 @@ func (w *settingsWindow) updateSettingsView(c *ui.Context, p palette) {
 		w.settings.AutoInstall = false
 	}
 	ui.Row(c).Gap(8).Wrap().Justify(ui.SpaceBetween).Children(func() {
-		if actionButton(c, "refresh", locales.UpdatesCheck(), false).FontSize(11).Disabled(!available || w.task.Running() || s.State == "restartRequired").Clicked() {
+		if actionButton(c, "refresh", locales.UpdatesCheck(), false).FontSize(11).Disabled(!available || w.task.Running() || s.State == "installing" || s.State == "restartRequired").Clicked() {
 			w.run(locales.UpdatesCheck(), func(ctx context.Context) (string, error) {
 				return locales.UpdatesCheckComplete(), w.app.updater.Check(ctx)
-			}, nil)
+			}, func() {
+				if hasUpdateDetails(w.app.updater.Snapshot().State) {
+					w.app.openUpdateWindow()
+				}
+			})
 		}
 		ui.Row(c).Gap(8).Shrink(0).Children(func() {
 			if actionButton(c, "feedback", locales.CommonFeedback(), false).FontSize(11).Clicked() {

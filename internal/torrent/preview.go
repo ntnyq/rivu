@@ -53,5 +53,6 @@ func Preview(ctx context.Context, raw string, settings config.Settings) (session
 		return source, fmt.Errorf("metadata identity mismatch")
 	}
 	resolved.Raw = raw
+	resolved.HasWebSeeds = false
 	return resolved, nil
 }

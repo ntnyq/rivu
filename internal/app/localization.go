@@ -60,6 +60,10 @@ func (a *application) refreshLanguage() {
 		}
 		d.dispatch(func() {})
 	}
+	if w := a.updateWindow; w != nil && !w.closed {
+		w.win.SetTitle(locales.UpdatesInstall())
+		w.dispatch(func() {})
+	}
 	// A tray menu is captured by its native right-click handler. Recreate it so
 	// every entry, including Linux's persistent menu, uses the new language.
 	a.closePanel()

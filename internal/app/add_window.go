@@ -18,11 +18,12 @@ import (
 )
 
 type importItem struct {
-	issue     *problem.Error
-	tree      fileTreeState
-	source    session.Source
-	error     string
-	submitted bool
+	allowWebSeeds bool
+	issue         *problem.Error
+	tree          fileTreeState
+	source        session.Source
+	error         string
+	submitted     bool
 }
 type addWindow struct {
 	*windowBase
@@ -169,7 +170,7 @@ func (d *addWindow) submit() {
 				failed = failed || item.error != ""
 				continue
 			}
-			id, err := d.app.session.Import(ctx, session.Import{AdoptExisting: adopt, Tags: tags, SeedLimitSeconds: seedLimit, Source: item.source, Destination: destination, Run: start, SeedRatio: ratio})
+			id, err := d.app.session.Import(ctx, session.Import{AdoptExisting: adopt, AllowWebSeeds: item.allowWebSeeds, Tags: tags, SeedLimitSeconds: seedLimit, Source: item.source, Destination: destination, Run: start, SeedRatio: ratio})
 			if err != nil {
 				item.error = err.Error()
 				item.issue = problem.From(err)

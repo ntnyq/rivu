@@ -20,7 +20,7 @@ Records contain durable run intent, pause-batch membership, file policy, metadat
 
 The scheduler admits at most the configured number of downloading/verifying tasks and two unresolved metadata tasks. Seeding does not consume download slots. Payload tasks without useful byte progress and unresolved metadata tasks yield after 90 seconds and retry after one minute. Active verification and seeding are exempt. Admission is planned before handles change, so reprioritization also respects the metadata limit. Pausing detaches the torrent, closing peer activity. Resume reattaches and hashes existing pieces before trusting them.
 
-`internal/torrent` adapts anacrolix/torrent v1.63.0. An unresolved magnet uses a separate client with DHT/PEX disabled; arbitrary metadata source URLs, web seeds and WebTorrent are disabled. Resolved private torrents retain the upstream library's private discovery policy.
+`internal/torrent` adapts anacrolix/torrent v1.63.0. An unresolved magnet uses a separate client with DHT/PEX disabled. Arbitrary metadata source URLs and WebTorrent are disabled. HTTP(S) Web Seeds require explicit opt-in when importing a local torrent file. Resolved private torrents retain the upstream library's private discovery policy.
 
 Explicit magnet peers are retained when switching to the payload client and on
 reattachment. Reprioritizing the queue assigns distinct ranks, so the latest

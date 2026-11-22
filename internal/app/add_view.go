@@ -72,6 +72,10 @@ func (d *addWindow) view(c *ui.Context) {
 								})
 							})
 						}
+						if item.source.HasWebSeeds {
+							ui.Checkbox(c, &item.allowWebSeeds, locales.ImportAllowWebSeeds()).FontSize(11).Disabled(d.task.Running())
+							ui.Text(c, locales.ImportWebSeedsHint()).FontSize(10).TextColor(p.muted)
+						}
 					})
 				}
 				ui.Text(c, locales.ImportSaveTo()).FontSize(12).Bold().Padding(11, 0, 0, 0)

@@ -6,11 +6,13 @@ import (
 	"image/png"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 	"github.com/ntnyq/rivu/internal/config"
+	"github.com/ntnyq/rivu/internal/updater"
 	"github.com/ntnyq/rivu/locales"
 )
 
@@ -54,6 +56,8 @@ func TestLocalizedSurfaces(t *testing.T) {
 			w.selectOnly("1")
 			app := &application{store: store, snapshot: w.snapshot}
 			add := &addWindow{windowBase: &windowBase{}, settings: store.Snapshot(), destination: store.Snapshot().Destination, start: true}
+			update := &updateWindow{windowBase: &windowBase{}}
+			progress := bytes(1024) + " / " + bytes(2048)
 			for _, surface := range []struct {
 				name          string
 				view          func(*ui.Context)
@@ -66,6 +70,10 @@ func TestLocalizedSurfaces(t *testing.T) {
 				{"settings-minimum", func(c *ui.Context) { settings.settingsTab = 0; settings.settingsView(c) }, 640, 520, locales.SettingsLanguageLabel()},
 				{"settings-updates", func(c *ui.Context) { settings.settingsTab = 4; settings.settingsView(c) }, 750, 630, locales.CommonFeedback()},
 				{"settings-updates-minimum", func(c *ui.Context) { settings.settingsTab = 4; settings.settingsView(c) }, 640, 520, locales.CommonFeedback()},
+				{"update-progress", func(c *ui.Context) {
+					update.render(c, updater.Snapshot{State: "installing", Downloaded: 1024, Total: 2048})
+				}, 460, 265, progress},
+				{"update-restart", func(c *ui.Context) { update.render(c, updater.Snapshot{State: "restartRequired"}) }, 460, 265, locales.UpdatesSaveAndRestart()},
 				{"add", add.view, 550, 660, locales.TransferAdd()},
 				{"tray", app.trayView, trayWidth, presentTray(app.snapshot).height(), locales.TrayOpenWindow()},
 			} {
@@ -114,7 +122,11 @@ func TestLocalizedSurfaces(t *testing.T) {
 			}
 			// Native menus are built without installing them, preserving role shortcuts.
 			menu := app.menu()
-			if got := menu.Items()[2].Label; got != locales.MenuEdit() {
+			editIndex := 1
+			if runtime.GOOS == "darwin" {
+				editIndex = 2
+			}
+			if got := menu.Items()[editIndex].Label; got != locales.MenuEdit() {
 				t.Errorf("edit menu: %s", got)
 			}
 			item := app.menuItem("settings")

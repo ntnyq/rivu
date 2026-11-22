@@ -102,6 +102,7 @@ func parseMeta(data []byte) (session.Source, error) {
 		return session.Source{}, err
 	}
 	s := session.Source{PieceLength: info.PieceLength, Name: info.BestName(), Identity: identity(spec), Meta: data, Private: info.Private != nil && *info.Private}
+	s.HasWebSeeds = len(supportedWebSeeds(spec.Webseeds)) != 0
 	var names []string
 	var total int64
 	for _, f := range members {

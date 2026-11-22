@@ -19,6 +19,7 @@ type application struct {
 	updater                        updateService
 	window                         *mainWindow
 	settingsWindow                 *settingsWindow
+	updateWindow                   *updateWindow
 	settingsSaving, reopenSettings bool
 	add                            *addWindow
 	tray                           *mygo.Tray
