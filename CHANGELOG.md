@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.5 (2026-11-22)
+
+- fix: harden torrent admission and desktop lifecycle (717842a)
+- fix(session): harden torrent imports and recovery (cdb4fea)
+- fix(app): serialize desktop actions and coordinate shutdown (a955342)
+- fix(i18n): label tracker announce times as estimates (c0eae68)
+- fix: report peer proxy failures and allow system route retries (7db6226)
+- fix: support opt-in Web Seeds and move updater progress to a window (c976fe1)
+
+[Full Changelog](https://github.com/ntnyq/rivu/compare/v0.0.4...v0.0.5)
+
 ## 0.0.4 (2026-10-23)
 
 - fix: recover interrupted Windows update checks (23b32f9)
