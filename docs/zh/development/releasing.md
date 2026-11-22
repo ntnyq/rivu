@@ -77,10 +77,10 @@ macOS 签名和 DMG 创建需要 Mac。Windows 安装程序在 Windows 上构建
 
 更新检查保留 45 秒的整体网络时限，最多尝试三次，每次 12 秒，两次重试分别退避 0.5 秒和 1 秒。连接与 TLS 握手各限制为 5 秒，响应头限制为 10 秒。仅对 EOF、响应截断、连接重置/中止和超时重试；取消、无效 JSON、证书错误和 404 等 HTTP 错误会停止检查。失败不会推进上次成功检查时间，也不会整体重试安装操作。
 
-更新请求与更新包下载使用专用传输。显式 `HTTP_PROXY`/`HTTPS_PROXY` 优先，`NO_PROXY` 也可绕过 Windows 系统代理。否则 Windows 会为每个请求读取当前用户的系统代理，包括重定向后的 URL。手动代理优先于 WPAD 自动发现；显式 PAC 脚本优先于手动代理，且遵守 PAC 的 `DIRECT` 结果。PAC/WPAD 由 WinHTTP 解析，调用方最多等待 5 秒，同时最多保留一个尚未结束的原生查询。WPAD 不可用或超时时会回退直连，并暂停发现一分钟，避免家庭网络默认启用的自动检测阻止更新；手动代理或显式 PAC 的变更仍会立即生效。显式 PAC 失败会报错，不会悄悄绕过代理。MyGo v0.7.1 适配层仅为带有更新标记的上下文切换传输，保留其他应用 HTTP 流量的行为及 MyGo 原有的 HTTPS 和签名检查。CI 在现有 Windows AMD64 runner 上运行真实 MyGo EOF 回归测试，以及 Windows 系统代理/PAC 测试。
+更新检查与更新包下载使用 MyGo 的 HTTP 客户端，支持代理环境变量，以及 macOS、Windows 和 Linux 的系统代理。Windows 由 MyGo 处理 PAC/WPAD；自动配置失败时回退到手动代理设置。MyGo 处理请求重试和下载停滞，Rivu 对中断的清单读取保留有限重试。更新包仍通过 MyGo 进行签名校验，安装过程由 Rivu 的会话保存屏障保护。CI 在 Windows AMD64 runner 上验证 MyGo 更新请求和 Rivu 的传输代理。
 
 向用户开放前，使用受控签名更新验证：有效更新、错误签名、错误架构、空间不足、替换中断，以及重启前保存失败。更新失败必须保留可运行的旧应用。其他原生验收要求见[桌面验证](desktop.md)。
 
 ## 许可证
 
-仓库尚未为 Rivu 自有代码选定许可证。引擎固定为 anacrolix/torrent v1.61.1-0.20260927071845-d913b30f520e，采用 MPL-2.0；MyGo 和传递依赖各有许可证。[第三方声明](https://github.com/ntnyq/rivu/blob/main/THIRD_PARTY_NOTICES.md)记录主要组件。分发二进制前，需要准备完整依赖许可证清单并履行源码及声明义务。
+仓库尚未为 Rivu 自有代码选定许可证。引擎固定为 anacrolix/torrent v1.63.0，采用 MPL-2.0；MyGo 和传递依赖各有许可证。[第三方声明](https://github.com/ntnyq/rivu/blob/main/THIRD_PARTY_NOTICES.md)记录主要组件。分发二进制前，需要准备完整依赖许可证清单并履行源码及声明义务。

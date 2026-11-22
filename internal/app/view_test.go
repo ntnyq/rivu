@@ -65,6 +65,28 @@ func TestFilterSelectionAndEmptyState(t *testing.T) {
 	}
 }
 
+func TestStatusBarAnnouncesChanges(t *testing.T) {
+	store, err := config.Open(filepath.Join(t.TempDir(), "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := newWindow(store)
+	tt := ui.NewTester(w.view, 1180, 760)
+	tt.Frame()
+	tt.UseScreenReader()
+
+	w.status = "Transfer paused"
+	tt.Frame()
+	if got := tt.Announcements(); !slices.Equal(got, []string{w.status}) {
+		t.Fatalf("announcements = %q, want %q", got, w.status)
+	}
+	w.snapshot.DownRate = 120000
+	tt.Frame()
+	if got := tt.Announcements(); len(got) != 0 {
+		t.Fatalf("speed change repeated the announcement: %q", got)
+	}
+}
+
 func TestDroppedFilesJoinPendingFIFO(t *testing.T) {
 	store, err := config.Open(filepath.Join(t.TempDir(), "settings.json"))
 	if err != nil {

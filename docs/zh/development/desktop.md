@@ -16,7 +16,7 @@
 ## 平台策略
 
 - Windows/Linux 在文件菜单中提供设置、关于和退出，快捷键提示使用 Control。保存托盘偏好后会立即生效，无需同时切换语言；macOS 保留现有应用菜单和 Command 提示。
-- `internal/netproxy` 为更新和传输共用环境变量／Windows 系统代理选择。HTTP Tracker 和 TCP 节点在新连接时解析路由，无需重启；TCP 使用 CONNECT 或 SOCKS5，DHT／UDP Tracker 保留系统路由。本地代理 swarm 测试覆盖节点发现和完整文件传输；Windows 实机的系统代理／TUN 切换及代理服务商的 BT 策略仍需验收。
+- 传输代理由 `internal/netproxy` 读取环境变量和 Windows 系统设置。HTTP Tracker 和 TCP 节点在新连接时解析路由，无需重启。TCP 使用 CONNECT 或 SOCKS5，DHT／UDP Tracker 保留系统路由。本地代理 swarm 测试覆盖节点发现和完整文件传输。Windows 实机的系统代理／TUN 切换及代理服务商的 BT 策略仍需验收。
 - 新默认下载目录读取 Windows Known Folders 或 Linux XDG 用户目录，已保存的目录保持不变。导入预览和监控文件夹导入仅在下载父目录已存在时，自动创建当前或旧版 Rivu 默认目录；不会重建缺失的父目录或重定向卷。
 - Windows 在接纳任务前检查设备保留名称、非法字符及控制字符。文件归属使用打开句柄查询卷序列号和完整 128 位文件 ID；无法提供该查询的文件系统会被拒绝。发布使用相对目录句柄的 NT 重命名，并禁用覆盖。Unix 所有权日志保留原有 ID 格式。
 - 发布前会刷新文件和所有权日志内容。Windows 没有非特权目录 fsync 的等价操作，断电后的元数据持久性仍取决于文件系统。

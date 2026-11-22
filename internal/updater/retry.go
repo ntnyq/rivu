@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/url"
 	"syscall"
 	"time"
 
@@ -40,8 +41,17 @@ func checkWithRetry(ctx context.Context, timeout time.Duration, delays []time.Du
 }
 
 func retryableCheckError(err error) bool {
+	if errors.Is(err, context.DeadlineExceeded) {
+		return true
+	}
+	// MyGo already retries HTTP request failures. Keep Rivu's retries for
+	// interrupted manifest reads and attempts that reach their deadline.
+	var requestError *url.Error
+	if errors.As(err, &requestError) {
+		return false
+	}
 	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) ||
-		errors.Is(err, context.DeadlineExceeded) || errors.Is(err, syscall.ECONNRESET) ||
+		errors.Is(err, syscall.ECONNRESET) ||
 		errors.Is(err, syscall.ECONNABORTED) || errors.Is(err, syscall.EPIPE) || platformRetryableCheckError(err) {
 		return true
 	}

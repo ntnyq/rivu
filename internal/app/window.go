@@ -3,6 +3,7 @@ package app
 import (
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
@@ -32,7 +33,13 @@ type mainWindow struct {
 }
 
 func newWindow(store *config.Store) *mainWindow {
-	return &mainWindow{windowBase: &windowBase{}, store: store, settings: store.Snapshot(), selected: map[string]bool{}}
+	return &mainWindow{
+		listState:  ui.ListState{MoveAnimation: &ui.Animation{Duration: 180 * time.Millisecond}},
+		windowBase: &windowBase{},
+		store:      store,
+		settings:   store.Snapshot(),
+		selected:   map[string]bool{},
+	}
 }
 func (a *application) openWindow() *mainWindow {
 	if a.window != nil && !a.window.closed {

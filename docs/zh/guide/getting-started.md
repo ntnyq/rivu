@@ -38,7 +38,7 @@ Linux 原生窗口需要 GTK 3；系统托盘还需要 `libayatana-appindicator3
 
 ## 从源码构建
 
-如果希望自行构建，请安装 **Go 1.27.3 或更高版本**，然后运行：
+如果希望自行构建，请安装 **Go 1.27.4 或更高版本**，然后运行：
 
 ```sh
 git clone https://github.com/ntnyq/rivu.git

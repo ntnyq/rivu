@@ -67,9 +67,9 @@ Rivu 支持 **macOS、Windows 和 Linux**，目前正在开发中。从 [GitHub 
 
 当前 macOS 下载包尚未使用 Apple Developer ID 签名，也未经过 Apple 公证。首次打开被 macOS 拦截时，请参考[被 macOS 拦截时打开 Rivu](https://rivu.ntnyq.dev/zh/guide/getting-started.html#被-macos-拦截时打开-rivu)。新版发行构建支持从 GitHub Releases 获取签名更新，使用方式见[更新设置](https://rivu.ntnyq.dev/zh/guide/settings.html#更新)。
 
-项目在 `go.mod` 中固定 **MyGo v0.7.1** 及其 CLI 工具，无需单独安装 MyGo。
+项目在 `go.mod` 中固定 **MyGo v0.10.0** 及其 CLI 工具，无需单独安装 MyGo。
 
-如果希望从源码构建，在当前系统上安装 Go 1.27.3 或更高版本后运行：
+如果希望从源码构建，在当前系统上安装 Go 1.27.4 或更高版本后运行：
 
 ```sh
 git clone https://github.com/ntnyq/rivu.git

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/url"
 	"syscall"
 	"testing"
 	"time"
@@ -23,6 +24,7 @@ func TestCheckRetryClassification(t *testing.T) {
 		{"EOF", io.EOF, true},
 		{"short JSON body", fmt.Errorf("decode: %w", io.ErrUnexpectedEOF), true},
 		{"connection reset", &net.OpError{Op: "read", Err: syscall.ECONNRESET}, true},
+		{"HTTP request already retried by MyGo", &url.Error{Op: "Get", Err: io.EOF}, false},
 		{"socket timeout", &net.DNSError{IsTimeout: true}, true},
 		{"attempt timeout", context.DeadlineExceeded, true},
 		{"caller cancellation", context.Canceled, false},

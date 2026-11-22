@@ -27,7 +27,7 @@ func (w *mainWindow) statusBar(c *ui.Context, p palette) {
 		if w.snapshot.Error != "" && ui.Button(c, locales.CommonReload()).Clicked() && w.app != nil {
 			w.app.command("reload")
 		}
-		ui.Text(c, message).SingleLine().MinWidth(0).FontSize(10).TextColor(col)
+		ui.Text(c, message).Role(ui.RoleStatus).SingleLine().MinWidth(0).FontSize(10).TextColor(col)
 		color := p.muted
 		if w.snapshot.SlowMode {
 			color = p.blue

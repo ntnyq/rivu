@@ -8,7 +8,7 @@ Rivu is a native Go/MyGo BitTorrent client for macOS, Windows, and Linux. The ro
 
 ## Build, Test, and Development Commands
 
-Use Go 1.27.3+ and the MyGo tool pinned in `go.mod`. Run these commands from the repository root:
+Use Go 1.27.4+ and the MyGo tool pinned in `go.mod`. Run these commands from the repository root:
 
 - `go mod download`: fetch dependencies.
 - `make run`: launch locally.

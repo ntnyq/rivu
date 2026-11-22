@@ -79,7 +79,8 @@ func (w *mainWindow) sidebar(c *ui.Context, p palette) {
 				glyph(c, "drive", 17, p.muted)
 				ui.Column(c).Gap(5).MinWidth(0).Children(func() {
 					ui.Text(c, locales.SidebarDownloadLocation()).FontSize(11)
-					ui.Text(c, compactPath(w.settings.Destination)).FontSize(9).SingleLine().TextColor(p.muted)
+					ui.Text(c, compactPath(w.settings.Destination)).FontSize(9).SingleLine().TruncateStart().TextColor(p.muted).
+						Tooltip(w.settings.Destination)
 				})
 			})
 			if w.diskTotal > 0 {

@@ -124,8 +124,6 @@ func (s *Service) Check(ctx context.Context) error {
 	}
 	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
 	defer cancel()
-	ctx, closeNetwork := updateNetworkContext(ctx)
-	defer closeNetwork()
 	up, err := checkWithRetry(ctx, 12*time.Second, []time.Duration{500 * time.Millisecond, time.Second}, mygo.Updater.Check)
 	if err != nil {
 		return s.fail("failed", err)
@@ -184,8 +182,6 @@ func (s *Service) Install(ctx context.Context, automatic bool) error {
 	s.mu.Lock()
 	s.snapshot.State = "installing"
 	s.mu.Unlock()
-	ctx, closeNetwork := updateNetworkContext(ctx)
-	defer closeNetwork()
 	err = up.Install(ctx, func(done, total int64) {
 		s.mu.Lock()
 		s.snapshot.Downloaded = done

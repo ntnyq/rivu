@@ -38,7 +38,7 @@ See [Apple's instructions for opening downloaded apps](https://support.apple.com
 
 ## Build from source
 
-To build Rivu yourself, install **Go 1.27.3 or later** and run:
+To build Rivu yourself, install **Go 1.27.4 or later** and run:
 
 ```sh
 git clone https://github.com/ntnyq/rivu.git

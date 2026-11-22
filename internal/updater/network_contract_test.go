@@ -66,7 +66,14 @@ func TestMyGoUpdateNetwork(t *testing.T) {
 			if err == nil {
 				_ = connection.Close()
 			}
+		}, true, 3, "failed", "10s"},
+		{"persistent truncated body stops after three attempts", func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Length", "1000")
+			fmt.Fprint(w, `{"version":`)
 		}, true, 3, "failed", "5s"},
+		{"temporary server failure", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}, false, 2, "available", "5s"},
 		{"missing manifest is not retried", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 		}, true, 1, "failed", "5s"},
@@ -109,6 +116,41 @@ func TestMyGoUpdateNetwork(t *testing.T) {
 			}
 		})
 	}
+	t.Run("redirects use the updater's proxy", func(t *testing.T) {
+		respond.Store(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "http://feed.invalid/manifest", http.StatusFound)
+		})
+		var proxied atomic.Int32
+		proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			proxied.Add(1)
+			switch r.URL.Host {
+			case "feed.invalid":
+				http.Redirect(w, r, "http://assets.invalid/manifest", http.StatusFound)
+			case "assets.invalid":
+				fmt.Fprint(w, manifest)
+			default:
+				t.Errorf("unexpected proxied request to %q", r.URL.Host)
+				w.WriteHeader(http.StatusBadRequest)
+			}
+		}))
+		defer proxy.Close()
+
+		ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
+		defer cancel()
+		command := exec.CommandContext(ctx, executable, filepath.Join(t.TempDir(), "settings.json"), "5s")
+		command.Env = append(os.Environ(), "APPIMAGE=", "http_proxy=", "HTTP_PROXY="+proxy.URL, "NO_PROXY=", "no_proxy=")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("update through proxy: %v\n%s", err, output)
+		}
+		var snapshot Snapshot
+		if err := json.Unmarshal(output, &snapshot); err != nil {
+			t.Fatal(err)
+		}
+		if proxied.Load() != 2 || snapshot.State != "available" {
+			t.Fatalf("update proxy routing failed: calls=%d snapshot=%+v", proxied.Load(), snapshot)
+		}
+	})
 	t.Run("up-to-date check leaves no installer", func(t *testing.T) {
 		respond.Store(func(w http.ResponseWriter, _ *http.Request) {
 			fmt.Fprint(w, `{"version":"1.0.0","url":"https://example.test/update.tar.gz","size":1,"signature":"test"}`)

@@ -82,7 +82,8 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 						loc := ui.Row(c).Gap(7).Focusable().Label(locales.FilesShowInFinder())
 						loc.Children(func() {
 							glyph(c, "folder", 15, p.blue)
-							ui.Text(c, compactPath(t.Destination)).FontSize(10).SingleLine().Grow(1).MinWidth(0)
+							ui.Text(c, compactPath(t.Destination)).FontSize(10).SingleLine().TruncateStart().Grow(1).MinWidth(0).
+								Tooltip(t.Destination)
 							glyph(c, "external", 15, p.blue)
 						})
 						if loc.Clicked() {
