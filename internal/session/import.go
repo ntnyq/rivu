@@ -202,6 +202,7 @@ func (m *Manager) Import(ctx context.Context, in Import) (string, error) {
 		return "", fmt.Errorf("invalid seeding duration")
 	}
 	r := Record{Adopted: adopted, Tags: slices.Clone(in.Tags), SeedLimitSeconds: in.SeedLimitSeconds, ID: hex.EncodeToString(id), Source: in.Source, Destination: in.Destination, Run: in.Run, SeedRatio: in.SeedRatio, Added: time.Now(), Order: time.Now().UnixNano()}
+	r.AllowWebSeeds = in.WatchKey == "" && in.Source.HasWebSeeds && in.AllowWebSeeds
 	if len(in.Source.Meta) > 0 {
 		if err := m.metadata(&r, in.Source); err != nil {
 			return "", err

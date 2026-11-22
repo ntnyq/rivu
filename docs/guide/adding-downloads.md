@@ -8,6 +8,8 @@ Choose **Add Download** (**⌘N**), use **Open Torrent** (**⌘O**), or drag a t
 
 Choose a destination, select **Read and Review**, and check the contents before adding the task. Add tags in the review sheet if you want to organize the transfer immediately.
 
+For a trusted torrent that includes Web Seeds, select **Allow HTTP downloads from Web Seeds** in its review. The option applies to that task and lets Rivu download and verify pieces even when no BitTorrent peers are reachable. Web Seed servers receive your HTTP requests.
+
 ## Preview a magnet link
 
 Paste the magnet link into **Add Download** and select **Read and Review**. Rivu retrieves metadata so you can inspect the torrent name, size, and file tree before starting.
@@ -16,7 +18,7 @@ Paste the magnet link into **Add Download** and select **Read and Review**. Rivu
 - You can cancel or retry it; closing the sheet cancels it too.
 - A preview times out after 45 seconds if metadata cannot be resolved.
 
-Until metadata establishes whether a torrent is private, Rivu uses only the trackers or peers explicitly included in the magnet. A link without either is rejected. Rivu does not fetch arbitrary metadata-source URLs or web seeds.
+Until metadata establishes whether a torrent is private, Rivu uses only the trackers or peers explicitly included in the magnet. A link without either is rejected. Rivu does not fetch arbitrary metadata-source URLs or use Web Seeds from magnet links.
 
 If resolution fails, check the source link and your connection, then [review the troubleshooting steps](troubleshooting.md).
 

@@ -615,6 +615,26 @@ func (msgs Messages) ImportAdoptExisting() string {
 	return Catalog.Format(msgs.locale, "importAdoptExisting", nil)
 }
 
+// ImportAllowWebSeeds says "Allow HTTP downloads from Web Seeds"
+// in the language the app shows.
+func ImportAllowWebSeeds() string { return In(i18n.Locale()).ImportAllowWebSeeds() }
+
+// ImportAllowWebSeeds says "Allow HTTP downloads from Web Seeds"
+// in the language of msgs.
+func (msgs Messages) ImportAllowWebSeeds() string {
+	return Catalog.Format(msgs.locale, "importAllowWebSeeds", nil)
+}
+
+// ImportWebSeedsHint says "Enable only for a trusted torrent. Its Web Seed servers can see your requests."
+// in the language the app shows.
+func ImportWebSeedsHint() string { return In(i18n.Locale()).ImportWebSeedsHint() }
+
+// ImportWebSeedsHint says "Enable only for a trusted torrent. Its Web Seed servers can see your requests."
+// in the language of msgs.
+func (msgs Messages) ImportWebSeedsHint() string {
+	return Catalog.Format(msgs.locale, "importWebSeedsHint", nil)
+}
+
 // ImportAvailableSpace says "{space} available · Checked again on submit"
 // in the language the app shows.
 func ImportAvailableSpace(space string) string { return In(i18n.Locale()).ImportAvailableSpace(space) }
@@ -3799,4 +3819,14 @@ func UpdatesVersionAvailable(version string) string {
 // in the language of msgs.
 func (msgs Messages) UpdatesVersionAvailable(version string) string {
 	return Catalog.Format(msgs.locale, "updatesVersionAvailable", map[string]any{"version": version})
+}
+
+// UpdatesView says "Open Update Window"
+// in the language the app shows.
+func UpdatesView() string { return In(i18n.Locale()).UpdatesView() }
+
+// UpdatesView says "Open Update Window"
+// in the language of msgs.
+func (msgs Messages) UpdatesView() string {
+	return Catalog.Format(msgs.locale, "updatesView", nil)
 }

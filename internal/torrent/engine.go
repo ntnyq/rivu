@@ -58,7 +58,7 @@ func (e *Engine) getClient(metadata bool) (*bt.Client, error) {
 	cfg.Seed = true
 	cfg.NoDefaultPortForwarding = true
 	cfg.DisableWebtorrent = true
-	cfg.DisableWebseeds = true
+	cfg.DisableWebseeds = metadata
 	cfg.HTTPProxy = netproxy.ForRequest
 	cfg.DialForPeerConns = false // Install route-aware wrappers after construction.
 	cfg.NoDHT = !e.settings.DHT || metadata
@@ -109,7 +109,8 @@ func (e *Engine) Attach(r session.Record) error {
 	if err != nil {
 		return err
 	}
-	if !metadata && strings.HasPrefix(strings.ToLower(r.Source.Raw), "magnet:") {
+	magnet := strings.HasPrefix(strings.ToLower(r.Source.Raw), "magnet:")
+	if !metadata && magnet {
 		original, err := bt.TorrentSpecFromMagnetUri(r.Source.Raw)
 		if err != nil {
 			return err
@@ -133,7 +134,11 @@ func (e *Engine) Attach(r session.Record) error {
 	spec.DisallowDataDownload = true
 	spec.DisallowDataUpload = true
 	spec.Sources = nil
-	spec.Webseeds = nil // Never fetch arbitrary metadata URLs from a magnet.
+	if metadata || magnet || !r.AllowWebSeeds {
+		spec.Webseeds = nil
+	} else {
+		spec.Webseeds = supportedWebSeeds(spec.Webseeds)
+	}
 	hash := spec.InfoHash
 	if hash == (metainfo.Hash{}) && spec.InfoHashV2.Ok {
 		hash = *spec.InfoHashV2.Value.ToShort()

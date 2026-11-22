@@ -81,6 +81,9 @@ func (m *Manager) tick() {
 			task.DownRate = float64(max(0, o.Downloaded-prev.down)) / seconds
 			task.UpRate = float64(max(0, o.Uploaded-prev.up)) / seconds
 		}
+		if task.Phase == PhaseWaiting && task.DownRate > 0 {
+			task.Phase = PhaseDownloading
+		}
 		if r.Completed && len(o.Files) > 0 && task.Done < task.Size && task.Phase != PhaseVerifying {
 			r.Completed = false
 			changed = true

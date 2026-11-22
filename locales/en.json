@@ -106,6 +106,8 @@
   "filterAll": "All Transfers",
   "importAdded": "Added",
   "importAdoptExisting": "Adopt and verify existing files (never trash them)",
+  "importAllowWebSeeds": "Allow HTTP downloads from Web Seeds",
+  "importWebSeedsHint": "Enable only for a trusted torrent. Its Web Seed servers can see your requests.",
   "importAvailableSpace": "{space} available · Checked again on submit",
   "@importAvailableSpace": {
     "placeholders": {
@@ -639,6 +641,7 @@
   "updatesUnavailable": "Updates unavailable",
   "updatesUpToDate": "You're up to date",
   "updatesVersionAvailable": "Rivu {version} is available",
+  "updatesView": "Open Update Window",
   "@updatesVersionAvailable": {
     "placeholders": {
       "version": {
