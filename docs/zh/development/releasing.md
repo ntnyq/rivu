@@ -53,6 +53,12 @@ macOS 签名和 DMG 创建需要 Mac。Windows 安装程序在 Windows 上构建
 
 各平台还包含 `rivu-<version>-<target>.tar.gz` 和 `update-<target>.json`，Linux 压缩包同时用于安装与更新。汇总后的工作流产物和草稿还包括 `RELEASE_NOTES.md` 与 `SHA256SUMS`。公开草稿前请检查[原生验收矩阵与已知平台限制](desktop.md)，然后将其公开为稳定版并标为 Latest，客户端才能检查到更新。
 
+### 继续中断的草稿上传
+
+如果标签已经推送而上传失败，在原工作流运行中重跑失败的 `release` 任务。任务会复用原构建产物，确认标签与准备好的发布提交一致，并核对草稿附件的 SHA-256 摘要，再补传缺失附件。如果附件冲突或 Release 已公开，先核查现有发布。 [GitHub 任务重跑说明](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs)
+
+手动恢复时，从原运行下载已验证的 `release-v<version>-attempt-<number>` 产物。旧版工作流使用 `release-v<version>`。在解压目录中检查 `SHA256SUMS`，检出现有标签，并比对产物中的发布说明与标签中的变更日志条目。在该检出目录中，对上表三个目标分别运行 `go run ./tools/releaseassets -target <target> -source <artifact-directory>` 验证签名。用核验后的说明和文件创建或补全现有标签的草稿。补传前，逐一比对已有附件与原产物的 SHA-256 摘要。
+
 ### 面向用户的变更日志
 
 `CHANGELOG.md` 和 GitHub Release Notes 仅收录上一个稳定标签之后的 `feat`、`fix` 和 `refactor` 提交；首次发布检查全部历史。支持 `fix(storage): ...`、`feat!: ...` 等带 scope 或破坏性变更标记的形式。合并提交以及 `chore`、`docs`、`test`、`ci`、`build`、`style`、`perf` 等其他类型均不展示。用户可感知的变更应使用这三种类型之一。

@@ -53,6 +53,12 @@ Manually dispatch the Release workflow from the default branch with a stable ver
 
 Each target also includes `rivu-<version>-<target>.tar.gz` and `update-<target>.json`; the Linux archive is both an installation and an update asset. The combined workflow artifact and draft also include `RELEASE_NOTES.md` and `SHA256SUMS`. Review the [native acceptance matrix and known platform limitations](desktop.md) before publishing a draft. Publish it as a stable release and mark it as latest to make it available to update checks.
 
+### Resume an interrupted draft upload
+
+If the tag was pushed before an upload failed, rerun the failed `release` job from the original workflow run. The job reuses the original builds, verifies that the existing tag matches the prepared commit, and checks the draft's SHA-256 digests before uploading missing assets. Resolve any conflicting assets or an already published release before proceeding. [GitHub job reruns](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs)
+
+For manual recovery, download the verified `release-v<version>-attempt-<number>` artifact from the original run. Earlier runs named it `release-v<version>`. Verify `SHA256SUMS` from inside the extracted directory, check out the existing tag, and confirm that the artifact notes match the tag's changelog entry. From that checkout, run `go run ./tools/releaseassets -target <target> -source <artifact-directory>` for each of the three targets above to verify the signatures. Use the verified notes and assets to create or complete the draft for the existing tag. Compare the SHA-256 digests of all existing attachments with the original artifact before uploading missing files.
+
 ### User-facing changelog
 
 Both `CHANGELOG.md` and GitHub Release Notes include only `feat`, `fix` and `refactor` commits since the previous stable tag (or all history for the first release). Scoped and breaking-change forms such as `fix(storage): ...` and `feat!: ...` are included. Merge commits and other types such as `chore`, `docs`, `test`, `ci`, `build`, `style` and `perf` are omitted. Keep user-visible changes under one of the three included types.
