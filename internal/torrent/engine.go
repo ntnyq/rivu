@@ -31,6 +31,7 @@ type handle struct {
 type Engine struct {
 	settings         config.Settings
 	diagnostics      trackerDiagnostics
+	peerRoutes       peerRouting
 	client, metadata *bt.Client
 	handles          map[string]*handle
 	down, up         *rate.Limiter
@@ -40,6 +41,7 @@ func New(s config.Settings) *Engine {
 	e := &Engine{settings: s, handles: map[string]*handle{}, down: rate.NewLimiter(rate.Inf, 1<<20), up: rate.NewLimiter(rate.Inf, 1<<20)}
 	d, u := s.LimitsAt(time.Now())
 	e.Limits(d, u)
+	e.SetPeerProxyFallback(s.PeerProxyFallback)
 	return e
 }
 func (e *Engine) getClient(metadata bool) (*bt.Client, error) {
@@ -69,7 +71,7 @@ func (e *Engine) getClient(metadata bool) (*bt.Client, error) {
 	cfg.Slogger = slog.New(trackerDiagnosticHandler{store: &e.diagnostics})
 	c, err := bt.NewClient(cfg)
 	if err == nil {
-		configurePeerRoutes(c)
+		e.peerRoutes.configure(c)
 		*ptr = c
 	}
 	return c, err
@@ -266,6 +268,14 @@ func (e *Engine) Observe(id string) session.Observation {
 	}
 	return o
 }
+func (e *Engine) SetPeerProxyFallback(enabled bool) {
+	e.peerRoutes.fallback.Store(enabled)
+}
+
+func (e *Engine) PeerProxyStatus() session.PeerProxyStatus {
+	return e.peerRoutes.snapshot()
+}
+
 func (e *Engine) Limits(d, u int64) {
 	set := func(l *rate.Limiter, v int64) {
 		if v == 0 {

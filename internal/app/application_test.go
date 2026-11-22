@@ -141,8 +141,10 @@ func (lifecycleEngine) Stop(string) error                  { return nil }
 func (lifecycleEngine) Observe(string) session.Observation {
 	return session.Observation{Phase: session.PhaseMetadata}
 }
-func (lifecycleEngine) Limits(int64, int64) {}
-func (lifecycleEngine) Close() error        { return nil }
+func (lifecycleEngine) Limits(int64, int64)                      {}
+func (lifecycleEngine) SetPeerProxyFallback(bool)                {}
+func (lifecycleEngine) PeerProxyStatus() session.PeerProxyStatus { return session.PeerProxyStatus{} }
+func (lifecycleEngine) Close() error                             { return nil }
 
 func TestPowerEventsRetainUpdateHoldAndArrivalOrder(t *testing.T) {
 	m, err := session.Open(t.TempDir(), lifecycleEngine{}, config.Default(), nil)

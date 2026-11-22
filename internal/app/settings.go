@@ -150,6 +150,7 @@ func (w *settingsWindow) settingsView(c *ui.Context) {
 								ui.Column(c).Padding(15, 0).Gap(10).Children(func() { field(c, locales.SettingsListenPort(), &w.listenPort) })
 								switchRow(c, locales.SettingsDht(), locales.SettingsPublicOnly(), &w.settings.DHT, true, true)
 								switchRow(c, locales.SettingsPex(), locales.SettingsPublicOnly(), &w.settings.PEX, true, true)
+								switchRow(c, locales.SettingsPeerProxyFallback(), locales.SettingsPeerProxyFallbackHint(), &w.settings.PeerProxyFallback, true, true)
 							})
 							ui.Text(c, locales.SettingsConnectionsHint()).FontSize(11).TextColor(p.muted)
 						case 3:

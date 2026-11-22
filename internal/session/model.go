@@ -59,6 +59,38 @@ type TrackerStatus struct {
 	Next                time.Time
 }
 
+type PeerDialCause string
+
+const (
+	PeerDialTimeout     PeerDialCause = "timeout"
+	PeerDialDNS         PeerDialCause = "dns"
+	PeerDialRefused     PeerDialCause = "refused"
+	PeerDialUnreachable PeerDialCause = "unreachable"
+	PeerDialOther       PeerDialCause = "other"
+)
+
+type PeerProxyFailure string
+
+const (
+	PeerProxyLookup    PeerProxyFailure = "lookup"
+	PeerProxyConfig    PeerProxyFailure = "config"
+	PeerProxyConnect   PeerProxyFailure = "connect"
+	PeerProxyTLS       PeerProxyFailure = "tls"
+	PeerProxySOCKS     PeerProxyFailure = "socks"
+	PeerProxyHandshake PeerProxyFailure = "handshake"
+	PeerProxyResponse  PeerProxyFailure = "response"
+)
+
+// PeerProxyStatus describes the latest failed proxy attempt across transfers.
+type PeerProxyStatus struct {
+	At             time.Time
+	Failure        PeerProxyFailure
+	Cause          PeerDialCause
+	Code           int
+	FallbackTried  bool
+	FallbackFailed PeerDialCause
+}
+
 type Observation struct {
 	Diagnostics          []TrackerStatus
 	Failure              error
@@ -83,6 +115,7 @@ type Task struct {
 	Trackers              []string
 }
 type Snapshot struct {
+	PeerProxy        PeerProxyStatus
 	Issue            *problem.Error
 	Revision         uint64
 	Tasks            []Task
@@ -119,5 +152,7 @@ type Engine interface {
 	Stop(string) error
 	Observe(string) Observation
 	Limits(int64, int64)
+	SetPeerProxyFallback(bool)
+	PeerProxyStatus() PeerProxyStatus
 	Close() error
 }

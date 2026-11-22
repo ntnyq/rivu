@@ -30,9 +30,11 @@ func (e *fakeEngine) Stop(id string) error {
 	delete(e.running, id)
 	return nil
 }
-func (e *fakeEngine) Observe(string) Observation { return Observation{Phase: "waiting"} }
-func (e *fakeEngine) Limits(int64, int64)        {}
-func (e *fakeEngine) Close() error               { return nil }
+func (e *fakeEngine) Observe(string) Observation       { return Observation{Phase: "waiting"} }
+func (e *fakeEngine) Limits(int64, int64)              {}
+func (e *fakeEngine) SetPeerProxyFallback(bool)        {}
+func (e *fakeEngine) PeerProxyStatus() PeerProxyStatus { return PeerProxyStatus{} }
+func (e *fakeEngine) Close() error                     { return nil }
 func manager(t *testing.T) (*Manager, string) {
 	t.Helper()
 	dir := t.TempDir()

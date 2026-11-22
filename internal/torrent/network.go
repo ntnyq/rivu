@@ -2,12 +2,14 @@ package torrent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
 	"net/netip"
 	"net/url"
 	"strings"
+	"time"
 
 	bt "github.com/anacrolix/torrent"
 	"github.com/ntnyq/rivu/internal/netproxy"
@@ -17,6 +19,7 @@ type proxyPeerDialer struct {
 	bt.Dialer
 	resolve        func(*http.Request) (*url.URL, error)
 	proxyHostnames bool
+	routing        *peerRouting
 }
 
 func (d proxyPeerDialer) Dial(ctx context.Context, address string) (net.Conn, error) {
@@ -26,8 +29,12 @@ func (d proxyPeerDialer) Dial(ctx context.Context, address string) (net.Conn, er
 	if err != nil {
 		return nil, err
 	}
+	eligible := d.canTunnel(address)
 	route, err := d.resolve(request)
 	if err != nil {
+		if eligible && d.routing != nil && !errors.Is(err, context.Canceled) {
+			d.routing.record(proxyLookupFailure(err))
+		}
 		return nil, fmt.Errorf("resolve peer proxy: %w", err)
 	}
 	if route == nil {
@@ -37,26 +44,65 @@ func (d proxyPeerDialer) Dial(ctx context.Context, address string) (net.Conn, er
 		// Do not race a direct uTP connection against a proxied TCP connection.
 		return nil, fmt.Errorf("peer proxy requires TCP; UDP needs a system route")
 	}
-	// The engine races its IPv4 and IPv6 dialers for every peer. A tunnel
-	// bypasses net.Dialer's address-family check, so enforce it here as well.
+	if !eligible {
+		return nil, fmt.Errorf("peer address does not match proxy dialer")
+	}
+	return d.dialTunnel(ctx, address, route)
+}
+
+// The engine races its IPv4 and IPv6 dialers. A proxy bypasses their normal
+// address family check, so only one TCP dialer attempts a tunnel per address.
+func (d proxyPeerDialer) canTunnel(address string) bool {
+	network := d.DialerNetwork()
+	if !strings.HasPrefix(network, "tcp") {
+		return false
+	}
 	host, _, err := net.SplitHostPort(address)
 	if err != nil {
-		return nil, err
+		return false
 	}
 	ip, err := netip.ParseAddr(host)
 	if err != nil {
-		// Let one dialer send hostnames to the proxy for remote DNS, including
-		// when only IPv6 is enabled locally.
-		if !d.proxyHostnames {
-			return nil, fmt.Errorf("peer hostname belongs to another proxy dialer")
-		}
-	} else if (d.DialerNetwork() == "tcp4" && !ip.Unmap().Is4()) || (d.DialerNetwork() == "tcp6" && ip.Unmap().Is4()) {
-		return nil, fmt.Errorf("peer address does not match dialer family")
+		return d.proxyHostnames
 	}
-	return netproxy.DialTunnel(ctx, address, route)
+	return (network != "tcp4" || ip.Unmap().Is4()) && (network != "tcp6" || !ip.Unmap().Is4())
 }
 
-func configurePeerRoutes(client *bt.Client) {
+func (d proxyPeerDialer) dialTunnel(ctx context.Context, address string, route *url.URL) (net.Conn, error) {
+	proxyCtx := ctx
+	cancel := func() {}
+	if d.routing != nil && d.routing.fallback.Load() {
+		if deadline, ok := ctx.Deadline(); ok {
+			// Leave part of upstream's dial budget for the system route, even
+			// when there are enough waiting peers to shorten that budget.
+			reserve := min(time.Until(deadline)/2, 3*time.Second)
+			proxyCtx, cancel = context.WithDeadline(ctx, deadline.Add(-reserve))
+		}
+	}
+	conn, err := netproxy.DialTunnel(proxyCtx, address, route)
+	cancel()
+	if err == nil || d.routing == nil || errors.Is(err, context.Canceled) {
+		return conn, err
+	}
+	status := proxyTunnelFailure(err)
+	if !d.routing.fallback.Load() || ctx.Err() != nil {
+		d.routing.record(status)
+		return nil, err
+	}
+
+	conn, fallbackErr := d.Dialer.Dial(ctx, address)
+	status.FallbackTried = true
+	if fallbackErr != nil {
+		status.FallbackFailed = peerDialCause(fallbackErr)
+	}
+	d.routing.record(status)
+	if fallbackErr != nil {
+		return nil, errors.Join(err, fallbackErr)
+	}
+	return conn, nil
+}
+
+func (r *peerRouting) configure(client *bt.Client) {
 	// Retain the engine's bound IPv4/IPv6 TCP and uTP dialers for direct/TUN
 	// routes, but route each outgoing connection through the current policy.
 	var dialers []bt.Dialer
@@ -65,12 +111,12 @@ func configurePeerRoutes(client *bt.Client) {
 			dialers = append(dialers, dialer)
 		}
 	}
-	for _, dialer := range peerRouteDialers(dialers, netproxy.ForRequest) {
+	for _, dialer := range peerRouteDialers(dialers, netproxy.ForRequest, r) {
 		client.AddDialer(dialer)
 	}
 }
 
-func peerRouteDialers(dialers []bt.Dialer, resolve func(*http.Request) (*url.URL, error)) []bt.Dialer {
+func peerRouteDialers(dialers []bt.Dialer, resolve func(*http.Request) (*url.URL, error), routing *peerRouting) []bt.Dialer {
 	hostnameDialer := -1
 	for i, dialer := range dialers {
 		if strings.HasPrefix(dialer.DialerNetwork(), "tcp") && hostnameDialer == -1 {
@@ -79,7 +125,7 @@ func peerRouteDialers(dialers []bt.Dialer, resolve func(*http.Request) (*url.URL
 	}
 	routes := make([]bt.Dialer, 0, len(dialers))
 	for i, dialer := range dialers {
-		routes = append(routes, proxyPeerDialer{Dialer: dialer, resolve: resolve, proxyHostnames: i == hostnameDialer})
+		routes = append(routes, proxyPeerDialer{Dialer: dialer, resolve: resolve, proxyHostnames: i == hostnameDialer, routing: routing})
 	}
 	return routes
 }

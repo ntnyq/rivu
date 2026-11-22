@@ -19,12 +19,21 @@ func TestPersistenceAndMigration(t *testing.T) {
 	if s.Snapshot().Version != 2 || s.Snapshot().Theme != "dark" || s.Snapshot().Concurrent != 3 {
 		t.Fatal(s.Snapshot())
 	}
-	if err = s.Update(func(p *Settings) { p.SlowMode = true }); err != nil {
+	if s.Snapshot().PeerProxyFallback {
+		t.Fatal("existing config enabled an unrequested proxy fallback")
+	}
+	if err = s.Update(func(p *Settings) {
+		p.SlowMode = true
+		p.PeerProxyFallback = true
+	}); err != nil {
 		t.Fatal(err)
 	}
 	s, err = Open(path)
-	if err != nil || !s.Snapshot().SlowMode {
+	if err != nil {
 		t.Fatal(err)
+	}
+	if got := s.Snapshot(); !got.SlowMode || !got.PeerProxyFallback {
+		t.Fatalf("settings were not restored: %+v", got)
 	}
 }
 func TestInvalidSettingsArePreserved(t *testing.T) {

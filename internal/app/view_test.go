@@ -158,6 +158,39 @@ func TestDetailsRequireSelection(t *testing.T) {
 	}
 }
 
+func TestConnectionsShowsPeerProxyFailure(t *testing.T) {
+	useTestLanguage(t, "zh-Hans")
+	store, err := config.Open(filepath.Join(t.TempDir(), "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := newWindow(store)
+	w.snapshot = fixtureSnapshot()
+	w.selectOnly("1")
+	w.inspector, w.tab = true, 2
+	w.snapshot.PeerProxy = session.PeerProxyStatus{
+		At:      time.Date(2026, 11, 22, 1, 2, 3, 0, time.Local),
+		Failure: session.PeerProxyResponse, Code: 403,
+		FallbackTried: true, FallbackFailed: session.PeerDialTimeout,
+	}
+	tester := ui.NewTester(w.view, 880, 760)
+	tester.Frame()
+	for _, label := range []string{
+		"最近一次节点代理失败（所有任务）",
+		"01:02:03 · 代理拒绝 CONNECT（HTTP 403）",
+		"通过系统网络连接失败 · 连接超时",
+	} {
+		if !tester.HasText(label) {
+			t.Errorf("missing connection diagnostic %q", label)
+		}
+	}
+	w.snapshot.PeerProxy.FallbackFailed = ""
+	tester.Frame()
+	if !tester.HasText("已通过系统网络建立连接") {
+		t.Fatal("missing successful system route")
+	}
+}
+
 func TestViewSnapshots(t *testing.T) {
 	useTestLanguage(t, "zh-Hans")
 	s, _ := config.Open(filepath.Join(t.TempDir(), "settings.json"))

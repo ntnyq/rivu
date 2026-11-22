@@ -18,9 +18,11 @@ See [managing transfers](managing-transfers.md) for limits and seeding behavior,
 
 ## System proxy and TUN
 
-On Windows, HTTP/HTTPS trackers and outgoing TCP peer connections follow the current system proxy, including PAC rules and bypass lists. Explicit `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment settings take precedence. TCP peers use the HTTPS proxy route for their address and port; HTTP/HTTPS proxies must allow CONNECT to the peer's port. SOCKS5 TCP proxies are also supported. A failed proxy connection is not retried directly.
+On Windows, HTTP/HTTPS trackers and outgoing TCP peer connections follow the current system proxy, including PAC rules and bypass lists. Explicit `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` environment settings take precedence. TCP peers use the HTTPS proxy route for their address and port; HTTP/HTTPS proxies must allow CONNECT to the peer's port. SOCKS5 TCP proxies are also supported.
 
-Proxy settings are read for new requests and peer connections. When switching to TUN, disable the system proxy if you want connections to use only the OS route. Existing connections can remain open; pause and resume a task to reconnect immediately. Rivu does not configure the TUN device or its routing rules.
+**Settings → Connections → Retry peers through the system network** is off by default. Enable it to retry a failed TCP proxy connection once through the OS route, including TUN. This may expose your IP address. The setting applies to new peer connections. The proxy route must resolve before Rivu can try this fallback.
+
+Proxy settings are read for new requests and peer connections. When switching to TUN, disable the system proxy if you want connections to use only the OS route. Existing connections keep their route until they reconnect. Rivu does not configure the TUN device or its routing rules.
 
 HTTP proxies cannot carry UDP. DHT, UDP trackers, and incoming connections continue to use the OS network, which a TUN can capture if configured for that traffic. Outgoing uTP is skipped when a proxy route is selected for that peer, so it cannot bypass the TCP proxy. This is not a mode that forces every BitTorrent packet through a proxy. If UDP is blocked on the direct route, use a TUN that supports UDP; enabling DHT/PEX alone cannot make an unreachable swarm accessible.
 

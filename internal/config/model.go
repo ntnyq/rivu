@@ -40,13 +40,15 @@ type Settings struct {
 	SlowDownload    int64     `json:"slowDownload"`
 	SlowUpload      int64     `json:"slowUpload"`
 	SlowMode        bool      `json:"slowMode"`
-	ListenPort      int       `json:"listenPort"`
-	DHT             bool      `json:"dht"`
-	PEX             bool      `json:"pex"`
 	AutoCheck       bool      `json:"autoCheck"`
 	AutoInstall     bool      `json:"autoInstall"`
 	LastCheck       time.Time `json:"lastCheck"`
 	LastAttempt     time.Time `json:"lastAttempt"`
+
+	ListenPort        int  `json:"listenPort"`
+	DHT               bool `json:"dht"`
+	PEX               bool `json:"pex"`
+	PeerProxyFallback bool `json:"peerProxyFallback"`
 }
 
 func Default() Settings {

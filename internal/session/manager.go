@@ -102,6 +102,7 @@ func (m *Manager) configure(s config.Settings) error {
 	m.settings = s
 	d, u := s.LimitsAt(time.Now())
 	m.engine.Limits(d, u)
+	m.engine.SetPeerProxyFallback(s.PeerProxyFallback)
 	return nil
 }
 

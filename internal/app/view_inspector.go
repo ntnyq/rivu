@@ -158,6 +158,20 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 					})
 				case 2:
 					ui.Text(c, locales.TransferPeerCount(t.Peers))
+					proxy := w.snapshot.PeerProxy
+					if !proxy.At.IsZero() {
+						ui.Column(c).Gap(4).Padding(8, 0).Children(func() {
+							ui.Text(c, locales.PeerProxyRecentFailure()).FontSize(11).Bold()
+							ui.Text(c, proxy.At.Local().Format("15:04:05")+" · "+peerProxyFailureText(proxy)).FontSize(11).TextColor(p.orange)
+							if proxy.FallbackTried {
+								label, color := locales.PeerProxyFallbackConnected(), theme.TextMuted
+								if proxy.FallbackFailed != "" {
+									label, color = locales.PeerProxyFallbackFailed()+" · "+peerDialCauseText(proxy.FallbackFailed), p.orange
+								}
+								ui.Text(c, label).FontSize(11).TextColor(color)
+							}
+						})
+					}
 					ui.Text(c, "Tracker").Bold()
 					if len(t.Trackers) == 0 {
 						ui.Text(c, locales.TrackerNoObservations()).TextColor(theme.TextMuted)
@@ -176,7 +190,7 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 							ui.Text(c, locales.TrackerNextAnnounce(tracker.Next.Local().Format("15:04:05"))).FontSize(10)
 						}
 					}
-					if t.Peers == 0 {
+					if t.Peers == 0 && proxy.At.IsZero() {
 						ui.Text(c, locales.TrackerWaitingHint()).FontSize(11)
 					}
 					ui.Text(c, locales.TrackerPrivacyHint()).FontSize(10).TextColor(theme.TextMuted)
@@ -184,4 +198,53 @@ func (w *mainWindow) inspectorView(c *ui.Context) {
 			})
 		})
 	})
+}
+
+func peerProxyFailureText(status session.PeerProxyStatus) string {
+	var label string
+	switch status.Failure {
+	case session.PeerProxyLookup:
+		label = locales.PeerProxyLookup()
+	case session.PeerProxyConfig:
+		label = locales.PeerProxyConfig()
+	case session.PeerProxyConnect:
+		label = locales.PeerProxyConnect()
+	case session.PeerProxyTLS:
+		label = locales.PeerProxyTls()
+	case session.PeerProxySOCKS:
+		label = locales.PeerProxySocks()
+	case session.PeerProxyResponse:
+		switch status.Code {
+		case 0:
+			return locales.PeerProxyResponse()
+		case 407:
+			return locales.PeerProxyAuthentication()
+		default:
+			return locales.PeerProxyHttpStatus(status.Code)
+		}
+	default:
+		label = locales.PeerProxyHandshake()
+	}
+	if status.Cause != "" && status.Cause != session.PeerDialOther {
+		label += " · " + peerDialCauseText(status.Cause)
+	}
+	if status.Failure == session.PeerProxyLookup && status.Code != 0 {
+		label += " · " + locales.PeerProxySystemError(status.Code)
+	}
+	return label
+}
+
+func peerDialCauseText(cause session.PeerDialCause) string {
+	switch cause {
+	case session.PeerDialTimeout:
+		return locales.TrackerTimeout()
+	case session.PeerDialDNS:
+		return locales.TrackerDnsFailed()
+	case session.PeerDialRefused:
+		return locales.TrackerRefused()
+	case session.PeerDialUnreachable:
+		return locales.PeerProxyUnreachable()
+	default:
+		return locales.PeerProxyConnectionFailed()
+	}
 }

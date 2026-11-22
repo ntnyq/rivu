@@ -10,7 +10,7 @@ import (
 )
 
 func (m *Manager) publish() {
-	snap := Snapshot{Revision: m.state.Revision, SlowMode: m.settings.SlowAt(time.Now()), Quiesced: m.quiesced()}
+	snap := Snapshot{Revision: m.state.Revision, SlowMode: m.settings.SlowAt(time.Now()), Quiesced: m.quiesced(), PeerProxy: m.engine.PeerProxyStatus()}
 	if m.errorState != nil {
 		snap.Error = m.errorState.Error()
 		snap.Issue = problem.From(m.errorState)

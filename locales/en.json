@@ -191,6 +191,35 @@
   "paletteSearch": "Search Commands",
   "paletteSearchPlaceholder": "Search actions…",
   "paletteTitle": "Command Palette",
+  "peerProxyAuthentication": "Proxy authentication required (HTTP 407)",
+  "peerProxyConfig": "Invalid proxy configuration",
+  "peerProxyConnect": "Could not reach the proxy",
+  "peerProxyConnectionFailed": "Connection failed",
+  "peerProxyFallbackConnected": "System route connected",
+  "peerProxyFallbackFailed": "System route failed",
+  "peerProxyHandshake": "Proxy CONNECT handshake failed",
+  "peerProxyHttpStatus": "Proxy refused CONNECT (HTTP {code, number, ::group-off})",
+  "@peerProxyHttpStatus": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "peerProxyLookup": "System proxy lookup failed",
+  "peerProxyRecentFailure": "Latest peer proxy failure (all transfers)",
+  "peerProxyResponse": "Invalid proxy CONNECT response",
+  "peerProxySocks": "SOCKS5 connection failed",
+  "peerProxySystemError": "System error {code, number, ::group-off}",
+  "@peerProxySystemError": {
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "peerProxyTls": "Proxy TLS handshake failed",
+  "peerProxyUnreachable": "Network unreachable",
   "phaseCompleted": "Completed",
   "phaseDownloading": "Downloading",
   "phaseError": "Needs Attention",
@@ -288,7 +317,7 @@
   "settingsConcurrency": "Concurrent downloads",
   "settingsConfirmQuit": "Confirm before quitting",
   "settingsConfirmQuitHint": "Avoid interrupting downloads and seeding by accident",
-  "settingsConnectionsHint": "Connection changes apply on next launch. Unknown magnets use only specified trackers or peers to fetch metadata.",
+  "settingsConnectionsHint": "Listening port, DHT and PEX settings apply on next launch. Unresolved magnets use their specified trackers or peers to fetch metadata.",
   "settingsDestination": "Default download location",
   "settingsDestinationLabel": "Default Download Folder",
   "settingsDht": "Enable DHT",
@@ -338,6 +367,8 @@
   "settingsNotifyCompleteHint": "A gentle reminder when a download is ready",
   "settingsNotifyError": "Notify when transfers need attention",
   "settingsNotifyErrorHint": "Let you know when action is needed",
+  "settingsPeerProxyFallback": "Retry peers through the system network",
+  "settingsPeerProxyFallbackHint": "After a TCP proxy failure, try the system route, including TUN. This may expose your IP. Applies to new connections.",
   "settingsPex": "Enable peer exchange (PEX)",
   "settingsPublicOnly": "Public torrents only",
   "settingsReadFailed": "Could not read settings; original file preserved: {error}",

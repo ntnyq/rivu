@@ -17,13 +17,42 @@ import (
 
 const maxConnectHeaderBytes = 64 << 10
 
+type TunnelFailure string
+
+const (
+	TunnelConfig    TunnelFailure = "invalid proxy configuration"
+	TunnelConnect   TunnelFailure = "connect proxy"
+	TunnelTLS       TunnelFailure = "proxy TLS handshake"
+	TunnelSOCKS     TunnelFailure = "SOCKS5 proxy"
+	TunnelHandshake TunnelFailure = "proxy CONNECT handshake"
+	TunnelResponse  TunnelFailure = "invalid proxy CONNECT response"
+)
+
+type TunnelError struct {
+	Failure    TunnelFailure
+	StatusCode int
+	Err        error
+}
+
+func (e *TunnelError) Error() string {
+	if e.StatusCode != 0 {
+		return fmt.Sprintf("proxy CONNECT failed: HTTP %d", e.StatusCode)
+	}
+	if e.Err != nil {
+		return fmt.Sprintf("%s: %v", e.Failure, e.Err)
+	}
+	return string(e.Failure)
+}
+
+func (e *TunnelError) Unwrap() error { return e.Err }
+
 // DialTunnel connects a TCP peer through the selected proxy. Failures never
 // fall back to a direct connection. UDP needs an OS route such as a TUN device.
 func DialTunnel(ctx context.Context, address string, route *url.URL) (net.Conn, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	if route == nil || route.Hostname() == "" {
-		return nil, fmt.Errorf("missing proxy address")
+		return nil, &TunnelError{Failure: TunnelConfig}
 	}
 	port := route.Port()
 	if port == "" {
@@ -46,22 +75,26 @@ func DialTunnel(ctx context.Context, address string, route *url.URL) (net.Conn, 
 		}
 		d, err := proxy.SOCKS5("tcp", endpoint, auth, dialer)
 		if err != nil {
-			return nil, err
+			return nil, &TunnelError{Failure: TunnelConfig, Err: err}
 		}
-		return d.(proxy.ContextDialer).DialContext(ctx, "tcp", address)
+		conn, err := d.(proxy.ContextDialer).DialContext(ctx, "tcp", address)
+		if err != nil {
+			return nil, &TunnelError{Failure: TunnelSOCKS, Err: err}
+		}
+		return conn, nil
 	}
 	if route.Scheme != "http" && route.Scheme != "https" {
-		return nil, fmt.Errorf("unsupported proxy protocol")
+		return nil, &TunnelError{Failure: TunnelConfig}
 	}
 	conn, err := dialer.DialContext(ctx, "tcp", endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("connect proxy: %w", err)
+		return nil, &TunnelError{Failure: TunnelConnect, Err: err}
 	}
 	if route.Scheme == "https" {
 		secure := tls.Client(conn, &tls.Config{ServerName: route.Hostname(), MinVersion: tls.VersionTLS12})
 		if err = secure.HandshakeContext(ctx); err != nil {
 			conn.Close()
-			return nil, fmt.Errorf("proxy TLS handshake: %w", err)
+			return nil, &TunnelError{Failure: TunnelTLS, Err: err}
 		}
 		conn = secure
 	}
@@ -82,7 +115,7 @@ func DialTunnel(ctx context.Context, address string, route *url.URL) (net.Conn, 
 	}
 	if err = request.Write(conn); err != nil {
 		conn.Close()
-		return nil, fmt.Errorf("write proxy CONNECT: %w", err)
+		return nil, &TunnelError{Failure: TunnelHandshake, Err: err}
 	}
 	// ReadResponse has no header size limit of its own. Limit only the proxy
 	// handshake; the peer stream must remain unrestricted after CONNECT.
@@ -93,17 +126,17 @@ func DialTunnel(ctx context.Context, address string, route *url.URL) (net.Conn, 
 		// A proxy can return arbitrary text, including credentials. Do not
 		// propagate malformed status/header contents into diagnostics.
 		if ctx.Err() != nil {
-			return nil, ctx.Err()
+			return nil, &TunnelError{Failure: TunnelHandshake, Err: ctx.Err()}
 		}
-		return nil, fmt.Errorf("invalid proxy CONNECT response")
+		return nil, &TunnelError{Failure: TunnelResponse}
 	}
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		conn.Close()
-		return nil, fmt.Errorf("proxy CONNECT failed: HTTP %d", response.StatusCode)
+		return nil, &TunnelError{Failure: TunnelResponse, StatusCode: response.StatusCode}
 	}
 	if err = ctx.Err(); err != nil {
 		conn.Close()
-		return nil, err
+		return nil, &TunnelError{Failure: TunnelHandshake, Err: err}
 	}
 	return &tunnelConn{Conn: conn, reader: io.MultiReader(reader, conn)}, nil
 }

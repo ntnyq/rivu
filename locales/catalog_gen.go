@@ -1257,6 +1257,156 @@ func (msgs Messages) PaletteTitle() string {
 	return Catalog.Format(msgs.locale, "paletteTitle", nil)
 }
 
+// PeerProxyAuthentication says "Proxy authentication required (HTTP 407)"
+// in the language the app shows.
+func PeerProxyAuthentication() string { return In(i18n.Locale()).PeerProxyAuthentication() }
+
+// PeerProxyAuthentication says "Proxy authentication required (HTTP 407)"
+// in the language of msgs.
+func (msgs Messages) PeerProxyAuthentication() string {
+	return Catalog.Format(msgs.locale, "peerProxyAuthentication", nil)
+}
+
+// PeerProxyConfig says "Invalid proxy configuration"
+// in the language the app shows.
+func PeerProxyConfig() string { return In(i18n.Locale()).PeerProxyConfig() }
+
+// PeerProxyConfig says "Invalid proxy configuration"
+// in the language of msgs.
+func (msgs Messages) PeerProxyConfig() string {
+	return Catalog.Format(msgs.locale, "peerProxyConfig", nil)
+}
+
+// PeerProxyConnect says "Could not reach the proxy"
+// in the language the app shows.
+func PeerProxyConnect() string { return In(i18n.Locale()).PeerProxyConnect() }
+
+// PeerProxyConnect says "Could not reach the proxy"
+// in the language of msgs.
+func (msgs Messages) PeerProxyConnect() string {
+	return Catalog.Format(msgs.locale, "peerProxyConnect", nil)
+}
+
+// PeerProxyConnectionFailed says "Connection failed"
+// in the language the app shows.
+func PeerProxyConnectionFailed() string { return In(i18n.Locale()).PeerProxyConnectionFailed() }
+
+// PeerProxyConnectionFailed says "Connection failed"
+// in the language of msgs.
+func (msgs Messages) PeerProxyConnectionFailed() string {
+	return Catalog.Format(msgs.locale, "peerProxyConnectionFailed", nil)
+}
+
+// PeerProxyFallbackConnected says "System route connected"
+// in the language the app shows.
+func PeerProxyFallbackConnected() string { return In(i18n.Locale()).PeerProxyFallbackConnected() }
+
+// PeerProxyFallbackConnected says "System route connected"
+// in the language of msgs.
+func (msgs Messages) PeerProxyFallbackConnected() string {
+	return Catalog.Format(msgs.locale, "peerProxyFallbackConnected", nil)
+}
+
+// PeerProxyFallbackFailed says "System route failed"
+// in the language the app shows.
+func PeerProxyFallbackFailed() string { return In(i18n.Locale()).PeerProxyFallbackFailed() }
+
+// PeerProxyFallbackFailed says "System route failed"
+// in the language of msgs.
+func (msgs Messages) PeerProxyFallbackFailed() string {
+	return Catalog.Format(msgs.locale, "peerProxyFallbackFailed", nil)
+}
+
+// PeerProxyHandshake says "Proxy CONNECT handshake failed"
+// in the language the app shows.
+func PeerProxyHandshake() string { return In(i18n.Locale()).PeerProxyHandshake() }
+
+// PeerProxyHandshake says "Proxy CONNECT handshake failed"
+// in the language of msgs.
+func (msgs Messages) PeerProxyHandshake() string {
+	return Catalog.Format(msgs.locale, "peerProxyHandshake", nil)
+}
+
+// PeerProxyHttpStatus says "Proxy refused CONNECT (HTTP {code, number, ::group-off})"
+// in the language the app shows.
+func PeerProxyHttpStatus(code int) string { return In(i18n.Locale()).PeerProxyHttpStatus(code) }
+
+// PeerProxyHttpStatus says "Proxy refused CONNECT (HTTP {code, number, ::group-off})"
+// in the language of msgs.
+func (msgs Messages) PeerProxyHttpStatus(code int) string {
+	return Catalog.Format(msgs.locale, "peerProxyHttpStatus", map[string]any{"code": code})
+}
+
+// PeerProxyLookup says "System proxy lookup failed"
+// in the language the app shows.
+func PeerProxyLookup() string { return In(i18n.Locale()).PeerProxyLookup() }
+
+// PeerProxyLookup says "System proxy lookup failed"
+// in the language of msgs.
+func (msgs Messages) PeerProxyLookup() string {
+	return Catalog.Format(msgs.locale, "peerProxyLookup", nil)
+}
+
+// PeerProxyRecentFailure says "Latest peer proxy failure (all transfers)"
+// in the language the app shows.
+func PeerProxyRecentFailure() string { return In(i18n.Locale()).PeerProxyRecentFailure() }
+
+// PeerProxyRecentFailure says "Latest peer proxy failure (all transfers)"
+// in the language of msgs.
+func (msgs Messages) PeerProxyRecentFailure() string {
+	return Catalog.Format(msgs.locale, "peerProxyRecentFailure", nil)
+}
+
+// PeerProxyResponse says "Invalid proxy CONNECT response"
+// in the language the app shows.
+func PeerProxyResponse() string { return In(i18n.Locale()).PeerProxyResponse() }
+
+// PeerProxyResponse says "Invalid proxy CONNECT response"
+// in the language of msgs.
+func (msgs Messages) PeerProxyResponse() string {
+	return Catalog.Format(msgs.locale, "peerProxyResponse", nil)
+}
+
+// PeerProxySocks says "SOCKS5 connection failed"
+// in the language the app shows.
+func PeerProxySocks() string { return In(i18n.Locale()).PeerProxySocks() }
+
+// PeerProxySocks says "SOCKS5 connection failed"
+// in the language of msgs.
+func (msgs Messages) PeerProxySocks() string {
+	return Catalog.Format(msgs.locale, "peerProxySocks", nil)
+}
+
+// PeerProxySystemError says "System error {code, number, ::group-off}"
+// in the language the app shows.
+func PeerProxySystemError(code int) string { return In(i18n.Locale()).PeerProxySystemError(code) }
+
+// PeerProxySystemError says "System error {code, number, ::group-off}"
+// in the language of msgs.
+func (msgs Messages) PeerProxySystemError(code int) string {
+	return Catalog.Format(msgs.locale, "peerProxySystemError", map[string]any{"code": code})
+}
+
+// PeerProxyTls says "Proxy TLS handshake failed"
+// in the language the app shows.
+func PeerProxyTls() string { return In(i18n.Locale()).PeerProxyTls() }
+
+// PeerProxyTls says "Proxy TLS handshake failed"
+// in the language of msgs.
+func (msgs Messages) PeerProxyTls() string {
+	return Catalog.Format(msgs.locale, "peerProxyTls", nil)
+}
+
+// PeerProxyUnreachable says "Network unreachable"
+// in the language the app shows.
+func PeerProxyUnreachable() string { return In(i18n.Locale()).PeerProxyUnreachable() }
+
+// PeerProxyUnreachable says "Network unreachable"
+// in the language of msgs.
+func (msgs Messages) PeerProxyUnreachable() string {
+	return Catalog.Format(msgs.locale, "peerProxyUnreachable", nil)
+}
+
 // PhaseCompleted says "Completed"
 // in the language the app shows.
 func PhaseCompleted() string { return In(i18n.Locale()).PhaseCompleted() }
@@ -1779,11 +1929,11 @@ func (msgs Messages) SettingsConfirmQuitHint() string {
 	return Catalog.Format(msgs.locale, "settingsConfirmQuitHint", nil)
 }
 
-// SettingsConnectionsHint says "Connection changes apply on next launch. Unknown magnets use only specified trackers or peers to fetch metadata."
+// SettingsConnectionsHint says "Listening port, DHT and PEX settings apply on next launch. Unresolved magnets use their specified trackers or peers t…"
 // in the language the app shows.
 func SettingsConnectionsHint() string { return In(i18n.Locale()).SettingsConnectionsHint() }
 
-// SettingsConnectionsHint says "Connection changes apply on next launch. Unknown magnets use only specified trackers or peers to fetch metadata."
+// SettingsConnectionsHint says "Listening port, DHT and PEX settings apply on next launch. Unresolved magnets use their specified trackers or peers t…"
 // in the language of msgs.
 func (msgs Messages) SettingsConnectionsHint() string {
 	return Catalog.Format(msgs.locale, "settingsConnectionsHint", nil)
@@ -2071,6 +2221,26 @@ func SettingsNotifyErrorHint() string { return In(i18n.Locale()).SettingsNotifyE
 // in the language of msgs.
 func (msgs Messages) SettingsNotifyErrorHint() string {
 	return Catalog.Format(msgs.locale, "settingsNotifyErrorHint", nil)
+}
+
+// SettingsPeerProxyFallback says "Retry peers through the system network"
+// in the language the app shows.
+func SettingsPeerProxyFallback() string { return In(i18n.Locale()).SettingsPeerProxyFallback() }
+
+// SettingsPeerProxyFallback says "Retry peers through the system network"
+// in the language of msgs.
+func (msgs Messages) SettingsPeerProxyFallback() string {
+	return Catalog.Format(msgs.locale, "settingsPeerProxyFallback", nil)
+}
+
+// SettingsPeerProxyFallbackHint says "After a TCP proxy failure, try the system route, including TUN. This may expose your IP. Applies to new connections."
+// in the language the app shows.
+func SettingsPeerProxyFallbackHint() string { return In(i18n.Locale()).SettingsPeerProxyFallbackHint() }
+
+// SettingsPeerProxyFallbackHint says "After a TCP proxy failure, try the system route, including TUN. This may expose your IP. Applies to new connections."
+// in the language of msgs.
+func (msgs Messages) SettingsPeerProxyFallbackHint() string {
+	return Catalog.Format(msgs.locale, "settingsPeerProxyFallbackHint", nil)
 }
 
 // SettingsPex says "Enable peer exchange (PEX)"

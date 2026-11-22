@@ -51,11 +51,16 @@ func TestLocalSwarmThroughSystemProxyRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 	var announces, tunnels atomic.Int32
+	var denyProxy atomic.Bool
 	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodConnect {
 			if r.Host != "192.0.2.1:6881" {
 				t.Errorf("unexpected tunnel destination %q", r.Host)
 				w.WriteHeader(http.StatusBadGateway)
+				return
+			}
+			if denyProxy.Load() {
+				w.WriteHeader(http.StatusForbidden)
 				return
 			}
 			upstream, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", seed.LocalPort()))
@@ -146,5 +151,35 @@ func TestLocalSwarmThroughSystemProxyRoute(t *testing.T) {
 	got, err := os.ReadFile(filepath.Join(record.Destination, "payload.txt"))
 	if err != nil || !bytes.Equal(got, payload) {
 		t.Fatalf("proxied download contents differ: %v", err)
+	}
+	denyProxy.Store(true)
+	manager, err := session.Open(t.TempDir(), New(settings), settings, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+	deniedCtx, stop := context.WithTimeout(t.Context(), 5*time.Second)
+	defer stop()
+	if _, err = manager.Import(deniedCtx, session.Import{Source: source, Destination: t.TempDir(), Run: true, SeedRatio: -1}); err != nil {
+		t.Fatal(err)
+	}
+	for {
+		snap := manager.Snapshot()
+		if len(snap.Tasks) != 1 {
+			t.Fatalf("expected one imported task, got %d", len(snap.Tasks))
+		}
+		task, failure := snap.Tasks[0], snap.PeerProxy
+		if failure.Code == http.StatusForbidden && task.Phase == session.PhaseWaiting &&
+			len(task.Diagnostics) == 1 && task.Diagnostics[0].State == "ok" {
+			if failure.Failure != session.PeerProxyResponse || failure.FallbackTried || task.Done != 0 || task.Peers != 0 {
+				t.Fatalf("unexpected peer diagnostics: %+v, phase=%s done=%d peers=%d", failure, task.Phase, task.Done, task.Peers)
+			}
+			break
+		}
+		select {
+		case <-deniedCtx.Done():
+			t.Fatalf("missing CONNECT refusal in session: %+v", snap.PeerProxy)
+		case <-time.After(20 * time.Millisecond):
+		}
 	}
 }
